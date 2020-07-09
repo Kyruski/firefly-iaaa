@@ -28,8 +28,11 @@ setuptools.setup(
     packages=setuptools.PEP420PackageFinder.find('src'),
     package_dir={'': 'src'},
     install_requires=[
-        'oauthlib==3.1.0',
+        'firefly-framework>=1.0.17',
     ],
+    extras_require={
+        'Oauth2 Server': ['oauthlib==3.1.0'],
+    },
     classifiers=[
         "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
