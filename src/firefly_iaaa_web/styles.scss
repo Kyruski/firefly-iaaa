@@ -1,0 +1,124 @@
+/*!
+ * Copyright (c) 2019 JD Williams
+ *
+ * This file is part of Firefly, a Python SOA framework built by JD Williams. Firefly is free software; you can
+ * redistribute it and/or modify it under the terms of the GNU General Public License as published by the
+ * Free Software Foundation; either version 3 of the License, or (at your option) any later version.
+ *
+ * Firefly is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+ * Public License for more details. You should have received a copy of the GNU Lesser General Public
+ * License along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * You should have received a copy of the GNU General Public License along with Firefly. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+
+@import "~tailwindcss";
+@import "firefly_web/styles";
+
+body, p {
+  @include font-size(20px);
+}
+
+h1, .h1 {
+  font-weight: bold;
+  @include font-size(40px);
+}
+
+form {
+  max-width: 800px;
+}
+
+select, input, textarea, form button {
+  width: 100%;
+  line-height: 1.5;
+  padding: 10px 10px;
+  border: 1px solid var(--form-element-border);
+  margin-top: 15px;
+  color: var(--default-font-color);
+  background: var(--form-element-background);
+  transition: background-color 0.3s cubic-bezier(0.57, 0.21, 0.69, 1.25),
+    transform 0.3s cubic-bezier(0.57, 0.21, 0.69, 1.25);
+}
+
+//select:focus, input:focus, textarea:focus, form button:focus {
+//  background: var(--form-element-background-focus);
+//}
+
+select:focus, input:focus, textarea:focus {
+  transform: scale(1.02);
+}
+
+fieldset {
+  border: 1px solid #ccc;
+  padding: 0 15px 15px 15px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+//div.field-group {
+//  margin-top: 5px;
+//  position: relative;
+//  padding: 20px 10px 0 10px;
+//  display: block;
+//  width: 100%;
+//
+//  & label {
+//    color: var(--default-font-color);
+//    position: absolute;
+//    left: 20px;
+//    top: 25px;
+//    font-size: 16px;
+//    animation: ease-out;
+//    transition: 0.33s;
+//  }
+//
+//  & input {
+//    width: 100%;
+//
+//    &.form-checkbox-input {
+//      width: unset;
+//      margin: 10px 0 0 10px;
+//    }
+//  }
+//
+//  & select {
+//    min-width: 200px;
+//    padding: 3px;
+//    color: var(--default-font-color)
+//  }
+//
+//  & input:focus, & input.has-value, & select, & input.form-time-input, & input.form-date-input {
+//    + label {
+//      left: 15px;
+//      top: 0;
+//      font-size: 13px;
+//    }
+//  }
+//
+//  &.error {
+//    & input {
+//      border-color: var(--error-color);
+//    }
+//
+//    & label {
+//      color: var(--error-color) !important;
+//    }
+//  }
+//
+//  & .errors {
+//    color: var(--error-color);
+//    font-size: 13px;
+//
+//    & ul {
+//      margin-left: 15px;
+//    }
+//
+//    & li {
+//      list-style-type: disc;
+//    }
+//  }
+//}
