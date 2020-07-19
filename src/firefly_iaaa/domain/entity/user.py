@@ -53,8 +53,8 @@ class User(ff.AggregateRoot):
     # Custom fields
     created_at: datetime = ff.now()
     deleted_at: datetime = ff.optional(datetime)
-    password_hash: str = ff.optional(str, length=32)
-    salt: str = ff.hidden()
+    password_hash: str = ff.optional(str, length=32, internal=True)
+    salt: str = ff.hidden(internal=True)
     groups: List[str] = ff.list_()
     claims: List[str] = ff.list_()
 

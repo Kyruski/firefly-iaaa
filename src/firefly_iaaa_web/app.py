@@ -28,8 +28,8 @@ from firefly.ui.web.components.layouts.default import compose, default_layout
 from firefly.ui.web.js_libs.mithril import m
 from firefly.ui.web.polyfills import *  # __:skip
 
-# from iam_web.components.clients_page import ClientsPage
-# from iam_web.components.main_menu import MainMenu
+# from firefly_iaaa_web.components.clients_page import ClientsPage
+# from firefly_iaaa_web.components.main_menu import MainMenu
 
 m.route.prefix = ''
 

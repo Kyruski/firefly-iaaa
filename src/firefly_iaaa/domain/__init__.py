@@ -12,6 +12,6 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from iam.domain.entity import *
-from iam.domain.error import *
-from iam.domain.value_object import *
+from firefly_iaaa.domain.entity import *
+from firefly_iaaa.domain.error import *
+from firefly_iaaa.domain.value_object import *

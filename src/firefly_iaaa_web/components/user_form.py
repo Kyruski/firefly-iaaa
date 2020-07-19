@@ -15,9 +15,9 @@
 from firefly.ui.web.polyfills import *  # __:skip
 from firefly.ui.web.js_libs.mithril import m
 from firefly.ui.web import bus, Form
-from iam_web.state import state
+from firefly_iaaa_web.state import state
 
-from iam.domain.entity.user import User
+from firefly_iaaa.domain.entity.user import User
 
 
 # __pragma__('opov')

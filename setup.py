@@ -31,7 +31,7 @@ setuptools.setup(
         'firefly-framework>=1.0.17',
     ],
     extras_require={
-        'Oauth2 Server': ['oauthlib==3.1.0'],
+        'AWS Cognito Support': ['firefly-aws>=1.0.19'],
     },
     classifiers=[
         "Programming Language :: Python :: 3.7",

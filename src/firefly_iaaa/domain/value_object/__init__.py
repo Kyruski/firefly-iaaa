@@ -24,4 +24,4 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from iam.domain.value_object.address import Address
+from firefly_iaaa.domain.value_object.address import Address

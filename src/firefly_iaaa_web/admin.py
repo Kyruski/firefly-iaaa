@@ -17,8 +17,8 @@ from firefly.ui.web.js_libs.mithril import m
 from firefly.ui.web.plugins import add_menu_item, add_route
 from firefly.ui.web.polyfills import *  # __:skip
 
-from iam.domain.entity.user import User
-from iam.domain.entity.client import Client
+from firefly_iaaa.domain.entity.user import User
+from firefly_iaaa.domain.entity.client import Client
 
 add_menu_item(m('div.ff-title', 'IAM'))
 add_menu_item(m(menu_item('Users', icon='solid/users', route='/iam/users')))

@@ -18,8 +18,8 @@ import firefly as ff
 from oauthlib.oauth2 import RequestValidator, Server
 
 import iam.domain as iam
-from iam.domain.entity.grant import Grant
-from iam.domain.service.request_validator import RequestValidator as IRequestValidator
+from firefly_iaaa.domain.entity.grant import Grant
+from firefly_iaaa.domain.service.request_validator import RequestValidator as IRequestValidator
 
 
 class OauthlibRequestValidator(RequestValidator):
