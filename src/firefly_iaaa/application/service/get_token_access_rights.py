@@ -9,4 +9,10 @@ class GetTokenAccessRights(ff.ApplicationService):
 
     def __call__(self, event: dict, **kwargs):
         print(event)
+        event['response'] = {
+            'groupOverrideDetails': {
+                'groupsToOverride': ['groupA', 'groupB'],
+                'iamRolesToOverride': ['distributed_events.Activity.write', 'distributed_events.Activity.admin']
+            }
+        }
         return event

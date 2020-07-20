@@ -19,7 +19,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='firefly-iaaa',
-    version='0.1.1',
+    version='0.1.2',
     author="JD Williams",
     author_email="me@jdwilliams.xyz",
     description="Bounded context for users of your application.",
@@ -28,6 +28,7 @@ setuptools.setup(
     packages=setuptools.PEP420PackageFinder.find('src'),
     package_dir={'': 'src'},
     install_requires=[
+        'bcrypt>=3.1.7',
         'firefly-framework>=1.0.17',
     ],
     extras_require={

@@ -32,6 +32,6 @@ class FireflyCli:
         def group_crud(self):
             pass
 
-        @ff.crud.cli(target=domain.Claim)
+        @ff.crud.cli(target=domain.Role)
         def role_crud(self):
             pass

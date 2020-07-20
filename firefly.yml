@@ -1,23 +1,5 @@
-project: todo
-
 contexts:
-  firefly:
-  iam:
-    bucket: firefly-aws-extension
-    storage:
-      services:
-        dynamodb: ~
-      aggregates:
-        default: dynamodb
-
-#    storage:
-#      connections:
-#        sqlite:
-#          type: db_api
-#          driver: sqlite
-#          host: ":memory:"
-#      default: sqlite
+  firefly: ~
 
 environments:
-  dev:
-    provider: aws
+  dev: ~

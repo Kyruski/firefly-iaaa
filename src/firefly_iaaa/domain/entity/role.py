@@ -17,6 +17,6 @@ from __future__ import annotations
 import firefly as ff
 
 
-class Claim(ff.AggregateRoot):
+class Role(ff.AggregateRoot):
     id: str = ff.id_()
     name: str = ff.required()
