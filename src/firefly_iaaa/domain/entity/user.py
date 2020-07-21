@@ -20,6 +20,7 @@ from typing import List
 import firefly as ff
 
 from firefly_iaaa.domain.value_object.address import Address
+from .role import Role
 
 # __pragma__('skip')
 import bcrypt
@@ -55,7 +56,7 @@ class User(ff.AggregateRoot):
     deleted_at: datetime = ff.optional(datetime)
     password_hash: str = ff.optional(str, length=32, internal=True)
     salt: str = ff.hidden(internal=True)
-    groups: List[str] = ff.list_()
+    roles: List[Role] = ff.list_()
 
     # __pragma__('skip')
     @classmethod

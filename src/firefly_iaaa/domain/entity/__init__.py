@@ -12,8 +12,8 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
+from .scope import Scope
 from .role import Role
-from .group import Group
 from .user import User
 
 try:

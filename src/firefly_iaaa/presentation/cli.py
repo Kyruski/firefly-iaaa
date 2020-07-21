@@ -15,7 +15,7 @@
 from __future__ import annotations
 
 import firefly as ff
-import iam.domain as domain
+import firefly_iaaa.domain as domain
 
 
 @ff.cli(device_id='firefly')
@@ -28,10 +28,10 @@ class FireflyCli:
         def user_crud(self):
             pass
 
-        @ff.crud.cli(target=domain.Group)
+        @ff.crud.cli(target=domain.Role)
         def group_crud(self):
             pass
 
-        @ff.crud.cli(target=domain.Role)
+        @ff.crud.cli(target=domain.Scope)
         def role_crud(self):
             pass

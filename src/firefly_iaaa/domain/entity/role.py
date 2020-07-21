@@ -14,9 +14,14 @@
 
 from __future__ import annotations
 
+from typing import List
+
 import firefly as ff
+
+from .scope import Scope
 
 
 class Role(ff.AggregateRoot):
     id: str = ff.id_()
-    name: str = ff.required()
+    name: str = ff.required(str)
+    scopes: List[Scope] = ff.list_()

@@ -14,12 +14,11 @@
 
 from __future__ import annotations
 
-from typing import List
-
 import firefly as ff
 
 
-class Group(ff.AggregateRoot):
-    id: str = ff.id_()
-    name: str = ff.required(str)
-    claims: List[str] = ff.list_()
+class Scope(ff.AggregateRoot):
+    id: str = ff.id_(is_uuid=False)
+
+    def __str__(self):
+        return self.id
