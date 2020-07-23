@@ -12,4 +12,6 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
+from .add_role_to_user import AddRoleToUser
 from .get_token_access_rights import GetTokenAccessRights
+from .remove_role_from_user import RemoveRoleFromUser

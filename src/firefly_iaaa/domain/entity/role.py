@@ -23,5 +23,5 @@ from .scope import Scope
 
 class Role(ff.AggregateRoot):
     id: str = ff.id_()
-    name: str = ff.required(str)
+    name: str = ff.required(length=256, index=True)
     scopes: List[Scope] = ff.list_()
