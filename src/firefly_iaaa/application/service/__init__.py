@@ -13,5 +13,5 @@
 #  <http://www.gnu.org/licenses/>.
 
 from .add_role_to_user import AddRoleToUser
-from .get_token_access_rights import GetTokenAccessRights
+from .get_token_access_rights import *
 from .remove_role_from_user import RemoveRoleFromUser
