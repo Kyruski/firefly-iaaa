@@ -14,6 +14,7 @@
 
 from __future__ import annotations
 
+import os
 from datetime import datetime, date
 from typing import List
 
@@ -57,6 +58,7 @@ class User(ff.AggregateRoot):
     password_hash: str = ff.optional(str, length=32, internal=True)
     salt: str = ff.hidden(internal=True)
     roles: List[Role] = ff.list_()
+    tenant: str = ff.optional()
 
     # __pragma__('skip')
     @classmethod

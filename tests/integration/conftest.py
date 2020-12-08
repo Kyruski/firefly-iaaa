@@ -21,10 +21,7 @@ import pytest
 def config():
     return {
         'contexts': {
-            'iam': {
-                # 'entity_module': 'test_src.todo.domain.entity',
-                # 'container_module': 'test_src.todo.application',
-                # 'application_service_module': 'test_src.todo.application.service',
+            'firefly_iaaa': {
                 'storage': {
                     'connections': {
                         'sqlite': {
