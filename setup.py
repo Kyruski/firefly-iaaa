@@ -19,7 +19,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='firefly-iaaa',
-    version='0.1.7',
+    version='0.1.8',
     author="JD Williams",
     author_email="me@jdwilliams.xyz",
     description="Bounded context for users of your application.",
@@ -29,7 +29,7 @@ setuptools.setup(
     package_dir={'': 'src'},
     install_requires=[
         'bcrypt>=3.1.7',
-        'firefly-framework>=1.1.0',
+        'firefly-framework>=1.1.15',
     ],
     extras_require={
         'AWS Cognito Support': ['firefly-aws>=1.1.0'],
