@@ -12,16 +12,11 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
+from .authorization_code import AuthorizationCode
+from .bearer_token import BearerToken
+from .client import Client
+from .grant import Grant
 from .role import Role
 from .scope import Scope
 from .tenant import *
 from .user import User
-
-try:
-    import oauthlib
-    from .authorization_code import AuthorizationCode
-    from .bearer_token import BearerToken
-    from .client import Client
-    from .grant import Grant
-except ImportError:
-    pass

@@ -29,6 +29,7 @@ from __future__ import annotations
 from typing import List
 
 import firefly as ff
+from .tenant import Tenant
 
 authorization_code = 'Authorization Code'
 implicit = 'Implicit'
@@ -47,15 +48,16 @@ def response_type_choices(client_dto: dict):
 
 class Client(ff.AggregateRoot):
     id: str = ff.id_()
-    name: str = ff.required(str)
-    grant_type: str = ff.required(str, validators=[ff.IsOneOf((
+    name: str = ff.required()
+    grant_type: str = ff.required(validators=[ff.IsOneOf((
         authorization_code, implicit, resource_owner_password_credentials, client_credentials
     ))])
-    response_type: str = ff.optional(str, validators=[ff.IsOneOf(response_type_choices)])
-    scopes: str = ff.required(str)
-    default_redirect_uri: str = ff.required(str)
+    response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)])
+    scopes: str = ff.required()
+    default_redirect_uri: str = ff.optional()
     redirect_uris: List[str] = ff.list_()
     allowed_response_types: List[str] = ff.list_(validators=[ff.IsOneOf(('code', 'token'))])
+    tenant: Tenant = ff.optional(index=True)
 
     def validate_redirect_uri(self, redirect_uri: str):
         return redirect_uri in self.redirect_uris
