@@ -48,6 +48,7 @@ def response_type_choices(client_dto: dict):
 
 class Client(ff.AggregateRoot):
     id: str = ff.id_()
+    external_id: str = ff.optional(index=True)
     name: str = ff.required()
     grant_type: str = ff.required(validators=[ff.IsOneOf((
         authorization_code, implicit, resource_owner_password_credentials, client_credentials
