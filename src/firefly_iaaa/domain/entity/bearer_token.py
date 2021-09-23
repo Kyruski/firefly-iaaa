@@ -26,19 +26,45 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from typing import List
 
 import firefly as ff
-
-from firefly_iaaa.domain.entity.client import Client
-from firefly_iaaa.domain.entity.user import User
+import domain
 
 
 class BearerToken(ff.Entity):
-    client: Client = ff.required()
-    user: User = ff.required()
+    client: domain.Client = ff.required()
+    user: domain.User = ff.required()
     scopes: List[str] = ff.required()
-    access_token: str = ff.required(str, length=36)
-    refresh_token: str = ff.required(str, length=36)
-    expires_at: datetime = ff.required()
+    access_token: domain.Token = ff.required()
+    refresh_token: domain.Token = ff.required()
+    token_type: str = 'Bearer'
+    # expires_at: datetime = ff.required()
+    is_valid: bool = True
+    # expiration_time: timedelta = None
+
+    def validate_scopes(self, scopes: List[str]):
+        for scope in scopes:
+            if scope not in self.scopes:
+                return False
+        return True
+
+    def validate_access_token(self, access_token: str, client: domain.Client):
+        return self.access_token.validate(access_token)
+
+    def validate_refresh_token(self, refresh_token: str, client: domain.Client):
+        return self.refresh_token.validate(refresh_token)
+
+    def validate(self, scopes: List[str]):
+        return self.is_valid if self.validate_scopes(scopes) else False
+
+    def invalidate_access_token(self):
+        return self.access_token.invalidate()
+
+    def invalidate_refresh_token(self):
+        return self.refresh_token.invalidate()
+
+    def invalidate(self):
+        self.invalidate_access_token()
+        self.invalidate_refresh_token()
+        self.is_valid = False

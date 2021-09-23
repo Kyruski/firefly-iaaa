@@ -26,30 +26,49 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import List
+from datetime import datetime, timedelta
+import uuid
 
 import firefly as ff
-import domain
 
 
-class AuthorizationCode(ff.Entity):
-    client: domain.Client = ff.required()
-    user: domain.User = ff.required()
-    scopes: List[str] = ff.required()
-    redirect_uri: str = ff.optional()
-    code: domain.Token = ff.required()
-    # code: str = ff.required(str, length=36)
-    # expires_at: datetime = ff.required()
-    state = str = ff.required()
-    challenge: str = ff.optional(str, length=128)
-    challenge_method: str = ff.optional(str, length=6)
-    # is_valid: bool = True
+class Token(ff.Entity):
+    token: str = ff.required(str, length=36)
+    expires_at: datetime = ff.required()
+    token_type: str = ff.required(validators=[ff.IsOneOf(('access_token', 'refresh_token', 'authorization_code', 'invalid'))])
+
+    EXPIRATION_TIMEDELTAS: dict = {
+        'access_token': timedelta(hours=60),
+        'authorization_code': timedelta(minutes=10),
+        'refresh_token': timedelta(year=100),
+    }
+
+    def validate(self, token: str):
+        if self.EXPIRATION_TIMEDELTAS.get(self.token_type)
+        return self.token == token and self.token_type != 'invalid' and not self._has_expired()
 
     def invalidate(self):
-        # self.is_valid = False
-        self.code.invalidate()
-        pass
+        self.is_valid = False
 
-    def validate(self, client: domain.Client):
-        return self.code.validate() and self.client == client
+    def generate_new_token(self):
+        # if not self.validate():
+        #     return None
+        _token = str(uuid.uuid4())
+        _expires_at = self._generate_expiration_date()
+
+        new_token = Token(token=_token, expires_at=_expires_at, token_type=self.token_type)
+        self.invalidate_token()
+
+        return new_token
+
+    def _get_timedelta(self):
+        return self.EXPIRATION_TIMEDELTAS.get(self.token_type)
+
+    def _generate_expiration_date(self):
+        time_delta = self._get_timedelta()
+        if time_delta:
+            return datetime.utcnow() + time_delta
+        return None
+    
+    def _has_expired(self):
+        return self.expires_at < datetime.utcnow() if self.expires_at is not None else False
