@@ -13,6 +13,7 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from datetime import datetime, timedelta
 from typing import List
 
 import firefly as ff
@@ -26,110 +27,177 @@ from firefly_iaaa.domain.service.request_validator import RequestValidator as IR
 
 class OauthlibRequestValidator(RequestValidator):
     _registry: ff.Registry = None
-    _default_scopes: List[str] = ['abc', 'def', 'ghi']
+    # _default_scopes: List[str] = ['abc', 'def', 'ghi']
+    _valid_token_type_hints: List[str] = ['refresh_token', 'access_token']
 
     def authenticate_client(self, request, *args, **kwargs):
+        #TODO: set client, but have to get first
         u = request.body['username']
         user = self._registry(domain.User).find_one_matching( #! changed from iam.User to domain.User
-            (domain.User.c.email == u) | (domain.User.c.preferred_username == u) #! changed from iam.User to domain.User
+            (domain.User.email == u) | (domain.User.preferred_username == u) #! changed from iam.User.c to domain.User
         )
+        request.client = #??? set client, but have to get first
         return self.validate_user(
             request.body['username'], request.body['password'], user.client, request, *args, **kwargs
         )
 
     def authenticate_client_id(self, client_id, request, *args, **kwargs):
-        client = self._get_client(client_id)
-        if client:
-            request.client = client
-            return True
-        return False
+        #* Done? #? Ensure non-confidential client??
+        return self.validate_client_id(client_id, request)
+
+    def client_authentication_required(self, request, *args, **kwargs):
+        #TODO
+        return super().client_authentication_required(request, *args, **kwargs) #??? What to add
 
     def confirm_redirect_uri(self, client_id, code, redirect_uri, client, request, *args, **kwargs):
-        client = client or self._get_client(client_id)
+        #* Done?
+        # client = client or self._get_client(client_id) #! Should already have client
         grant = self._registry(domain.Grant).find_one_matching(
-            (domain.Grant.c.client_id == client.client_id) & (domain.Grant.c.code == code)
+            (domain.Grant.client_id == client.client_id) & (domain.Grant.code == code) #!!from Grant.c.code to Grant.code
         )
-        if not grant:
+        if grant is None:
             return False
         return grant.validate_redirect_uri(redirect_uri)
 
+    def get_code_challenge(self, code: domain.AuthorizationCode, request):
+        #?????
+        return code.challenge #? Might need to decode?
+        # return super().get_code_challenge(code, request)
+
+    def get_code_challenge_method(self, code: domain.AuthorizationCode, request): #? More checks needed?
+        #?? done?
+        # auth_code = self._get_authorization_code(code) #?? not needed?
+        return code.challenge_method
+        # pass 
+
     def get_default_redirect_uri(self, client_id, request, *args, **kwargs):
-        request.client = request.client or self._get_client(client_id)
+        #* Done
+        # Should already have request.client from validate client beforehand
+        # request.client = request.client or self._get_client(client_id)
         return request.client.default_redirect_uri
 
     def get_default_scopes(self, client_id, request, *args, **kwargs):
-        client = self._get_client(client_id)
-        return client.scopes
+        #* Done
+        # Should already have request.client from validate client beforehand
+        # client = self._get_client(client_id)
+        return request.client.scopes
         pass
 
     def get_original_scopes(self, refresh_token, request, *args, **kwargs):
-        btoken = self._get_bearer_token(refresh_token, 'refresh_token')
-        return btoken.scopes
-        pass
+        #* Done
+        bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
+        return bearer_token.scopes
 
     def introspect_token(self, token, token_type_hint, request, *args, **kwargs):
-        btoken = self._get_bearer_token(token, token_type_hint)
+        #! Needs more work
+        bearer_token, _ = self._get_bearer_token(token, token_type_hint)
         resp = {
-            'active': btoken.validate_access_token(),
-            'scope': btoken.scope,
-            'client_id': btoken.client.id,
-            # 'username': btoken.user.username,
-            'exp': btoken.access_token.expires_at,
-            '': None, #!!
-        }
-        pass
+            'active': bearer_token.validate_access_token(),
+            'scope': bearer_token.scope,
+            'client_id': bearer_token.client.client_id,
+            'username': bearer_token.user.username or bearer_token.user.email, #use whichever one isn't None
+            'token_type': 'access_token' if token == bearer_token.access_token else 'refresh_token',
+            'exp': bearer_token.expires_at.timestamp(),
+            'iat': bearer_token.created_at.timestamp(),
+            'nbf': bearer_token.activates_at.timestamp(),
+            'sub': '', #????????? user?
+            'aud': '', #????????? client?
+            'iss': 'pwrlab', #!!!! double check
+            'jti': 'JWT', #!! JWT string
+        } if bearer_token else None
+        request.token = resp
 
     def invalidate_authorization_code(self, client_id, code, request, *args, **kwargs):
-        auth_code = self._get_authorization_code(code)
-        auth_code.invalidate()
-        pass
+        #* Done
+        code.invalidate()
+
+    def is_pkce_required(self, client_id, request):
+        #* Done
+        return request.code.requires_pkce()
+
+    def is_within_original_scope(self, request_scopes, refresh_token, request, *args, **kwargs):
+        #* Done
+        bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
+        if bearer_token is None:
+            return False
+        return bearer_token.validate_scopes(request_scopes)
 
     def revoke_token(self, token, token_type_hint, request, *args, **kwargs):
-        btoken = self._get_bearer_token(token) #? Pass in token_type_hint as well?
-        btoken.invalidate()
-        pass
+        bearer_token, token_type = self._get_bearer_token(token, token_type_hint) #? Pass in token_type_hint as well?
+        if bearer_token is not None:
+            if token_type == 'refresh_token':
+                bearer_token.invalidate()
+            else:
+                bearer_token.invalidate_access_token()
 
     def save_authorization_code(self, client_id, code, request, *args, **kwargs):
-        auth_code = domain.AuthorizationCode(code) #!!!! Not done
-        return self._registry(domain.AuthorizationCode).append(auth_code)
-        pass
+        #!! COME BACK TO
+        auth_code = domain.AuthorizationCode(
+            client=request.client,
+            user=request.user,
+            scopes=request.scopes,
+            code=code['code'],
+            expires_at=datetime.utcnow() + timedelta(minutes=10),
+            redirect_uri=request.redirect_uri,
+            challenge=request.code_challenge,
+            challenge_method=request.code_challenge_method,
+            claims=kwargs.get('claims') or None,
+            )
+        self._registry(domain.AuthorizationCode).append(auth_code)
+        self._registry(domain.AuthorizationCode).commit()
 
     def save_bearer_token(self, token, request, *args, **kwargs):
-        btoken = domain.BearerToken(token) #!!!! Not done
-        return self._registry(domain.BearerToken).append(btoken)
-        pass
+        bearer_token = domain.BearerToken(
+            client=request.client,
+            user=request.user,
+            scopes=request.scopes,
+            access_token=token['access_token'],
+            expires_at=datetime.utcnow() + timedelta(seconds=token.expires_at),
+            refresh_token=token['refresh_token'],
+            token_type=token['token_type'],
+        ) #!!!! Not done
+        self._registry(domain.BearerToken).append(bearer_token)
+        self._registry(domain.BearerToken).commit()
+        return request.client.redirect_uri
 
     def validate_bearer_token(self, token, scopes, request):
-        btoken = self._get_bearer_token(token, ) #!?!?!!?! what is token_type_hint
-        return btoken.validate(scopes)
-        pass
+        bearer_token, _ = self._get_bearer_token(token) #!?!?!!?! what is token_type_hint
+        if bearer_token is None:
+            return False
+        return bearer_token.validate(scopes)
 
     def validate_client_id(self, client_id, request, *args, **kwargs):
-        client = self._get_client(client_id)
+        client = request.client or self._get_client(client_id)
         if client:
+            request.client = client
             return True
         return False
 
     def validate_code(self, client_id, code, client, request, *args, **kwargs):
         client = client or self._get_client(client_id)
         code = self._get_authorization_code(code)
-        return code.validate(client)
+        if code is not None and client is not None:
+            request.user = code.user
+            request.scopes = code.scopes
+            request.claims = code.claims if code.claims is not None else None
+            request.code.challenge = code.code.challenge if code.code.challenge is not None else None
+            request.code.challenge_method = code.code.challenge_method if code.code.challenge_method is not None else None
+            return code.validate(client)
+        return False
 
     def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
-        pass
+        return grant_type == client.grant_type
 
     def validate_redirect_uri(self, client_id, redirect_uri, request, *args, **kwargs):
-        request.client = request.client or self._get_client(client_id)
         return request.client.validate_redirect_uri(redirect_uri)
 
     def validate_refresh_token(self, refresh_token: str, client: domain.Client, request, *args, **kwargs):
         # client = request.client or client #self._get_client(refresh_token) #? Needed?
-        btoken = self._get_bearer_token(refresh_token, 'refresh_token')
-        if btoken is None:
+        bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
+        if bearer_token is None:
             return False
 
-        return btoken.validate_refresh_token(refresh_token, client)
-        # pass
+        return bearer_token.validate_refresh_token(refresh_token, client)
 
     def validate_response_type(self, client_id, response_type, client, request, *args, **kwargs):
         return client.validate_response_type(response_type)
@@ -143,22 +211,23 @@ class OauthlibRequestValidator(RequestValidator):
             return True
         return False
 
-    def get_code_challenge_method(self, code, request): #? More checks needed?
-        auth_code = self._get_authorization_code(code)
-        return auth_code.challenge_method
-        # pass 
-
     def _get_client(self, client_id: str):
         return self._registry(domain.Client).find(client_id) #! changed from iam.Client to domain.Client
 
-    def _get_bearer_token(self, token: str, token_type_hint: str):
-        if token_type_hint == 'access_token':
-            criteria = lambda x: (x.access_token.token == token)
-        elif token_type_hint == 'refresh_token':
-            criteria = lambda x: (x.refresh_token.token == token)
-        else:
-            return {'errorMessage': "Invalid token_type_hint. Only 'access_token' and 'refresh_token' are allowed"}
-        return self._registry(domain.BearerToken).find(criteria) #? Does a find need to be implemented? This could be refresh or access. Could pass in type of token
+    def _get_bearer_token(self, token: str, token_type_hint: str = None):
+        current_token_type = 0
+        access_criteria = lambda x: (x.access_token == token)
+        refresh_criteria = lambda x: (x.refresh_token == token)
+        criteria = [access_criteria, refresh_criteria]
+        if token_type_hint == self._valid_token_type_hints[1]:
+            current_token_type = 1
+        bearer_token = self._registry(domain.BearerToken).find(criteria[current_token_type]) #? Does a find need to be implemented? This could be refresh or access. Could pass in type of token
+        token_type = self._valid_token_type_hints[current_token_type]
+        if bearer_token is None:
+            current_token_type = (current_token_type + 1) % 2
+            bearer_token = self._registry(domain.BearerToken).find(criteria[current_token_type])
+            token_type = self._valid_token_type_hints[current_token_type]
+        return [bearer_token, token_type]
 
     def _get_authorization_code(self, code: str):
         return self._registry(domain.AuthorizationCode).find(code) if isinstance(code, str) else code

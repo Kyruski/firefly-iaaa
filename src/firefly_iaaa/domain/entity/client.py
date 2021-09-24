@@ -47,7 +47,7 @@ def response_type_choices(client_dto: dict):
 
 
 class Client(ff.AggregateRoot):
-    id: str = ff.id_()
+    client_id: str = ff.id_() # Needs to be 'client_id'
     external_id: str = ff.optional(index=True)
     name: str = ff.required()
     grant_type: str = ff.required(validators=[ff.IsOneOf((
@@ -71,3 +71,6 @@ class Client(ff.AggregateRoot):
             if scope not in self.scopes:
                 return False
         return True
+
+    def requires_pkce(self):
+        return self.grant_type == authorization_code

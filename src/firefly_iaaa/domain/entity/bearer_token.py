@@ -25,6 +25,7 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from datetime import datetime
 
 from typing import List
 
@@ -36,12 +37,15 @@ class BearerToken(ff.Entity):
     client: domain.Client = ff.required()
     user: domain.User = ff.required()
     scopes: List[str] = ff.required()
-    access_token: domain.Token = ff.required()
-    refresh_token: domain.Token = ff.required()
-    token_type: str = 'Bearer'
-    # expires_at: datetime = ff.required()
+    access_token: str = ff.required(str, length=36)
+    expires_at: datetime = ff.required()
+    refresh_token: str = ff.required(str, length=36)
+    refresh_expires_at: ff.optional()
+    created_at: datetime = ff.now()
+    activates_at: datetime = ff.optional(default=datetime.utcnow())
+    token_type: str = ff.optional(default='Bearer')
+    is_access_valid: bool = True
     is_valid: bool = True
-    # expiration_time: timedelta = None
 
     def validate_scopes(self, scopes: List[str]):
         for scope in scopes:
@@ -50,21 +54,29 @@ class BearerToken(ff.Entity):
         return True
 
     def validate_access_token(self, access_token: str, client: domain.Client):
-        return self.access_token.validate(access_token)
+        return self.access_token == access_token and self.is_access_valid and self._check_active(self.expires_at) and self.client == client
 
     def validate_refresh_token(self, refresh_token: str, client: domain.Client):
-        return self.refresh_token.validate(refresh_token)
+        return self.refresh_token == refresh_token and self.is_valid and self._check_active(self.expires_at) and self.client == client
 
     def validate(self, scopes: List[str]):
-        return self.is_valid if self.validate_scopes(scopes) else False
+        return self.token_type == 'Bearer' and self.is_valid and self.validate_scopes(scopes)
 
     def invalidate_access_token(self):
-        return self.access_token.invalidate()
-
-    def invalidate_refresh_token(self):
-        return self.refresh_token.invalidate()
+        self.is_access_valid = False
 
     def invalidate(self):
         self.invalidate_access_token()
-        self.invalidate_refresh_token()
         self.is_valid = False
+
+    def generate_new_token(self):
+        return #!!!!
+
+    def _has_expired(expires_at):
+        return expires_at < datetime.utcnow() if expires_at is not None else False
+
+    def _has_activated(self):
+        return self.activates_at < datetime.utcnow() if self.activates_at else True
+
+    def _check_active(self, expires_at):
+        return self._has_activated() and not self._has_expired(expires_at)

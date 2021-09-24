@@ -38,18 +38,16 @@ class AuthorizationCode(ff.Entity):
     user: domain.User = ff.required()
     scopes: List[str] = ff.required()
     redirect_uri: str = ff.optional()
-    code: domain.Token = ff.required()
-    # code: str = ff.required(str, length=36)
-    # expires_at: datetime = ff.required()
+    claims: dict = ff.optional()
+    code: str = ff.required(str, length=36)
+    expires_at: datetime = ff.required()
     state = str = ff.required()
     challenge: str = ff.optional(str, length=128)
     challenge_method: str = ff.optional(str, length=6)
-    # is_valid: bool = True
+    is_valid: bool = True
 
     def invalidate(self):
-        # self.is_valid = False
-        self.code.invalidate()
-        pass
+        self.is_valid = False
 
-    def validate(self, client: domain.Client):
-        return self.code.validate() and self.client == client
+    def validate(self, client: domain.Client, client_id: str):
+        return self.is_valid and (client == self.client or client_id == self.client.client_id)
