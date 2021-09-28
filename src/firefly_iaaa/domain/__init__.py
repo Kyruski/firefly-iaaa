@@ -15,3 +15,4 @@
 from firefly_iaaa.domain.entity import *
 from firefly_iaaa.domain.error import *
 from firefly_iaaa.domain.value_object import *
+from firefly_iaaa.domain.service import *

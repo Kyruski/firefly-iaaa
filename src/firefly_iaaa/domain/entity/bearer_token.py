@@ -30,17 +30,19 @@ from datetime import datetime
 from typing import List
 
 import firefly as ff
-import domain
+from firefly_iaaa.domain.entity.client import Client
+from firefly_iaaa.domain.entity.user import User
+
 
 
 class BearerToken(ff.Entity):
-    client: domain.Client = ff.required()
-    user: domain.User = ff.required()
+    client: Client = ff.required()
+    user: User = ff.required()
     scopes: List[str] = ff.required()
     access_token: str = ff.required(str, length=36)
-    expires_at: datetime = ff.required()
     refresh_token: str = ff.required(str, length=36)
-    refresh_expires_at: ff.optional()
+    expires_at: datetime = ff.required()
+    refresh_expires_at: datetime = ff.optional()
     created_at: datetime = ff.now()
     activates_at: datetime = ff.optional(default=datetime.utcnow())
     token_type: str = ff.optional(default='Bearer')
@@ -60,7 +62,7 @@ class BearerToken(ff.Entity):
         return self.refresh_token == refresh_token and self.is_valid and self._check_active(self.expires_at) and self.client == client
 
     def validate(self, scopes: List[str]):
-        return self.token_type == 'Bearer' and self.is_valid and self.validate_scopes(scopes)
+        return self.token_type == 'Bearer' and self.is_valid and self.validate_scopes(scopes) and self.validate_access_token() and self.validate_refresh_token()
 
     def invalidate_access_token(self):
         self.is_access_valid = False

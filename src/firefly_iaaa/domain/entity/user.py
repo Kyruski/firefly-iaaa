@@ -19,9 +19,8 @@ from datetime import datetime, date
 from typing import List
 
 import firefly as ff
-
+from firefly_iaaa.domain.entity.role import Role
 from firefly_iaaa.domain.value_object.address import Address
-from .role import Role
 
 # __pragma__('skip')
 import bcrypt
@@ -58,7 +57,7 @@ class User(ff.AggregateRoot):
     password_hash: str = ff.optional(length=32)
     salt: str = ff.optional()
     roles: List[Role] = ff.list_()
-    tenant: str = ff.optional()
+    client_id: str = ff.optional()
 
     # __pragma__('skip')
     @classmethod

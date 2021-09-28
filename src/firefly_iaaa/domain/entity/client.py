@@ -29,6 +29,7 @@ from __future__ import annotations
 from typing import List
 
 import firefly as ff
+from firefly_iaaa.domain.entity.user import User
 from .tenant import Tenant
 
 authorization_code = 'Authorization Code'
@@ -49,22 +50,27 @@ def response_type_choices(client_dto: dict):
 class Client(ff.AggregateRoot):
     client_id: str = ff.id_() # Needs to be 'client_id'
     external_id: str = ff.optional(index=True)
+    user: User = ff.required()
     name: str = ff.required()
     grant_type: str = ff.required(validators=[ff.IsOneOf((
         authorization_code, implicit, resource_owner_password_credentials, client_credentials
     ))])
     response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)])
-    scopes: str = ff.required()
-    default_redirect_uri: str = ff.optional()
-    redirect_uris: List[str] = ff.list_()
+    default_redirect_uri: List[str] = ff.list_()
+    scopes: List[str] = ff.required()
     allowed_response_types: List[str] = ff.list_(validators=[ff.IsOneOf(('code', 'token'))])
-    tenant: Tenant = ff.optional(index=True)
+    uses_pkce: bool = ff.optional(default=True)
+    _client_secret: str = ff.optional(str, length=36)
+    # tenant: domain.Tenant = ff.optional(index=True) #in place of user?
 
     def validate_redirect_uri(self, redirect_uri: str):
-        return redirect_uri in self.redirect_uris
+        return redirect_uri in self.default_redirect_uri
 
     def validate_response_type(self, response_type: str):
         return response_type in self.allowed_response_types
+
+    def validate_grant_type(self, grant_type: str):
+        return self.grant_type == grant_type
 
     def validate_scopes(self, scopes: List[str]):
         for scope in scopes:
@@ -72,5 +78,15 @@ class Client(ff.AggregateRoot):
                 return False
         return True
 
+    def validate(self):
+        return True
+
     def requires_pkce(self):
-        return self.grant_type == authorization_code
+        return self.uses_pkce
+
+    def is_confidential(self): #might not be best
+        return self.grant_type in (client_credentials, resource_owner_password_credentials) or \
+            (self.grant_type == authorization_code and not self.requires_pkce())
+
+    def validate_client_secret(self, secret):
+        return self._client_secret == secret
