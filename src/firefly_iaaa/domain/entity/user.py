@@ -36,11 +36,11 @@ class User(ff.AggregateRoot):
     family_name: str = ff.optional()
     middle_name: str = ff.optional()
     nickname: str = ff.optional()
-    preferred_username: str = ff.optional()
+    preferred_username: str = ff.optional(index=True)
     profile: str = ff.optional()
     picture: str = ff.optional()
     website: str = ff.optional()
-    email: str = ff.optional(validators=[ff.IsValidEmail()])
+    email: str = ff.optional(validators=[ff.IsValidEmail()], index=True)
     email_verified: bool = ff.optional(default=False)
     gender: str = ff.optional(validators=[ff.IsOneOf(('Male', 'Female'))])
     birthdate: date = ff.optional()
@@ -57,14 +57,13 @@ class User(ff.AggregateRoot):
     password_hash: str = ff.optional(length=32)
     salt: str = ff.optional()
     roles: List[Role] = ff.list_()
-    client_id: str = ff.optional()
+    client_id: str = ff.optional(index=True)
 
     # __pragma__('skip')
     @classmethod
     def create(cls, **kwargs):
         if 'email' in kwargs:
             kwargs['email'] = str(kwargs['email']).lower()
-
         try:
             kwargs['salt'] = bcrypt.gensalt()
             kwargs['password_hash'] = User._hash_password(kwargs['password'], kwargs['salt'])

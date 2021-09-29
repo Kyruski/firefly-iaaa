@@ -34,13 +34,14 @@ from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
 
 
-class AuthorizationCode(ff.Entity):
-    client: Client = ff.required()
+class AuthorizationCode(ff.AggregateRoot):
+    id_: str = ff.id_()
+    client: Client = ff.required(index=True)
     user: User = ff.required()
     scopes: List[str] = ff.required()
     redirect_uri: str = ff.optional()
     claims: dict = ff.optional()
-    code: str = ff.required(str, length=36)
+    code: str = ff.required(str, length=36, index=True)
     expires_at: datetime = ff.required()
     state: str = ff.required()
     challenge: str = ff.optional(str, length=128)
@@ -53,5 +54,9 @@ class AuthorizationCode(ff.Entity):
     def invalidate(self):
         self.is_valid = False
 
-    def validate(self, client: Client, client_id: str):
-        return self.is_valid and (client == self.client or client_id == self.client.client_id)
+    def is_expired(self):
+        return self.expires_at < datetime.utcnow()
+
+    def validate(self, client_id: str):
+        return self.is_valid and client_id == self.client.client_id and not self.is_expired()
+        # return self.is_valid and (client == self.client or client_id == self.client.client_id)

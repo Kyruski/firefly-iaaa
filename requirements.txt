@@ -1,3 +1,6 @@
 bcrypt==3.1.7
-firefly-framework==1.1.15
+firefly-framework==1.1.60
 .
+Jinja2==2.11.3
+oauthlib==3.1.1
+pytest==6.2.5

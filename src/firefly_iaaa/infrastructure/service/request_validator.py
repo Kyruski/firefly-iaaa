@@ -25,8 +25,6 @@ from oauthlib.oauth2.rfc6749 import tokens
 
 # import iam.domain as iam
 from firefly_iaaa import domain
-from firefly_iaaa.domain.entity import user
-from firefly_iaaa.domain.entity.user import User
 
 
 class OauthlibRequestValidator(RequestValidator):
@@ -34,8 +32,8 @@ class OauthlibRequestValidator(RequestValidator):
     _valid_token_type_hints: List[str] = ['refresh_token', 'access_token']
 
     def authenticate_client(self, request, *args, **kwargs):
-        if self._http_basic_authentication(request): #!this is not done!
-            return True
+        # if self._http_basic_authentication(request): #!this is not done!
+        #     return True
 
         return self._http_headers_authentication(request)
 
@@ -53,7 +51,7 @@ class OauthlibRequestValidator(RequestValidator):
     def client_authentication_required(self, request, *args, **kwargs):
         #Always authenticate when headers are present
         #!! Check if authentication string/header?
-        if request.body.get('username') and request.body.get('password'):
+        if (request.body.get('username') and request.body.get('password')) or request.body.get('client_secret'):
             return True
         client = self._get_client(request.client_id)
         if not client:
@@ -180,10 +178,12 @@ class OauthlibRequestValidator(RequestValidator):
         bearer_token, _ = self._get_bearer_token(token)
         if not bearer_token:
             return False
-        request.user = bearer_token.user
-        request.client = bearer_token.client
-        request.scopes = bearer_token.scopes
-        return bearer_token.validate(scopes)
+        if bearer_token.validate(scopes):
+            request.user = bearer_token.user
+            request.client = bearer_token.client
+            request.scopes = bearer_token.scopes
+            return True
+        return False
 
     def validate_client_id(self, client_id, request, *args, **kwargs):
         client = request.client or self._get_client(client_id)
@@ -199,15 +199,18 @@ class OauthlibRequestValidator(RequestValidator):
 
         if not auth_code: # or not client:
             return False
-        request.user = auth_code.user
-        request.scopes = auth_code.scopes
-        if auth_code.claims:
-            request.claims = auth_code.claims 
-        if auth_code.challenge:
-            request.code.challenge = auth_code.challenge
-        if auth_code.challenge_method:
-            request.code.challenge_method = auth_code.challenge_method
-        return auth_code.validate(client)
+        if auth_code.validate(client.client_id):
+            request.user = auth_code.user
+            request.scopes = auth_code.scopes
+            if auth_code.claims:
+                request.claims = auth_code.claims 
+            if client.requires_pkce():
+                if auth_code.challenge:
+                    request.code_challenge = auth_code.challenge
+                if auth_code.challenge_method:
+                    request.code_challenge_method = auth_code.challenge_method
+            return True
+        return False
 
     def validate_grant_type(self, client_id, grant_type, client, request, *args, **kwargs):
         # client = client or request.client or self._get_client(client_id)
@@ -229,7 +232,10 @@ class OauthlibRequestValidator(RequestValidator):
 
         if not bearer_token:
             return False
-        return bearer_token.validate_refresh_token(refresh_token, client)
+        if bearer_token.validate_refresh_token(refresh_token, client):
+            request.user = bearer_token.user
+            return True
+        return False
 
     def validate_response_type(self, client_id, response_type, client, request, *args, **kwargs):
         # client = client or request.client or self._get_client(client_id)
@@ -251,17 +257,14 @@ class OauthlibRequestValidator(RequestValidator):
         if not user:
             return False
         if user.correct_password(password):
-            request.user = user.email
+            request.user = user
             return True
         return False
 
     def _get_client(self, client_id: str):
-        try:
-            return self._registry(domain.Client).find(client_id) #! changed from iam.Client to domain.Client
-        except Exception as e:
-            if e.__str__() == 'near ".": syntax error':
-                return None
-            raise e
+        if client_id is None:
+            return None
+        return self._registry(domain.Client).find(client_id) #! changed from iam.Client to domain.Client
 
     def _get_user(self, username: str):
         return self._registry(domain.User).find( #! changed from iam.User to domain.User
@@ -269,11 +272,11 @@ class OauthlibRequestValidator(RequestValidator):
         )
 
     def _get_bearer_token(self, token: str, token_type_hint: str = None):
-        access_criteria = lambda x: (x.access_token == token)
         refresh_criteria = lambda x: (x.refresh_token == token)
+        access_criteria = lambda x: (x.access_token == token)
 
         current_token_type = 0
-        criteria = [access_criteria, refresh_criteria]
+        criteria = [refresh_criteria, access_criteria]
         if token_type_hint == self._valid_token_type_hints[1]:
             current_token_type = 1
 
@@ -289,7 +292,7 @@ class OauthlibRequestValidator(RequestValidator):
 
     def _get_authorization_code(self, code):
         code_str = code if isinstance(code, str) else code['code'] if isinstance(code, dict) else code.code
-        return self._registry(domain.AuthorizationCode).find((domain.AuthorizationCode.code == code_str)) if isinstance(code_str, str) else code
+        return self._registry(domain.AuthorizationCode).find(lambda x: (x.code == code_str)) if isinstance(code_str, str) else code
 
     def _http_basic_authentication(self, request):
         try:
@@ -350,17 +353,25 @@ class OauthlibRequestValidator(RequestValidator):
         return auth_string
 
     def _http_headers_authentication(self, request):
-        user = request.body['username']
-        client = self._registry(domain.Client).find( #! changed from iam.User to domain.User
-            (domain.Client.user.email == user) | (domain.Client.user.preferred_username == user) #! changed from iam.User.c to domain.User
-        )
+        user = request.body.get('username')
+        password = request.body.get('password')
+        if user and password:
+            client = self._registry(domain.Client).find( #! changed from iam.User to domain.User
+                (domain.Client.user.email == user) | (domain.Client.user.preferred_username == user) #! changed from iam.User.c to domain.User
+            )
 
-        if not client:
+            if not client:
+                return False
+            if client.user.correct_password(request.body['password']):
+                request.client = client
+                return True
+
+        client_secret = request.body.get('client_secret')
+        client = self._get_client(request.client_id)
+
+        if not client or not client_secret:
             return False
-        if client.user.correct_password(request.body['password']):
-            request.client = client
-            return True
-        return False
+        return client.client_secret == client_secret
 
     @staticmethod
     def _generate_bearer_token(token, request):

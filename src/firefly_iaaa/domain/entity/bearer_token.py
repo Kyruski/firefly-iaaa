@@ -35,12 +35,13 @@ from firefly_iaaa.domain.entity.user import User
 
 
 
-class BearerToken(ff.Entity):
-    client: Client = ff.required()
-    user: User = ff.required()
+class BearerToken(ff.AggregateRoot):
+    id_: str = ff.id_()
+    client: Client = ff.required(index=True)
+    user: User = ff.required(index=True)
     scopes: List[str] = ff.required()
-    access_token: str = ff.required(str, length=36)
-    refresh_token: str = ff.required(str, length=36)
+    access_token: str = ff.required(str, length=36, index=True)
+    refresh_token: str = ff.required(str, length=36, index=True)
     expires_at: datetime = ff.required()
     refresh_expires_at: datetime = ff.optional()
     created_at: datetime = ff.now()
@@ -55,11 +56,11 @@ class BearerToken(ff.Entity):
                 return False
         return True
 
-    def validate_access_token(self, access_token: str, client: domain.Client):
-        return self.access_token == access_token and self.is_access_valid and self._check_active(self.expires_at) and self.client == client
+    def validate_access_token(self, access_token: str, client: Client):
+        return self.access_token == access_token and self.is_access_valid and self._check_active() and self.client == client
 
-    def validate_refresh_token(self, refresh_token: str, client: domain.Client):
-        return self.refresh_token == refresh_token and self.is_valid and self._check_active(self.expires_at) and self.client == client
+    def validate_refresh_token(self, refresh_token: str, client: Client):
+        return self.refresh_token == refresh_token and self.is_valid and self._check_active() and self.client == client
 
     def validate(self, scopes: List[str]):
         return self.token_type == 'Bearer' and self.is_valid and self.validate_scopes(scopes) and self.validate_access_token() and self.validate_refresh_token()
@@ -74,11 +75,11 @@ class BearerToken(ff.Entity):
     def generate_new_token(self):
         return #!!!!
 
-    def _has_expired(expires_at):
-        return expires_at < datetime.utcnow() if expires_at is not None else False
+    def _has_expired(self):
+        return self.expires_at < datetime.utcnow() if self.expires_at is not None else False
 
     def _has_activated(self):
-        return self.activates_at < datetime.utcnow() if self.activates_at else True
+        return self.activates_at < datetime.utcnow()
 
-    def _check_active(self, expires_at):
-        return self._has_activated() and not self._has_expired(expires_at)
+    def _check_active(self):
+        return self._has_activated() and not self._has_expired()

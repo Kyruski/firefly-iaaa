@@ -50,13 +50,14 @@ def response_type_choices(client_dto: dict):
 class Client(ff.AggregateRoot):
     client_id: str = ff.id_() # Needs to be 'client_id'
     external_id: str = ff.optional(index=True)
-    user: User = ff.required()
+    user: User = ff.required(index=True)
     name: str = ff.required()
     grant_type: str = ff.required(validators=[ff.IsOneOf((
         authorization_code, implicit, resource_owner_password_credentials, client_credentials
     ))])
-    response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)])
-    default_redirect_uri: List[str] = ff.list_()
+    # response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)]) #??
+    default_redirect_uri: str = ff.optional()
+    redirect_uris: List[str] = ff.list_()
     scopes: List[str] = ff.required()
     allowed_response_types: List[str] = ff.list_(validators=[ff.IsOneOf(('code', 'token'))])
     uses_pkce: bool = ff.optional(default=True)
@@ -64,7 +65,7 @@ class Client(ff.AggregateRoot):
     # tenant: domain.Tenant = ff.optional(index=True) #in place of user?
 
     def validate_redirect_uri(self, redirect_uri: str):
-        return redirect_uri in self.default_redirect_uri
+        return redirect_uri in self.redirect_uris
 
     def validate_response_type(self, response_type: str):
         return response_type in self.allowed_response_types

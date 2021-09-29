@@ -72,16 +72,16 @@ def message_factory(container) -> ff.MessageFactory:
     return container.message_factory
 
 
-@pytest.fixture(scope="function")
-def registry(container, request) -> ff.Registry:
-    registry = container.registry
+# @pytest.fixture(scope="function")
+# def registry(container, request) -> ff.Registry:
+#     registry = container.registry
 
-    def teardown():
-        for context in container.context_map.contexts:
-            try:
-                context.container.db_api_interface_registry.disconnect_all()
-            except AttributeError:
-                pass
-    request.addfinalizer(teardown)
-    # registry.clear_cache()
-    return registry
+#     def teardown():
+#         for context in container.context_map.contexts:
+#             try:
+#                 context.container.db_api_interface_registry.disconnect_all()
+#             except AttributeError:
+#                 pass
+#     request.addfinalizer(teardown)
+#     # registry.clear_cache()
+#     return registry
