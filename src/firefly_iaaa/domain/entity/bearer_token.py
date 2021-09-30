@@ -63,7 +63,7 @@ class BearerToken(ff.AggregateRoot):
         return self.refresh_token == refresh_token and self.is_valid and self._check_active() and self.client == client
 
     def validate(self, scopes: List[str]):
-        return self.token_type == 'Bearer' and self.is_valid and self.validate_scopes(scopes) and self.validate_access_token() and self.validate_refresh_token()
+        return self.token_type == 'Bearer' and self.is_valid and self.validate_scopes(scopes) and self.is_access_valid and self._check_active()
 
     def invalidate_access_token(self):
         self.is_access_valid = False

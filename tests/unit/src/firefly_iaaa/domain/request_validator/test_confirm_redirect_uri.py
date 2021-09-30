@@ -1,7 +1,19 @@
-import pytest
+from __future__ import annotations
+from typing import List
+
+from oauthlib.common import Request
+from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
+
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
 
 
-def test_confirm_redirect_uri(validator, oauth_request_list, client_list):
-    for i in range(4):
-        assert validator.confirm_redirect_uri()
-    assert False
+
+def test_confirm_redirect_uri(validator: OauthlibRequestValidator, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode]):
+    for i in range(6):
+        for x in range(3):
+            code_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
+            auth_code = auth_codes_list[i][code_selector]
+            assert validator.confirm_redirect_uri('', auth_code.code, auth_code.redirect_uri, oauth_request_list[i].client, oauth_request_list[i]) == True
+            assert validator.confirm_redirect_uri('', auth_code.code, 'auth_code.redirect_uri', oauth_request_list[i].client, oauth_request_list[i]) == False
+            assert validator.confirm_redirect_uri('', auth_code.code, None, oauth_request_list[i].client, oauth_request_list[i]) == False
+            assert validator.confirm_redirect_uri('', '111', auth_code.redirect_uri, oauth_request_list[i].client, oauth_request_list[i]) == False

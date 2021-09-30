@@ -61,7 +61,7 @@ class Client(ff.AggregateRoot):
     scopes: List[str] = ff.required()
     allowed_response_types: List[str] = ff.list_(validators=[ff.IsOneOf(('code', 'token'))])
     uses_pkce: bool = ff.optional(default=True)
-    _client_secret: str = ff.optional(str, length=36)
+    client_secret: str = ff.optional(str, length=36)
     # tenant: domain.Tenant = ff.optional(index=True) #in place of user?
 
     def validate_redirect_uri(self, redirect_uri: str):

@@ -1,6 +1,40 @@
-import pytest
+from __future__ import annotations
+from datetime import datetime, timedelta
+from typing import List
+
+from oauthlib.common import Request
+from firefly_iaaa.domain.entity.bearer_token import BearerToken
+import random
+from firefly_iaaa.domain.entity.client import Client
+from firefly_iaaa.domain.entity.user import User
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
 
 
-def test_save_bearer_token(validator, oauth_request_list, client_list):
+def test_save_bearer_token(validator: OauthlibRequestValidator, oauth_request_list: List[Request], client_list: List[Client], user_list: List[User], registry):
+    for i in range(4):
+        token = {
+            'token_type': 'Bearer',
+            'access_token': gen_random_string(36),
+            'expires_in': 3600,
+            'scope': 'string of space separated authorized scopes',
+            'refresh_token': gen_random_string(36),
+            'state': 'given_by_client',
+        }
+        oauth_request_list[i].scopes = token['scope'].split(' ')
+        oauth_request_list[i].user = user_list[i]
+        assert validator.save_bearer_token(token, oauth_request_list[i]) == client_list[i].default_redirect_uri
+        saved_token = registry(BearerToken).find(lambda x: x.refresh_token == token['refresh_token'])
+        assert saved_token.token_type == token['token_type']
+        assert saved_token.access_token == token['access_token']
+        assert saved_token.scopes == token['scope'].split(' ')
+        assert saved_token.access_token == token['access_token']
+        assert saved_token.user == user_list[i]
+        assert saved_token.client == client_list[i]
+        assert (datetime.utcnow() + timedelta(seconds=token['expires_in'])) - saved_token.expires_at < timedelta(seconds=1)
 
-    assert False
+def gen_random_string(num: int = 6):
+    alpha = 'abcdefghijklmnopqrstuvwxyz1234567890'
+    string = ''
+    for _ in range(num):
+        string += alpha[random.randrange(0, 36)]
+    return string
