@@ -45,7 +45,7 @@ class AuthorizationCode(ff.AggregateRoot):
     expires_at: datetime = ff.required()
     state: str = ff.required()
     challenge: str = ff.optional(str, length=128)
-    challenge_method: str = ff.optional(str, length=6)
+    challenge_method: str = ff.optional(validators=[ff.IsOneOf(('S256', 'plain'))])
     is_valid: bool = True
 
     def validate_redirect_uri(self, redirect_uri: str):

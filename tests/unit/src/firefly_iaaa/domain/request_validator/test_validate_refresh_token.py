@@ -12,10 +12,16 @@ def test_validate_refresh_token(validator: OauthlibRequestValidator, oauth_reque
             bearer_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
             bearer_token = bearer_tokens_list[i][bearer_selector]
             assert oauth_request_list[i].user is None
+
+            # Checking if refresh token is valid
             assert validator.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client, oauth_request_list[i]) == (x == 0)
             assert (oauth_request_list[i].user == bearer_token.user) == (x == 0)
+
+            # Resetting user on Request
             oauth_request_list[i].user = None
             assert oauth_request_list[i].user is None
+
+            # Should not validate with mismatching token/client combo
             assert validator.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[(i + 1) % 6].client, oauth_request_list[i]) == False #Check for wrong client
             assert oauth_request_list[i].user is None
             assert validator.validate_refresh_token('bearer_token.refresh_token', oauth_request_list[i].client, oauth_request_list[i]) == False

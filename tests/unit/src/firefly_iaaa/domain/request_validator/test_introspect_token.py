@@ -51,7 +51,6 @@ def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_lis
                 assert_request_empty(oauth_request_list[i])
                 validator.introspect_token('bearer_token.access_token', token_type, oauth_request_list[i])
                 assert_request_empty(oauth_request_list[i])
-                exit()
 
 def assert_request_empty(request):
     assert request.token is None

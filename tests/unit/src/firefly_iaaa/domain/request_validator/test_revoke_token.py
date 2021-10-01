@@ -20,10 +20,13 @@ def test_revoke_token(validator: OauthlibRequestValidator, oauth_request_list: L
             found_token = registry(BearerToken).find(lambda x: x.refresh_token == token)
         assert found_token.is_valid == True
         assert found_token.is_access_valid == True
+
         validator.revoke_token('token', token_type_hint, oauth_request_list[i])
         assert found_token.is_valid == True
         assert found_token.is_access_valid == True
+
         validator.revoke_token(token, token_type_hint, oauth_request_list[i])
+
         if i < 3:
             assert found_token.is_valid == True
             assert found_token.is_access_valid == False

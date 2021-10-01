@@ -32,10 +32,10 @@ import firefly as ff
 from firefly_iaaa.domain.entity.user import User
 from .tenant import Tenant
 
-authorization_code = 'Authorization Code'
-implicit = 'Implicit'
-resource_owner_password_credentials = 'Resource Owner Password Credentials'
-client_credentials = 'Client Credentials'
+authorization_code = 'authorization_code'
+implicit = 'implicit'
+resource_owner_password_credentials = 'password'
+client_credentials = 'client_credentials'
 
 
 def response_type_choices(client_dto: dict):
@@ -50,7 +50,7 @@ def response_type_choices(client_dto: dict):
 class Client(ff.AggregateRoot):
     client_id: str = ff.id_() # Needs to be 'client_id'
     external_id: str = ff.optional(index=True)
-    user: User = ff.required(index=True)
+    # user: User = ff.required(index=True)
     name: str = ff.required()
     grant_type: str = ff.required(validators=[ff.IsOneOf((
         authorization_code, implicit, resource_owner_password_credentials, client_credentials
@@ -62,7 +62,17 @@ class Client(ff.AggregateRoot):
     allowed_response_types: List[str] = ff.list_(validators=[ff.IsOneOf(('code', 'token'))])
     uses_pkce: bool = ff.optional(default=True)
     client_secret: str = ff.optional(str, length=36)
-    # tenant: domain.Tenant = ff.optional(index=True) #in place of user?
+    is_active: bool = True
+    tenant: Tenant = ff.optional() #in place of user?
+    tenant_id: str = ff.optional(index=True)
+
+    @classmethod
+    def create(cls, **kwargs):
+        try:
+            kwargs['tenant_id'] = kwargs['tenant'].id
+        except KeyError:
+            raise ff.MissingArgument('tenant is a required field for Client::create()')
+        return cls(**ff.build_argument_list(kwargs, cls))
 
     def validate_redirect_uri(self, redirect_uri: str):
         return redirect_uri in self.redirect_uris
@@ -71,7 +81,8 @@ class Client(ff.AggregateRoot):
         return response_type in self.allowed_response_types
 
     def validate_grant_type(self, grant_type: str):
-        return self.grant_type == grant_type
+        print(self.grant_type, grant_type, self.grant_type == grant_type)
+        return self.grant_type == grant_type or (self.grant_type == authorization_code and grant_type == 'refresh')
 
     def validate_scopes(self, scopes: List[str]):
         for scope in scopes:
@@ -80,7 +91,7 @@ class Client(ff.AggregateRoot):
         return True
 
     def validate(self):
-        return True
+        return self.is_active
 
     def requires_pkce(self):
         return self.uses_pkce
@@ -91,3 +102,6 @@ class Client(ff.AggregateRoot):
 
     def validate_client_secret(self, secret):
         return self._client_secret == secret
+
+    def inactivate(self):
+        self.is_active = False

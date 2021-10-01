@@ -24,10 +24,7 @@ from oauthlib.oauth2 import RequestValidator, Server
 from oauthlib.common import Request
 from oauthlib.oauth2.rfc6749 import tokens
 
-# import iam.domain as iam
 from firefly_iaaa import domain
-from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
-from firefly_iaaa.domain.entity.client import Client
 
 
 class OauthlibRequestValidator(RequestValidator):
@@ -69,7 +66,7 @@ class OauthlibRequestValidator(RequestValidator):
         .. _`HTTP Basic Authentication Scheme`: https://tools.ietf.org/html/rfc1945#section-11.1
         """
 
-        # if self._http_basic_authentication(request): #!this is not done!
+        # if self._http_basic_authentication(request):
         #     return True
         return self._http_headers_authentication(request)
 
@@ -91,12 +88,7 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Authorization Code Grant
         """
-        # client = request.client or self._get_client(client_id)
-        # #? check if active?
-        # if not client:
-        #     return False
-        #Authenticate (not validate)
-        #*? Done? #? Ensure non-confidential client??
+
         if self.validate_client_id(client_id, request):
             return request.client.is_confidential()
         return False
@@ -129,14 +121,12 @@ class OauthlibRequestValidator(RequestValidator):
         .. _`Section 6`: https://tools.ietf.org/html/rfc6749#section-6
         """
         #Always authenticate when headers are present
-        #!! Check if authentication string/header?
         if (request.body.get('username') and request.body.get('password')) or request.body.get('client_secret'):
             return True
         client = self._get_client(request.client_id)
         if not client:
             return False
-        return client.is_confidential() #! Need more?
-        # return super().client_authentication_required(request, *args, **kwargs) #??? What to add
+        return client.is_confidential()
 
     def confirm_redirect_uri(self, client_id: str, code: str, redirect_uri: str, client: domain.Client, request: Request, *args, **kwargs):
         """Ensure that the authorization process represented by this authorization
@@ -159,8 +149,7 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Authorization Code Grant (during token request)
         """
-        #* Done?
-        # client = client or request.client or self._get_client(client_id)
+
         auth_code = self._get_authorization_code(code)
         if not auth_code:
             return False
@@ -193,17 +182,16 @@ class OauthlibRequestValidator(RequestValidator):
             - Authorization Code Grant - when PKCE is active
 
         """
-        #?????
-        auth_code = self._get_authorization_code(code) #?? not needed?
+
+        auth_code = self._get_authorization_code(code)
         #TODO: Might need to store encoded?
-        #TODO: Is the code the auth code object or the stirng?
 
         if not auth_code:
             return None
         #??! Might need to encrypt
         return auth_code.challenge #? Might need to decode?
 
-    def get_code_challenge_method(self, code: str, request: Request): #? More checks needed?
+    def get_code_challenge_method(self, code: str, request: Request):
         """Is called during the "token" request processing, when a
         ``code_verifier`` and a ``code_challenge`` has been provided.
 
@@ -221,9 +209,8 @@ class OauthlibRequestValidator(RequestValidator):
             - Authorization Code Grant - when PKCE is active
 
         """
-        #?? done?
-        auth_code = self._get_authorization_code(code) #?? not needed?
-        #TODO: Is the code the auth code object or the stirng?
+
+        auth_code = self._get_authorization_code(code)
 
         if not auth_code:
             return None
@@ -241,12 +228,7 @@ class OauthlibRequestValidator(RequestValidator):
             - Authorization Code Grant
             - Implicit Grant
         """
-        #* Done
-        # Should already have request.client from validate client beforehand
-        # client = request.client or self._get_client(client_id)
 
-        # if not client:
-        #     return None
         return request.client.default_redirect_uri
 
     def get_default_scopes(self, client_id: str, request: Request, *args, **kwargs):
@@ -263,13 +245,7 @@ class OauthlibRequestValidator(RequestValidator):
             - Resource Owner Password Credentials Grant
             - Client Credentials grant
         """
-        #* Done
-        # Should already have request.client from validate client beforehand
 
-        # client = request.client or self._get_client(client_id)
-
-        # if not client:
-        #     return None
         return request.client.scopes
 
     def get_original_scopes(self, refresh_token: str, request: Request, *args, **kwargs):
@@ -283,7 +259,6 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Refresh token grant
         """
-        #* Done
         bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
 
         if not bearer_token:
@@ -329,8 +304,7 @@ class OauthlibRequestValidator(RequestValidator):
         .. _`Introspect Claims`: https://tools.ietf.org/html/rfc7662#section-2.2
         .. _`JWT Claims`: https://tools.ietf.org/html/rfc7519#section-4
         """
-        #! Needs more work??
-        #! Does this have claims on the request?
+
         bearer_token, token_type = self._get_bearer_token(token, token_type_hint)
         if bearer_token is None:
             request.token = None
@@ -349,10 +323,8 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Authorization Code Grant
         """
-        #* Done
-        auth_code = self._get_authorization_code(code) #?? not needed?
 
-        #? check client_id (not needed?)
+        auth_code = self._get_authorization_code(code)
 
         if not auth_code:
             return
@@ -382,16 +354,7 @@ class OauthlibRequestValidator(RequestValidator):
 
         .. _`RFC7636`: https://tools.ietf.org/html/rfc7636
         """
-        #*! Done
-        #! Unsure if done
-        #! NOT DONE
-        # grant = self._registry(domain.Grant).find(
-        #     (domain.Grant.client_id == client_id) & (domain.Grant.code == request.code)
-        # )
-        # client = request.client or self._get_client(client_id)
-    
-        # if not client:
-        #     return False #??
+
         return request.client.requires_pkce()
 
     def is_within_original_scope(self, request_scopes: List[str], refresh_token: str, request: Request, *args, **kwargs):
@@ -414,7 +377,7 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Refresh token grant
         """
-        #* Done
+
         bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
 
         if not bearer_token:
@@ -432,7 +395,7 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Revocation Endpoint
         """
-        bearer_token, token_type = self._get_bearer_token(token, token_type_hint) #? Pass in token_type_hint as well?
+        bearer_token, token_type = self._get_bearer_token(token, token_type_hint)
 
         if not bearer_token:
             return
@@ -475,10 +438,9 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Authorization Code Grant
         """
-        #!! COME BACK TO
+
         auth_code = self._generate_authorization_code(code, request, kwargs.get('claims'))
         self._registry(domain.AuthorizationCode).append(auth_code)
-        # self._registry(domain.AuthorizationCode).commit() #??
 
     def save_bearer_token(self, token: dict, request: Request, *args, **kwargs):
         """Persist the Bearer token.
@@ -528,9 +490,8 @@ class OauthlibRequestValidator(RequestValidator):
             - Resource Owner Password Credentials Grant (might not associate a client)
             - Client Credentials grant
         """
-        bearer_token = self._generate_bearer_token(token, request) #!!!! Not done
+        bearer_token = self._generate_bearer_token(token, request)
         self._registry(domain.BearerToken).append(bearer_token)
-        # self._registry(domain.BearerToken).commit()
         return request.client.default_redirect_uri
 
     def validate_bearer_token(self, token: str, scopes: List[str], request: Request):
@@ -610,11 +571,13 @@ class OauthlibRequestValidator(RequestValidator):
             - Implicit Grant
         """
         client = request.client or self._get_client(client_id)
-        #? check if active?
+
         if not client:
             return False
-        request.client = client
-        return client.validate()
+        if client.validate():
+            request.client = client
+            return True
+        return False
 
     def validate_code(self, client_id: str, code: str, client: domain.Client, request: Request, *args, **kwargs):
         """Verify that the authorization_code is valid and assigned to the given
@@ -647,10 +610,10 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Authorization Code Grant
         """
-        # client = client or self._get_client(client_id)
+
         auth_code = self._get_authorization_code(code)
 
-        if not auth_code: # or not client:
+        if not auth_code:
             return False
         if auth_code.validate(client.client_id):
             request.user = auth_code.user
@@ -681,10 +644,6 @@ class OauthlibRequestValidator(RequestValidator):
             - Client Credentials Grant
             - Refresh Token Grant
         """
-        # client = client or request.client or self._get_client(client_id)
-
-        # if not client:
-        #     return False
         return client.validate_grant_type(grant_type)
 
     def validate_redirect_uri(self, client_id: str, redirect_uri: str, request: Request, *args, **kwargs):
@@ -703,10 +662,7 @@ class OauthlibRequestValidator(RequestValidator):
             - Authorization Code Grant
             - Implicit Grant
         """
-        # client = request.client or self._get_client(client_id)
 
-        # if not client:
-        #     return False
         return request.client.validate_redirect_uri(redirect_uri)
 
     def validate_refresh_token(self, refresh_token: str, client: domain.Client, request: Request, *args, **kwargs):
@@ -726,7 +682,7 @@ class OauthlibRequestValidator(RequestValidator):
             - Resource Owner Password Credentials Grant (also indirectly)
             - Refresh Token Grant
         """
-        # client = request.client or client #self._get_client(refresh_token) #? Needed?
+
         bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
 
         if not bearer_token:
@@ -750,10 +706,7 @@ class OauthlibRequestValidator(RequestValidator):
             - Authorization Code Grant
             - Implicit Grant
         """
-        # client = client or request.client or self._get_client(client_id)
 
-        # if not client:
-        #     return False
         return client.validate_response_type(response_type)
 
     def validate_scopes(self, client_id: str, scopes: List[str], client: domain.Client, request: Request, *args, **kwargs):
@@ -772,10 +725,7 @@ class OauthlibRequestValidator(RequestValidator):
             - Resource Owner Password Credentials Grant
             - Client Credentials Grant
         """
-        # client = client or request.client or self._get_client(client_id)
 
-        # if not client:
-        #     return False
         return client.validate_scopes(scopes)
 
     def validate_user(self, username: str, password: str, client: domain.Client, request: Request, *args, **kwargs):
@@ -808,11 +758,11 @@ class OauthlibRequestValidator(RequestValidator):
     def _get_client(self, client_id: str):
         if client_id is None:
             return None
-        return self._registry(domain.Client).find(client_id) #! changed from iam.Client to domain.Client
+        return self._registry(domain.Client).find(client_id)
 
     def _get_user(self, username: str):
-        return self._registry(domain.User).find( #! changed from iam.User to domain.User
-            lambda x: (x.email == username) | (x.preferred_username == username)#! changed from iam.User.c to domain.User
+        return self._registry(domain.User).find(
+            lambda x: (x.email == username) | (x.preferred_username == username)
         )
 
     def _get_bearer_token(self, token: str, token_type_hint: str = None):
@@ -824,7 +774,7 @@ class OauthlibRequestValidator(RequestValidator):
         if token_type_hint == self._valid_token_type_hints[1]:
             current_token_type = 1
 
-        bearer_token = self._registry(domain.BearerToken).find(criteria[current_token_type]) #? Does a find need to be implemented? This could be refresh or access. Could pass in type of token
+        bearer_token = self._registry(domain.BearerToken).find(criteria[current_token_type])
         token_type = self._valid_token_type_hints[current_token_type]
 
         if not bearer_token:
@@ -834,7 +784,7 @@ class OauthlibRequestValidator(RequestValidator):
 
         return [bearer_token, token_type]
 
-    def _get_authorization_code(self, code: Union[str, dict, AuthorizationCode]):
+    def _get_authorization_code(self, code: Union[str, dict, domain.AuthorizationCode]):
         code_str = code if isinstance(code, str) else code['code'] if isinstance(code, dict) else code.code
         return self._registry(domain.AuthorizationCode).find(lambda x: (x.code == code_str)) if isinstance(code_str, str) else code
 
@@ -849,11 +799,10 @@ class OauthlibRequestValidator(RequestValidator):
         if not client:
             return False
 
-        if client.validate_client_secret(client_secret): #! DO MORE
+        if client.validate_client_secret(client_secret):
             request.client = client
             return True
         return False
-        #! WHAT TO DO FROM HERE?!
 
     def _get_basic_auth(self, request: Request):
         auth_string = self._get_basic_auth_string(request)
@@ -876,7 +825,7 @@ class OauthlibRequestValidator(RequestValidator):
             return None
 
         try:
-            return map(unquote_plus, decoded_string.split(':', 1)) #Is it client secret instead?
+            return map(unquote_plus, decoded_string.split(':', 1))
         except ValueError:
             return None
 
@@ -903,32 +852,34 @@ class OauthlibRequestValidator(RequestValidator):
             user = self._registry(domain.User).find(
                 lambda x: (x.email == username) | (x.preferred_username == username)
             )
-            client = self._registry(domain.Client).find( #! changed from iam.User to domain.User
-                lambda x: (x.client_id == user.client_id) #! changed from iam.User.c to domain.User
-            )
+            if user.correct_password(request.body['password']):
+                client = self._registry(domain.Client).find(
+                    lambda x: (x.tenant_id == user.tenant.id) 
+                )
 
-            if not client:
-                return False
-            if client.user.correct_password(request.body['password']):
-                request.client = client
-                return True
-
+                if client:
+                    request.client = client
+                    return True
         client_secret = request.body.get('client_secret')
         client = self._get_client(request.client_id)
 
         if not client or not client_secret:
             return False
-        return client.client_secret == client_secret
+        if client.client_secret == client_secret:
+            request.client = client
+            return True
+        return False
 
     @staticmethod
     def _generate_bearer_token(token: dict, request: Request):
+        print(token)
         return domain.BearerToken(
             client=request.client,
             user=request.user,
             scopes=request.scopes,
             access_token=token['access_token'],
             expires_at=datetime.utcnow() + timedelta(seconds=token['expires_in']),
-            refresh_token=token['refresh_token'],
+            refresh_token=token.get('refresh_token'),
             token_type=token['token_type'],
         )
 
@@ -949,10 +900,8 @@ class OauthlibRequestValidator(RequestValidator):
 
     @staticmethod
     def _generate_introspection_response(bearer_token: domain.BearerToken, token: str, token_type: str, request: Request):
-        #! Needs more work??
         is_active = bearer_token.validate_access_token(token, request.client) if token_type == 'access_token' else bearer_token.validate_refresh_token(token, request.client)
         jti = str(uuid.uuid4())
-        # jti = bearer_token.access_token if token_type == 'access_token' else bearer_token.refresh_token
         resp = {
             'active': is_active,
             'scope': bearer_token.scopes,
@@ -975,14 +924,14 @@ class IamRequestValidator(): #does this need to inherit?
     def __init__(self, validator: OauthlibRequestValidator):
         self._server = Server(
             validator, #need to make sure this is instantiated
-            token_generator=tokens.signed_token_generator(
-                os.environ['PRIVATE_PEM_KEY'],
-                issuer="PwrLab"
-            ),
-            refresh_token_generator=tokens.signed_token_generator(
-                os.environ['PRIVATE_PEM_KEY'],
-                issuer="PwrLab"
-            ),
+            # token_generator=tokens.signed_token_generator(
+            #     os.environ['PRIVATE_PEM_KEY'],
+            #     issuer="PwrLab"
+            # ),
+            # refresh_token_generator=tokens.signed_token_generator(
+            #     os.environ['PRIVATE_PEM_KEY'],
+            #     issuer="PwrLab"
+            # ),
         )
 
     def validate_pre_auth_request(self, request: ff.Message):
@@ -997,6 +946,8 @@ class IamRequestValidator(): #does this need to inherit?
     def create_token_response(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
         headers, body, status = self._server.create_token_response(uri, http_method, body, headers)
+        print('headers : ', headers, '\n', 'body : ', body, '\n', 'status : ', status, '\n')
+        return headers, body, status
 
     def validate_post_auth_request(self, request: ff.Message):
         pass

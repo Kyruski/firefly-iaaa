@@ -20,6 +20,7 @@ from typing import List
 
 import firefly as ff
 from firefly_iaaa.domain.entity.role import Role
+from firefly_iaaa.domain.entity.tenant import Tenant
 from firefly_iaaa.domain.value_object.address import Address
 
 # __pragma__('skip')
@@ -57,7 +58,7 @@ class User(ff.AggregateRoot):
     password_hash: str = ff.optional(length=32)
     salt: str = ff.optional()
     roles: List[Role] = ff.list_()
-    client_id: str = ff.optional(index=True)
+    tenant: Tenant = ff.optional(index=True)
 
     # __pragma__('skip')
     @classmethod
