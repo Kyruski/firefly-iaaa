@@ -13,10 +13,15 @@
 #  <http://www.gnu.org/licenses/>.
 from __future__ import annotations
 from typing import Any, List
+import uuid
+import jwt
+import hashlib
+import os
+import re
+from base64 import urlsafe_b64encode
 
 import pytest
 import firefly as ff
-import firefly.infrastructure as ffi
 from datetime import datetime, timedelta
 
 import random
@@ -25,13 +30,7 @@ from firefly_iaaa.infrastructure.service.request_validator import OauthlibReques
 from firefly_iaaa.infrastructure.service.oauth_endpoints import IamRequestValidator
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
-from firefly_iaaa.domain.entity.client import Client
-from firefly_iaaa.domain.entity.grant import Grant
-from firefly_iaaa.domain.entity.role import Role
-from firefly_iaaa.domain.entity.scope import Scope
-from firefly_iaaa.domain.entity.tenant import Tenant
 from firefly_iaaa.domain.entity.user import User
-from oauthlib.common import Request
 
 
 @pytest.fixture()
@@ -40,6 +39,18 @@ def auth_service(container, cache):
     sut = container.build(IamRequestValidator, validator=validator)
     sut._cache = cache
     return sut
+
+def generate_token(request, token_type, issuer, secret):
+    token_info = {
+        'jti': str(uuid.uuid4()),
+        'aud': request['client_id'],
+        'iss': issuer,
+        'scope': ' '.join(request['scopes'])
+    }
+    if token_type == 'access_token':
+        token_info['exp'] = datetime.utcnow() + timedelta(seconds=request['expires_in'])
+    token = jwt.encode(token_info, secret, algorithm='HS256')
+    return token
 
 @pytest.fixture()
 def cache(container):
@@ -66,8 +77,8 @@ def bearer_messages_list(message_factory, bearer_tokens_list: List[BearerToken],
                     "client_secret": bearer_token.client.client_secret if i == 3 else None,
                     "code": auth_code.code,
                     "code_challenge": auth_code.challenge,
-                    "code_challenge_method": None,
-                    "code_verifier": auth_code.challenge,
+                    "code_challenge_method": auth_code.challenge_method,
+                    "code_verifier": auth_code.verifier,
                     "extra_credentials": None,
                     "redirect_uri": bearer_token.client.default_redirect_uri,
                     "refresh_token": bearer_token.refresh_token,
@@ -105,7 +116,7 @@ def bearer_messages_second_list(message_factory, bearer_tokens_second_list: List
                 "code": auth_code.code,
                 "code_challenge": auth_code.challenge,
                 "code_challenge_method": auth_code.challenge_method,
-                "code_verifier": auth_code.challenge,
+                "code_verifier": auth_code.verifier,
                 "extra_credentials": None,
                 "redirect_uri": bearer_token.client.default_redirect_uri,
                 "refresh_token": bearer_token.refresh_token,
@@ -129,10 +140,26 @@ def convert_grants(grant):
         return 'refresh'
     return grant
 
+def generate_code_challenge():
+    code_verifier = ''
+    code_verifier = urlsafe_b64encode(os.urandom(40)).decode('utf-8')
+    code_verifier = re.sub('[^a-zA-Z0-9]+', '', code_verifier)
+
+    code_challenge = urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode()).digest()
+    ).decode().rstrip('=')
+    code_challenge_method = 'S256'
+    return {
+        'code_verifier': code_verifier,
+        'code_challenge': code_challenge,
+        'code_challenge_method': code_challenge_method
+    }
+
 @pytest.fixture()
 def auth_codes_second_list(registry, client_list, user_list):
     codes = []
     for i in range(25):
+        code_challenge = generate_code_challenge()
         auth_code = AuthorizationCode(
             client=client_list[i % 6],
             user=user_list[6],
@@ -141,23 +168,29 @@ def auth_codes_second_list(registry, client_list, user_list):
             code=f'{gen_random_string(34)}{i % 6}{1}',
             expires_at=datetime.utcnow() + timedelta(minutes=1),
             state='abc',
-            challenge=f'{gen_random_string(126)}{i % 6}{1}',
-            challenge_method=f'plain',
+            challenge=code_challenge['code_challenge'],
+            challenge_method=code_challenge['code_challenge_method'],
+            verifier=code_challenge['code_verifier'],
         )
         registry(AuthorizationCode).append(auth_code)
         codes.append(auth_code)
     return codes
 
 @pytest.fixture()
-def bearer_tokens_second_list(registry, client_list, user_list):
+def bearer_tokens_second_list(registry, client_list, user_list, issuer, secret):
     tokens = []
     for i in range(25):
+        token_info = {
+            'client_id': client_list[i % 6].client_id,
+            'expires_in': 3600,
+            'scopes': client_list[i % 6].scopes,
+        }
         bearer_token = BearerToken(
             client=client_list[i % 6],
             user=user_list[6],
             scopes=client_list[i % 6].scopes,
-            access_token=f'{gen_random_string(34)}{i % 6}{1}',
-            refresh_token=f'{i % 6}{1}{gen_random_string(34)}',
+            access_token=generate_token(token_info, 'access_token', issuer, secret),
+            refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
             expires_at=datetime.utcnow() + timedelta(minutes=60),
         )
         registry(BearerToken).append(bearer_token)

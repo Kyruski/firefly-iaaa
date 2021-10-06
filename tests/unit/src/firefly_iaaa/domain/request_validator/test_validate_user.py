@@ -23,5 +23,5 @@ def test_validate_user(validator: OauthlibRequestValidator, oauth_request_list: 
         assert oauth_request_list[i].user is None
 
         # Should not validate with wrong username
-        assert validator.validate_user(f'nouser{i}@fake.com', f'password{i + 1}', oauth_request_list[i].client, oauth_request_list[i]) == False
+        assert validator.validate_user(f'notuser{i}@fake.com', f'password{i + 1}', oauth_request_list[i].client, oauth_request_list[i]) == False
         assert oauth_request_list[i].user is None

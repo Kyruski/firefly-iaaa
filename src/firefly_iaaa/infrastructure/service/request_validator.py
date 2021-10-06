@@ -12,11 +12,9 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 from __future__ import annotations
-import uuid
 from datetime import datetime, timedelta
 from typing import List, Union
-import base64
-from urllib.parse import unquote_plus
+import jwt
 
 import firefly as ff
 from oauthlib.oauth2 import RequestValidator
@@ -28,6 +26,12 @@ from firefly_iaaa import domain
 class OauthlibRequestValidator(RequestValidator):
     _registry: ff.Registry = None
     _valid_token_type_hints: List[str] = ['refresh_token', 'access_token']
+
+    def __init__(self):
+        with open('key.pem', 'rb') as privatefile:
+            pem_key = privatefile.read()
+
+        self.secret = pem_key
 
     def authenticate_client(self, request: Request, *args, **kwargs):
         """Authenticate client through means outside the OAuth 2 spec.
@@ -64,8 +68,6 @@ class OauthlibRequestValidator(RequestValidator):
         .. _`HTTP Basic Authentication Scheme`: https://tools.ietf.org/html/rfc1945#section-11.1
         """
 
-        # if self._http_basic_authentication(request):
-        #     return True
         return self._http_headers_authentication(request)
 
     def authenticate_client_id(self, client_id: str, request: Request, *args, **kwargs):
@@ -147,7 +149,6 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Authorization Code Grant (during token request)
         """
-
         auth_code = self._get_authorization_code(code)
         if not auth_code:
             return False
@@ -226,7 +227,6 @@ class OauthlibRequestValidator(RequestValidator):
             - Authorization Code Grant
             - Implicit Grant
         """
-
         return request.client.default_redirect_uri
 
     def get_default_scopes(self, client_id: str, request: Request, *args, **kwargs):
@@ -437,7 +437,6 @@ class OauthlibRequestValidator(RequestValidator):
         Method is used by:
             - Authorization Code Grant
         """
-
         auth_code = self._generate_authorization_code(code, request, kwargs.get('claims'))
         self._registry(domain.AuthorizationCode).append(auth_code)
 
@@ -546,6 +545,10 @@ class OauthlibRequestValidator(RequestValidator):
         bearer_token, _ = self._get_bearer_token(token)
         if not bearer_token:
             return False
+        decoded_token = self._decode_token(token, bearer_token.client.client_id)
+        for scope in scopes:
+            if scope not in decoded_token['scope'].split(' '):
+                return False
         if bearer_token.validate(scopes):
             request.user = bearer_token.user
             request.client = bearer_token.client
@@ -789,63 +792,6 @@ class OauthlibRequestValidator(RequestValidator):
         code_str = code if isinstance(code, str) else code['code'] if isinstance(code, dict) else code.code
         return self._registry(domain.AuthorizationCode).find(lambda x: (x.code == code_str)) if isinstance(code_str, str) else code
 
-    # def _http_basic_authentication(self, request: Request):
-    #     try:
-    #         client_id, client_secret = self._get_basic_auth(request)
-    #     except ValueError:
-    #         return False
-
-    #     client = self._get_client(client_id)
-        
-    #     if not client:
-    #         return False
-
-    #     if client.validate_client_secret(client_secret):
-    #         request.client = client
-    #         return True
-    #     return False
-
-    # def _get_basic_auth(self, request: Request):
-    #     auth_string = self._get_basic_auth_string(request)
-    #     if not auth_string:
-    #         return None
-        
-    #     try:
-    #         encoding_type = request.encoding or 'utf-8'
-    #     except:
-    #         encoding_type = 'utf-8'
-
-    #     try:
-    #         b64_decoded = base64.b64decode(auth_string)
-    #     except TypeError:
-    #         return None
-
-    #     try:
-    #         decoded_string = b64_decoded.decode(encoding_type)
-    #     except UnicodeDecodeError:
-    #         return None
-
-    #     try:
-    #         return map(unquote_plus, decoded_string.split(':', 1))
-    #     except ValueError:
-    #         return None
-
-    # def _get_basic_auth_string(self, request: Request):
-    #     auth = request.headers.get('Authorization') #! Is it named differently?
-
-    #     if not auth:
-    #         return None
-
-    #     split_auth = auth.split(' ')
-    #     if len(split_auth) != 2:
-    #         return None
-    #     auth_type, auth_string = split_auth
-
-    #     if auth_type != 'Basic':
-    #         return None
-        
-    #     return auth_string
-
     def _http_headers_authentication(self, request: Request):
         username = request.body.get('username')
         password = request.body.get('password')
@@ -870,6 +816,10 @@ class OauthlibRequestValidator(RequestValidator):
             request.client = client
             return True
         return False
+
+    def _decode_token(self, token, audience):
+        decoded = jwt.decode(token, self.secret, 'HS256', audience=audience)
+        return decoded
 
     @staticmethod
     def _generate_bearer_token(token: dict, request: Request):
@@ -898,10 +848,9 @@ class OauthlibRequestValidator(RequestValidator):
             state=code.get('state'),
             )
 
-    @staticmethod
-    def _generate_introspection_response(bearer_token: domain.BearerToken, token: str, token_type: str, request: Request):
+    def _generate_introspection_response(self, bearer_token: domain.BearerToken, token: str, token_type: str, request: Request):
         is_active = bearer_token.validate_access_token(token, request.client) if token_type == 'access_token' else bearer_token.validate_refresh_token(token, request.client)
-        jti = str(uuid.uuid4())
+        decoded_token = self._decode_token(token, bearer_token.client.client_id)
         resp = {
             'active': is_active,
             'scope': bearer_token.scopes,
@@ -913,8 +862,8 @@ class OauthlibRequestValidator(RequestValidator):
             'nbf': bearer_token.activates_at.timestamp(),
             'sub': bearer_token.user.sub, #????????? user? bearer_token.user.
             'aud': bearer_token.client.client_id, #????????? client? #!Is this right? 
-            'iss': 'https://app.pwrlab.com/', #!!!! double check
-            'jti': jti, #!! JWT string, LOOK MORE INTO
+            'iss': decoded_token['iss'], #!!!! double check
+            'jti': decoded_token['jti'],
         } if bearer_token and is_active else None
 
         return resp

@@ -12,11 +12,13 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 from __future__ import annotations
+from datetime import datetime, timedelta
 import os
 import uuid
 
 import firefly as ff
 from firefly.domain.service import cache
+import jwt
 from oauthlib.oauth2 import Server
 from oauthlib.common import Request
 
@@ -31,17 +33,26 @@ class IamRequestValidator(RequestValidator): #does this need to inherit?
     def __init__(self, validator: OauthlibRequestValidator):
         with open('key.pem', 'rb') as privatefile:
             pem_key = privatefile.read()
+
+        self.secret = pem_key
+        self.issuer = "PwrLab"
         self._server = Server(
             validator, #need to make sure this is instantiated
-            token_generator=tokens.signed_token_generator(
-                pem_key,
-                issuer="PwrLab"
-            ),
-            refresh_token_generator=tokens.signed_token_generator(
-                pem_key,
-                issuer="PwrLab"
-            ),
+            token_generator=(lambda x: self.generate_token(x, 'access_token')),
+            refresh_token_generator=(lambda x: self.generate_token(x, 'refresh_token')),
         )
+
+    def generate_token(self, request, token_type):
+        token = {
+            'jti': str(uuid.uuid4()),
+            'aud': request.client_id,
+            'iss': self.issuer,
+            'scope': ' '.join(request.scopes)
+        }
+        if token_type == 'access_token':
+            token['exp'] = datetime.utcnow() + timedelta(seconds=request.expires_in)
+        token = jwt.encode(token, self.secret, algorithm='HS256')
+        return token
 
     def validate_pre_auth_request(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)

@@ -14,6 +14,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+import uuid
+import hashlib
+import re
+import os
+from base64 import urlsafe_b64encode
+
+import jwt
 from firefly_iaaa.domain.entity import tenant
 import pytest
 import bcrypt
@@ -52,6 +59,43 @@ def config():
         },
     }
 
+@pytest.fixture()
+def secret():
+    with open('key.pem', 'rb') as privatefile:
+        pem_key = privatefile.read()
+
+    return pem_key
+
+@pytest.fixture()
+def issuer():
+    return 'PwrLab'
+
+def generate_token(request, token_type, issuer, secret):
+    token_info = {
+        'jti': str(uuid.uuid4()),
+        'aud': request['client_id'],
+        'iss': issuer,
+        'scope': ' '.join(request['scopes'])
+    }
+    if token_type == 'access_token':
+        token_info['exp'] = datetime.utcnow() + timedelta(seconds=request['expires_in'])
+    token = jwt.encode(token_info, secret, algorithm='HS256')
+    return token
+
+def generate_code_challenge():
+    code_verifier = ''
+    code_verifier = urlsafe_b64encode(os.urandom(40)).decode('utf-8')
+    code_verifier = re.sub('[^a-zA-Z0-9]+', '', code_verifier)
+
+    code_challenge = urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode()).digest()
+    ).decode().rstrip('=')
+    code_challenge_method = 'S256'
+    return {
+        'code_verifier': code_verifier,
+        'code_challenge': code_challenge,
+        'code_challenge_method': code_challenge_method
+    }
 
 
 @pytest.fixture()
@@ -117,7 +161,7 @@ def make_client_list(tenants):
             redirect_uris=[f'https://www.uri{i}.com', 'https://www.fake.com'],
             grant_type=grant_types[i % 4],
             uses_pkce=(i % 2 == 0 and i < 4),
-            scopes=['fake scopes', f'faker scope{i}'],
+            scopes=['fake-scopes', f'faker-scope{i}'],
             client_secret=gen_random_string(36),
 
         )
@@ -129,8 +173,8 @@ def make_client_list(tenants):
         default_redirect_uri='https://www.uri0.com',
         redirect_uris=['https://www.uri0.com', 'https://www.fake.com'],
         grant_type=grant_types[0],
-        uses_pkce=(1 % 2 == 0),
-        scopes=['fake scopes', f'faker scope0'],
+        uses_pkce=False,
+        scopes=['fake-scopes', f'faker-scope0'],
         client_secret=gen_random_string(36),
     )
     clients.append(client)
@@ -143,6 +187,7 @@ def auth_codes_list(registry, client_list, user_list):
     for i in range(6):
         code_group = {}
         for x in range(3):
+            code_challenge = generate_code_challenge()
             auth_code = AuthorizationCode(
                 client=client_list[i % 6],
                 user=user_list[6],
@@ -151,8 +196,9 @@ def auth_codes_list(registry, client_list, user_list):
                 code=f'{gen_random_string(34)}{i % 6}{x}',
                 expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=1),
                 state='abc',
-                challenge=f'{gen_random_string(126)}{i % 6}{x}',
-                challenge_method=f'plain',
+                challenge=code_challenge['code_challenge'],
+                challenge_method=code_challenge['code_challenge_method'],
+                verifier=code_challenge['code_verifier'],
             )
             if x == 2:
                 auth_code.is_valid = False
@@ -167,6 +213,7 @@ def auth_codes_list(registry, client_list, user_list):
 
     code_group = {}
     for x in range(3):
+        code_challenge = generate_code_challenge()
         auth_code = AuthorizationCode(
             client=client_list[-1],
             user=user_list[6],
@@ -175,8 +222,9 @@ def auth_codes_list(registry, client_list, user_list):
             code=f'{gen_random_string(34)}{0}{x}',
             expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=1),
             state='abc',
-            challenge=f'{gen_random_string(126)}{0}{x}',
-        challenge_method=f'plain',
+            challenge=code_challenge['code_challenge'],
+            challenge_method=code_challenge['code_challenge_method'],
+            verifier=code_challenge['code_verifier'],
         )
         if x == 2:
             auth_code.is_valid = False
@@ -191,17 +239,22 @@ def auth_codes_list(registry, client_list, user_list):
     return codes
 
 @pytest.fixture()
-def bearer_tokens_list(registry, client_list, user_list):
+def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
     tokens = []
     for i in range(6):
         token_group = {}
         for x in range(3):
+            token_info = {
+                'client_id': client_list[i].client_id,
+                'expires_in': 3600,
+                'scopes': client_list[i].scopes,
+            }
             bearer_token = BearerToken(
-                client=client_list[i % 6],
+                client=client_list[i],
                 user=user_list[6],
-                scopes=client_list[i % 6].scopes,
-                access_token=f'{gen_random_string(34)}{i % 6}{x}',
-                refresh_token=f'{i % 6}{x}{gen_random_string(34)}',
+                scopes=client_list[i].scopes,
+                access_token=generate_token(token_info, 'access_token', issuer, secret),
+                refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
                 expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=60),
             )
             # if x == 1:
@@ -219,16 +272,19 @@ def bearer_tokens_list(registry, client_list, user_list):
 
     token_group = {}
     for x in range(3):
+        token_info = {
+            'client_id': client_list[-1].client_id,
+            'expires_in': 3600,
+            'scopes': client_list[-1].scopes,
+        }
         bearer_token = BearerToken(
             client=client_list[-1],
             user=user_list[6],
             scopes=client_list[-1].scopes,
-            access_token=f'{gen_random_string(34)}{0}{x}',
-            refresh_token=f'{0}{x}{gen_random_string(34)}',
+            access_token=generate_token(token_info, 'access_token', issuer, secret),
+            refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
             expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=60),
         )
-        # if x == 1:
-        #     # bearer_token.invalidate_access_token()
         if x == 2:
             bearer_token.invalidate()
         registry(BearerToken).append(bearer_token)

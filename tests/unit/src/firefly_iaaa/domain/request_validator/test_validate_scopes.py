@@ -6,7 +6,7 @@ from firefly_iaaa.infrastructure.service.request_validator import OauthlibReques
 
 
 def test_validate_scopes(validator: OauthlibRequestValidator, oauth_request_list: List[Request]):
-    scopes = ['fake scopes', 'faker scope']
+    scopes = ['fake-scopes', 'faker-scope']
     for i in range(6):
         # Should validate scopes
         assert validator.validate_scopes('', [scopes[0], f'{scopes[1]}{i}'], oauth_request_list[i].client, oauth_request_list[i]) == True

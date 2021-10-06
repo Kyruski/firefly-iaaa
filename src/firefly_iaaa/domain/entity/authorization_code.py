@@ -46,6 +46,7 @@ class AuthorizationCode(ff.AggregateRoot):
     state: str = ff.required()
     challenge: str = ff.optional(str, length=128)
     challenge_method: str = ff.optional(validators=[ff.IsOneOf(('S256', 'plain'))])
+    verifier: str = ff.optional()
     is_valid: bool = True
 
     def validate_redirect_uri(self, redirect_uri: str):

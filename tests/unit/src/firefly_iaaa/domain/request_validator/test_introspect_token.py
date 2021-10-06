@@ -28,7 +28,7 @@ def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_lis
                     assert oauth_request_list[i].token['nbf'] == bearer_token.activates_at.timestamp()
                     assert oauth_request_list[i].token['sub'] == bearer_token.user.sub
                     assert oauth_request_list[i].token['aud'] == bearer_token.client.client_id
-                    assert oauth_request_list[i].token['iss'] == 'https://app.pwrlab.com/'
+                    assert oauth_request_list[i].token['iss'] == 'PwrLab'
                     assert oauth_request_list[i].token['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
 
                     assert resp['active'] == bearer_token.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client)
@@ -41,7 +41,7 @@ def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_lis
                     assert resp['nbf'] == bearer_token.activates_at.timestamp()
                     assert resp['sub'] == bearer_token.user.sub
                     assert resp['aud'] == bearer_token.client.client_id
-                    assert resp['iss'] == 'https://app.pwrlab.com/'
+                    assert resp['iss'] == 'PwrLab'
                     assert resp['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
                 else:
                     assert resp is None
@@ -60,7 +60,7 @@ def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_lis
                     assert oauth_request_list[i].token['nbf'] == bearer_token.activates_at.timestamp()
                     assert oauth_request_list[i].token['sub'] == bearer_token.user.sub
                     assert oauth_request_list[i].token['aud'] == bearer_token.client.client_id
-                    assert oauth_request_list[i].token['iss'] == 'https://app.pwrlab.com/'
+                    assert oauth_request_list[i].token['iss'] == 'PwrLab'
                     assert oauth_request_list[i].token['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
 
                     assert resp['active'] == bearer_token.validate_access_token(bearer_token.access_token, oauth_request_list[i].client)
@@ -73,7 +73,7 @@ def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_lis
                     assert resp['nbf'] == bearer_token.activates_at.timestamp()
                     assert resp['sub'] == bearer_token.user.sub
                     assert resp['aud'] == bearer_token.client.client_id
-                    assert resp['iss'] == 'https://app.pwrlab.com/'
+                    assert resp['iss'] == 'PwrLab'
                     assert resp['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
                 reset_request(oauth_request_list[i])
                 assert_request_empty(oauth_request_list[i])

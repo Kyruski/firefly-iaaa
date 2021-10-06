@@ -24,7 +24,7 @@ from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
 import json
 
-def test_token_response(auth_service: IamRequestValidator, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
+def test_create_token_response(auth_service: IamRequestValidator, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
     for i in range(6):
