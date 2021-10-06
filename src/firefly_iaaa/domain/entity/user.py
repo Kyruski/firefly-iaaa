@@ -79,3 +79,28 @@ class User(ff.AggregateRoot):
     def correct_password(self, password: str):
         return self.password_hash == User._hash_password(password, self.salt)
     # __pragma__('noskip')
+
+    def generate_scrubbed_user(self):
+        return {
+            'sub': self.sub,
+            'name': self.name,
+            'given_name': self.given_name,
+            'family_name': self.family_name,
+            'middle_name': self.middle_name,
+            'nickname': self.nickname,
+            'preferred_username': self.preferred_username,
+            'profile': self.profile,
+            'picture': self.picture,
+            'website': self.website,
+            'email': self.email,
+            'email_verified': self.email_verified,
+            'gender': self.gender,
+            'birthdate': self.birthdate,
+            'zoneinfo': self.zoneinfo,
+            'locale': self.locale,
+            'phone_number': self.phone_number,
+            'phone_number_verified': self.phone_number_verified,
+            'updated_at': self.updated_at,
+            'created_at': self.created_at,
+            'tenant_id': self.tenant.id,
+        }

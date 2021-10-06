@@ -12,7 +12,6 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 from __future__ import annotations
-import os
 import uuid
 from datetime import datetime, timedelta
 from typing import List, Union
@@ -20,9 +19,8 @@ import base64
 from urllib.parse import unquote_plus
 
 import firefly as ff
-from oauthlib.oauth2 import RequestValidator, Server
+from oauthlib.oauth2 import RequestValidator
 from oauthlib.common import Request
-from oauthlib.oauth2.rfc6749 import tokens
 
 from firefly_iaaa import domain
 
@@ -311,6 +309,7 @@ class OauthlibRequestValidator(RequestValidator):
             return
         resp = self._generate_introspection_response(bearer_token, token, token_type, request)
         request.token = resp
+        return resp
 
     def invalidate_authorization_code(self, client_id: str, code: dict, request: Request, *args, **kwargs):
         """Invalidate an authorization code after use.
@@ -766,6 +765,8 @@ class OauthlibRequestValidator(RequestValidator):
         )
 
     def _get_bearer_token(self, token: str, token_type_hint: str = None):
+        if token is None:
+            return [None, None]
         refresh_criteria = lambda x: (x.refresh_token == token)
         access_criteria = lambda x: (x.access_token == token)
 
@@ -788,62 +789,62 @@ class OauthlibRequestValidator(RequestValidator):
         code_str = code if isinstance(code, str) else code['code'] if isinstance(code, dict) else code.code
         return self._registry(domain.AuthorizationCode).find(lambda x: (x.code == code_str)) if isinstance(code_str, str) else code
 
-    def _http_basic_authentication(self, request: Request):
-        try:
-            client_id, client_secret = self._get_basic_auth(request)
-        except ValueError:
-            return False
+    # def _http_basic_authentication(self, request: Request):
+    #     try:
+    #         client_id, client_secret = self._get_basic_auth(request)
+    #     except ValueError:
+    #         return False
 
-        client = self._get_client(client_id)
+    #     client = self._get_client(client_id)
         
-        if not client:
-            return False
+    #     if not client:
+    #         return False
 
-        if client.validate_client_secret(client_secret):
-            request.client = client
-            return True
-        return False
+    #     if client.validate_client_secret(client_secret):
+    #         request.client = client
+    #         return True
+    #     return False
 
-    def _get_basic_auth(self, request: Request):
-        auth_string = self._get_basic_auth_string(request)
-        if not auth_string:
-            return None
+    # def _get_basic_auth(self, request: Request):
+    #     auth_string = self._get_basic_auth_string(request)
+    #     if not auth_string:
+    #         return None
         
-        try:
-            encoding_type = request.encoding or 'utf-8'
-        except:
-            encoding_type = 'utf-8'
+    #     try:
+    #         encoding_type = request.encoding or 'utf-8'
+    #     except:
+    #         encoding_type = 'utf-8'
 
-        try:
-            b64_decoded = base64.b64decode(auth_string)
-        except TypeError:
-            return None
+    #     try:
+    #         b64_decoded = base64.b64decode(auth_string)
+    #     except TypeError:
+    #         return None
 
-        try:
-            decoded_string = b64_decoded.decode(encoding_type)
-        except UnicodeDecodeError:
-            return None
+    #     try:
+    #         decoded_string = b64_decoded.decode(encoding_type)
+    #     except UnicodeDecodeError:
+    #         return None
 
-        try:
-            return map(unquote_plus, decoded_string.split(':', 1))
-        except ValueError:
-            return None
+    #     try:
+    #         return map(unquote_plus, decoded_string.split(':', 1))
+    #     except ValueError:
+    #         return None
 
-    def _get_basic_auth_string(self, request: Request):
-        auth = request.headers.get('Authorization') #! Is it named differently?
+    # def _get_basic_auth_string(self, request: Request):
+    #     auth = request.headers.get('Authorization') #! Is it named differently?
 
-        if not auth:
-            return None
+    #     if not auth:
+    #         return None
 
-        split_auth = auth.split(' ')
-        if len(split_auth) != 2:
-            return None
-        auth_type, auth_string = split_auth
+    #     split_auth = auth.split(' ')
+    #     if len(split_auth) != 2:
+    #         return None
+    #     auth_type, auth_string = split_auth
 
-        if auth_type != 'Basic':
-            return None
+    #     if auth_type != 'Basic':
+    #         return None
         
-        return auth_string
+    #     return auth_string
 
     def _http_headers_authentication(self, request: Request):
         username = request.body.get('username')
@@ -872,7 +873,6 @@ class OauthlibRequestValidator(RequestValidator):
 
     @staticmethod
     def _generate_bearer_token(token: dict, request: Request):
-        print(token)
         return domain.BearerToken(
             client=request.client,
             user=request.user,
@@ -880,7 +880,7 @@ class OauthlibRequestValidator(RequestValidator):
             access_token=token['access_token'],
             expires_at=datetime.utcnow() + timedelta(seconds=token['expires_in']),
             refresh_token=token.get('refresh_token'),
-            token_type=token['token_type'],
+            token_type=token.get('token_type'),
         )
 
     @staticmethod
@@ -895,7 +895,7 @@ class OauthlibRequestValidator(RequestValidator):
             challenge=request.code_challenge,
             challenge_method=request.code_challenge_method,
             claims=claims,
-            state=code['state'] or None,
+            state=code.get('state'),
             )
 
     @staticmethod
@@ -915,64 +915,6 @@ class OauthlibRequestValidator(RequestValidator):
             'aud': bearer_token.client.client_id, #????????? client? #!Is this right? 
             'iss': 'https://app.pwrlab.com/', #!!!! double check
             'jti': jti, #!! JWT string, LOOK MORE INTO
-        } if bearer_token else None
+        } if bearer_token and is_active else None
 
         return resp
-
-
-class IamRequestValidator(): #does this need to inherit?
-    def __init__(self, validator: OauthlibRequestValidator):
-        self._server = Server(
-            validator, #need to make sure this is instantiated
-            # token_generator=tokens.signed_token_generator(
-            #     os.environ['PRIVATE_PEM_KEY'],
-            #     issuer="PwrLab"
-            # ),
-            # refresh_token_generator=tokens.signed_token_generator(
-            #     os.environ['PRIVATE_PEM_KEY'],
-            #     issuer="PwrLab"
-            # ),
-        )
-
-    def validate_pre_auth_request(self, request: ff.Message):
-        http_request = request.headers.get('http_request')
-        return self._server.validate_authorization_request(
-            f'{http_request["headers"]["Host"]}{http_request["url"]}',
-            http_request['method'],
-            '',
-            http_request['headers']
-        )
-
-    def create_token_response(self, request: ff.Message):
-        uri, http_method, body, headers = self._get_request_params(request)
-        headers, body, status = self._server.create_token_response(uri, http_method, body, headers)
-        print('headers : ', headers, '\n', 'body : ', body, '\n', 'status : ', status, '\n')
-        return headers, body, status
-
-    def validate_post_auth_request(self, request: ff.Message):
-        pass
-
-    def create_response(self, request: ff.Message):
-        uri, http_method, body, headers = self._get_request_params(request)
-        return self._server.create_authorization_response(
-            uri, http_method, body, headers
-        )
-
-    def verify_request(self, request: ff.Message, scopes):
-        uri, http_method, body, headers = self._get_request_params(request)
-        is_valid, req = self._server.verify_request(uri, http_method, body, headers, scopes=scopes)
-        return is_valid, req
-        pass
-
-    # def authenticate_client(self, request: ff.Message):
-    #     uri, http_method, body, headers = self._get_request_params(request)
-    #     oauth_request = Request(uri, http_method, body, headers)
-    #     return self._server.request_validator.authenticate_client(oauth_request)
-
-    @staticmethod
-    def _get_request_params(request: ff.Message):
-        uri = request.headers.get('uri')
-        http_method = request.headers.get('http_method')
-        body = request.to_dict()
-        headers = request.headers
-        return [uri, http_method, body, headers]

@@ -81,7 +81,6 @@ class Client(ff.AggregateRoot):
         return response_type in self.allowed_response_types
 
     def validate_grant_type(self, grant_type: str):
-        print(self.grant_type, grant_type, self.grant_type == grant_type)
         return self.grant_type == grant_type or (self.grant_type == authorization_code and grant_type == 'refresh')
 
     def validate_scopes(self, scopes: List[str]):
@@ -105,3 +104,17 @@ class Client(ff.AggregateRoot):
 
     def inactivate(self):
         self.is_active = False
+
+    def generate_scrubbed_client(self):
+        return {
+            'client_id': self.client_id,
+            'external_id': self.external_id,
+            'name': self.name,
+            'grant_type': self.grant_type,
+            'default_redirect_uri': self.default_redirect_uri,
+            'redirect_uris': self.redirect_uris,
+            'scopes': self.scopes,
+            'allowed_response_types': self.allowed_response_types,
+            'is_active': self.is_active,
+            'tenant_id': self.tenant_id,
+        }

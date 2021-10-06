@@ -1,6 +1,8 @@
 bcrypt==3.1.7
-firefly-framework==1.1.60
+firefly-framework==1.2.0
+firefly-aws==1.2.0
 .
 Jinja2==2.11.3
 oauthlib==3.1.1
 pytest==6.2.5
+PyJWT==2.1.0

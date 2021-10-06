@@ -10,10 +10,8 @@ from firefly_iaaa.infrastructure.service.request_validator import OauthlibReques
 
 def test_confirm_redirect_uri(validator: OauthlibRequestValidator, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode]):
     for i in range(6):
-        for x in range(3):
-            code_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
-            auth_code = auth_codes_list[i][code_selector]
-            assert validator.confirm_redirect_uri('', auth_code.code, auth_code.redirect_uri, oauth_request_list[i].client, oauth_request_list[i]) == True
-            assert validator.confirm_redirect_uri('', auth_code.code, 'auth_code.redirect_uri', oauth_request_list[i].client, oauth_request_list[i]) == False
-            assert validator.confirm_redirect_uri('', auth_code.code, None, oauth_request_list[i].client, oauth_request_list[i]) == False
-            assert validator.confirm_redirect_uri('', '111', auth_code.redirect_uri, oauth_request_list[i].client, oauth_request_list[i]) == False
+        auth_code = auth_codes_list[i]['active']
+        assert validator.confirm_redirect_uri('', auth_code.code, auth_code.redirect_uri, oauth_request_list[i].client, oauth_request_list[i]) == True
+        assert validator.confirm_redirect_uri('', auth_code.code, 'auth_code.redirect_uri', oauth_request_list[i].client, oauth_request_list[i]) == False
+        assert validator.confirm_redirect_uri('', auth_code.code, None, oauth_request_list[i].client, oauth_request_list[i]) == False
+        assert validator.confirm_redirect_uri('', '111', auth_code.redirect_uri, oauth_request_list[i].client, oauth_request_list[i]) == False

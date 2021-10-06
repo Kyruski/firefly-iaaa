@@ -113,8 +113,8 @@ def make_client_list(tenants):
             tenant=tenants[i],
             name=f'client_{gen_random_string()}{i}',
             allowed_response_types=allowed_response_types[i % 4],
-            default_redirect_uri=f'www.uri{i}.com',
-            redirect_uris=[f'www.uri{i}.com', 'www.fake.com'],
+            default_redirect_uri=f'https://www.uri{i}.com',
+            redirect_uris=[f'https://www.uri{i}.com', 'https://www.fake.com'],
             grant_type=grant_types[i % 4],
             uses_pkce=(i % 2 == 0 and i < 4),
             scopes=['fake scopes', f'faker scope{i}'],
@@ -126,8 +126,8 @@ def make_client_list(tenants):
         tenant=tenants[i + 1],
         name=f'client_{gen_random_string()}{i + 1}',
         allowed_response_types=allowed_response_types[0],
-        default_redirect_uri='www.uri0.com',
-        redirect_uris=['www.uri0.com', 'www.fake.com'],
+        default_redirect_uri='https://www.uri0.com',
+        redirect_uris=['https://www.uri0.com', 'https://www.fake.com'],
         grant_type=grant_types[0],
         uses_pkce=(1 % 2 == 0),
         scopes=['fake scopes', f'faker scope0'],
@@ -144,14 +144,14 @@ def auth_codes_list(registry, client_list, user_list):
         code_group = {}
         for x in range(3):
             auth_code = AuthorizationCode(
-                client=client_list[i],
+                client=client_list[i % 6],
                 user=user_list[6],
-                scopes=client_list[i].scopes,
-                redirect_uri=client_list[i].default_redirect_uri,
-                code=f'{gen_random_string(34)}{i}{x}',
+                scopes=client_list[i % 6].scopes,
+                redirect_uri=client_list[i % 6].default_redirect_uri,
+                code=f'{gen_random_string(34)}{i % 6}{x}',
                 expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=1),
                 state='abc',
-                challenge=f'{gen_random_string(126)}{i}{x}',
+                challenge=f'{gen_random_string(126)}{i % 6}{x}',
                 challenge_method=f'plain',
             )
             if x == 2:
@@ -197,15 +197,17 @@ def bearer_tokens_list(registry, client_list, user_list):
         token_group = {}
         for x in range(3):
             bearer_token = BearerToken(
-                client=client_list[i],
+                client=client_list[i % 6],
                 user=user_list[6],
-                scopes=client_list[i].scopes,
-                access_token=f'{gen_random_string(34)}{i}{x}',
-                refresh_token=f'{i}{x}{gen_random_string(34)}',
+                scopes=client_list[i % 6].scopes,
+                access_token=f'{gen_random_string(34)}{i % 6}{x}',
+                refresh_token=f'{i % 6}{x}{gen_random_string(34)}',
                 expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=60),
             )
+            # if x == 1:
+            #     # bearer_token.invalidate_access_token()
             if x == 2:
-                bearer_token.is_valid = False
+                bearer_token.invalidate()
             registry(BearerToken).append(bearer_token)
             if x == 0:
                 token_group['active'] = bearer_token
@@ -225,8 +227,10 @@ def bearer_tokens_list(registry, client_list, user_list):
             refresh_token=f'{0}{x}{gen_random_string(34)}',
             expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=60),
         )
+        # if x == 1:
+        #     # bearer_token.invalidate_access_token()
         if x == 2:
-            bearer_token.is_valid = False
+            bearer_token.invalidate()
         registry(BearerToken).append(bearer_token)
         if x == 0:
             token_group['active'] = bearer_token
@@ -236,37 +240,3 @@ def bearer_tokens_list(registry, client_list, user_list):
             token_group['invalid'] = bearer_token
     tokens.append(token_group)
     return tokens
-
-
-
-# @pytest.fixture(scope="session")
-# def container(config):
-#     from firefly.application import Container
-#     Container.configuration = lambda self: ffi.MemoryConfigurationFactory()(config)
-
-#     c = Container()
-#     # c.registry.set_default_factory(ffi.MemoryRepositoryFactory())
-
-#     c.kernel.boot()
-
-#     return c
-
-
-# @pytest.fixture(scope="session")
-# def kernel(container) -> ff.Kernel:
-#     return container.kernel
-
-
-# @pytest.fixture(scope="session")
-# def context_map(container) -> ff.ContextMap:
-#     return container.context_map
-
-
-# @pytest.fixture(scope="session")
-# def system_bus(container) -> ff.SystemBus:
-#     return container.system_bus
-
-
-# @pytest.fixture(scope="session")
-# def message_factory(container) -> ff.MessageFactory:
-#     return container.message_factory
