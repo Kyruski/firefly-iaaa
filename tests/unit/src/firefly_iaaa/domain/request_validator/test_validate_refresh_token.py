@@ -3,10 +3,10 @@ from typing import List
 
 from oauthlib.common import Request
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 
 
-def test_validate_refresh_token(validator: OauthlibRequestValidator, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken]):
+def test_validate_refresh_token(validator: OauthlibRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken]):
     for i in range(6):
         for x in range(3):
             bearer_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'

@@ -46,6 +46,7 @@ class AuthorizationCode(ff.AggregateRoot):
     state: str = ff.required()
     challenge: str = ff.optional(str, length=128)
     challenge_method: str = ff.optional(validators=[ff.IsOneOf(('S256', 'plain'))])
+    claims: dict = ff.optional()
     verifier: str = ff.optional()
     is_valid: bool = True
 
@@ -58,6 +59,6 @@ class AuthorizationCode(ff.AggregateRoot):
     def is_expired(self):
         return self.expires_at < datetime.utcnow()
 
-    def validate(self, client_id: str):
-        return self.is_valid and client_id == self.client.client_id and not self.is_expired()
-        # return self.is_valid and (client == self.client or client_id == self.client.client_id)
+    def validate(self, client_id: str, claims: dict):
+        is_claims = (self.claims == claims) if claims else self.claims is None
+        return self.is_valid and client_id == self.client.client_id and is_claims and not self.is_expired()

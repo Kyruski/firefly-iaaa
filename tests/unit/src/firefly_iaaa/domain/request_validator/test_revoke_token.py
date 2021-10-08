@@ -4,10 +4,10 @@ from typing import List
 from oauthlib.common import Request
 
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 
 
-def test_revoke_token(validator: OauthlibRequestValidator, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken], registry):
+def test_revoke_token(validator: OauthlibRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken], registry):
     for i in range(6):
         token_types = ['refresh_token', 'access_token', None]
         bearer_token = bearer_tokens_list[i]['active']

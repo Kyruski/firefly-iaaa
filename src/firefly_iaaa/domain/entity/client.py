@@ -36,6 +36,7 @@ authorization_code = 'authorization_code'
 implicit = 'implicit'
 resource_owner_password_credentials = 'password'
 client_credentials = 'client_credentials'
+refresh = 'refresh_token'
 
 
 def response_type_choices(client_dto: dict):
@@ -53,7 +54,7 @@ class Client(ff.AggregateRoot):
     # user: User = ff.required(index=True)
     name: str = ff.required()
     grant_type: str = ff.required(validators=[ff.IsOneOf((
-        authorization_code, implicit, resource_owner_password_credentials, client_credentials
+        authorization_code, implicit, resource_owner_password_credentials, client_credentials, refresh
     ))])
     # response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)]) #??
     default_redirect_uri: str = ff.optional()
@@ -81,9 +82,11 @@ class Client(ff.AggregateRoot):
         return response_type in self.allowed_response_types
 
     def validate_grant_type(self, grant_type: str):
-        return self.grant_type == grant_type or (self.grant_type == authorization_code and grant_type == 'refresh')
+        return self.grant_type == grant_type or ((self.grant_type in (resource_owner_password_credentials, client_credentials) or (self.grant_type == authorization_code and not self.requires_pkce())) and grant_type == 'refresh_token')
 
     def validate_scopes(self, scopes: List[str]):
+        if not scopes:
+            return False
         for scope in scopes:
             if scope not in self.scopes:
                 return False

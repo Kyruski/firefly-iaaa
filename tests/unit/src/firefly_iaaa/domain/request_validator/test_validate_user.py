@@ -3,10 +3,10 @@ from typing import List
 
 from oauthlib.common import Request
 from firefly_iaaa.domain.entity.user import User
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 
 
-def test_validate_user(validator: OauthlibRequestValidator, oauth_request_list: List[Request], user_list: List[User]):
+def test_validate_user(validator: OauthlibRequestValidators, oauth_request_list: List[Request], user_list: List[User]):
 
     for i in range(6):
         # Checking if it logs in correctly

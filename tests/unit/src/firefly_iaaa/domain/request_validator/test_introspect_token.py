@@ -1,14 +1,15 @@
 from __future__ import annotations
+import os
 from typing import List
 
 
 from oauthlib.common import Request
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 
 
-def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken]):
+def test_introspect_token(validator: OauthlibRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken]):
     for i in range(6):
         for x in range(3):
             for token_type in ['refresh_token', 'access_token', None]:
@@ -28,7 +29,7 @@ def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_lis
                     assert oauth_request_list[i].token['nbf'] == bearer_token.activates_at.timestamp()
                     assert oauth_request_list[i].token['sub'] == bearer_token.user.sub
                     assert oauth_request_list[i].token['aud'] == bearer_token.client.client_id
-                    assert oauth_request_list[i].token['iss'] == 'PwrLab'
+                    assert oauth_request_list[i].token['iss'] == os.environ['ISSUER']
                     assert oauth_request_list[i].token['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
 
                     assert resp['active'] == bearer_token.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client)
@@ -41,7 +42,7 @@ def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_lis
                     assert resp['nbf'] == bearer_token.activates_at.timestamp()
                     assert resp['sub'] == bearer_token.user.sub
                     assert resp['aud'] == bearer_token.client.client_id
-                    assert resp['iss'] == 'PwrLab'
+                    assert resp['iss'] == os.environ['ISSUER']
                     assert resp['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
                 else:
                     assert resp is None
@@ -60,7 +61,7 @@ def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_lis
                     assert oauth_request_list[i].token['nbf'] == bearer_token.activates_at.timestamp()
                     assert oauth_request_list[i].token['sub'] == bearer_token.user.sub
                     assert oauth_request_list[i].token['aud'] == bearer_token.client.client_id
-                    assert oauth_request_list[i].token['iss'] == 'PwrLab'
+                    assert oauth_request_list[i].token['iss'] == os.environ['ISSUER']
                     assert oauth_request_list[i].token['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
 
                     assert resp['active'] == bearer_token.validate_access_token(bearer_token.access_token, oauth_request_list[i].client)
@@ -73,7 +74,7 @@ def test_introspect_token(validator: OauthlibRequestValidator, oauth_request_lis
                     assert resp['nbf'] == bearer_token.activates_at.timestamp()
                     assert resp['sub'] == bearer_token.user.sub
                     assert resp['aud'] == bearer_token.client.client_id
-                    assert resp['iss'] == 'PwrLab'
+                    assert resp['iss'] == os.environ['ISSUER']
                     assert resp['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
                 reset_request(oauth_request_list[i])
                 assert_request_empty(oauth_request_list[i])

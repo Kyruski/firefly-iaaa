@@ -4,10 +4,10 @@ from typing import List
 from oauthlib.common import Request
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 
 
-def test_invalidate_authorization_code(validator: OauthlibRequestValidator, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode], registry):
+def test_invalidate_authorization_code(validator: OauthlibRequestValidators, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode], registry):
     for i in range(6):
         for x in range(3):
             code_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'

@@ -3,10 +3,10 @@ from typing import List
 
 from oauthlib.common import Request
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 
 
-def test_validate_client_id(validator: OauthlibRequestValidator, oauth_request_list: List[Request]):
+def test_validate_client_id(validator: OauthlibRequestValidators, oauth_request_list: List[Request]):
     assert oauth_request_list[-1].client is None
     assert validator.validate_client_id('', oauth_request_list[-1]) == False
     assert oauth_request_list[-1].client is None

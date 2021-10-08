@@ -19,5 +19,5 @@ import infrastructure as infra
 
 
 class Container(di.Container):
-    oauthlib_request_validator: infra.OauthlibRequestValidator = infra.OauthlibRequestValidator
-    request_validator: infra.IamRequestValidator = infra.IamRequestValidator
+    oauthlib_request_validator: infra.OauthlibRequestValidators = infra.OauthlibRequestValidators
+    request_validator: infra.OauthRequestValidator = infra.OauthRequestValidator

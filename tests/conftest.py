@@ -26,7 +26,7 @@ import pytest
 import bcrypt
 import random
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
@@ -37,9 +37,12 @@ from firefly_iaaa.domain.entity.tenant import Tenant
 from firefly_iaaa.domain.entity.user import User
 from oauthlib.common import Request
 
+from dotenv import load_dotenv
+
 
 @pytest.fixture(scope="session")
 def config():
+    load_dotenv()
     return {
         'contexts': {
             'firefly_iaaa': {
@@ -61,14 +64,14 @@ def config():
 
 @pytest.fixture()
 def secret():
-    with open('key.pem', 'rb') as privatefile:
+    with open(os.environ['PEM'], 'rb') as privatefile:
         pem_key = privatefile.read()
 
     return pem_key
 
 @pytest.fixture()
 def issuer():
-    return 'PwrLab'
+    return os.environ['ISSUER']
 
 def generate_token(request, token_type, issuer, secret):
     token_info = {
@@ -151,7 +154,7 @@ def hash_password(password: str, salt: str):
 def make_client_list(tenants):
     clients = []
     allowed_response_types = [['code'], ['token'], ['code', 'token'], ['token', 'code']]
-    grant_types = ['authorization_code', 'implicit', 'password', 'client_credentials']
+    grant_types = ['authorization_code', 'refresh_token', 'password', 'client_credentials']
     for i in range(6):
         client = Client.create(
             tenant=tenants[i],
@@ -257,8 +260,6 @@ def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
                 refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
                 expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=60),
             )
-            # if x == 1:
-            #     # bearer_token.invalidate_access_token()
             if x == 2:
                 bearer_token.invalidate()
             registry(BearerToken).append(bearer_token)

@@ -26,8 +26,8 @@ from datetime import datetime, timedelta
 
 import random
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
-from firefly_iaaa.infrastructure.service.oauth_endpoints import IamRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
+from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.user import User
@@ -35,8 +35,8 @@ from firefly_iaaa.domain.entity.user import User
 
 @pytest.fixture()
 def auth_service(container, cache):
-    validator = container.build(OauthlibRequestValidator)
-    sut = container.build(IamRequestValidator, validator=validator)
+    validator = container.build(OauthlibRequestValidators)
+    sut = container.build(OauthRequestValidator, validator=validator)
     sut._cache = cache
     return sut
 
@@ -100,7 +100,7 @@ def bearer_messages_list(message_factory, bearer_tokens_list: List[BearerToken],
 @pytest.fixture()
 def bearer_messages_second_list(message_factory, bearer_tokens_second_list: List[BearerToken], user_list: List[User], auth_codes_second_list: List[AuthorizationCode]):
     messages = []
-    for i in range(25):
+    for i in range(19):
         bearer_token = bearer_tokens_second_list[i]
         auth_code = auth_codes_second_list[i]
         message = message_factory.query(
@@ -158,7 +158,7 @@ def generate_code_challenge():
 @pytest.fixture()
 def auth_codes_second_list(registry, client_list, user_list):
     codes = []
-    for i in range(25):
+    for i in range(19):
         code_challenge = generate_code_challenge()
         auth_code = AuthorizationCode(
             client=client_list[i % 6],
@@ -179,7 +179,7 @@ def auth_codes_second_list(registry, client_list, user_list):
 @pytest.fixture()
 def bearer_tokens_second_list(registry, client_list, user_list, issuer, secret):
     tokens = []
-    for i in range(25):
+    for i in range(19):
         token_info = {
             'client_id': client_list[i % 6].client_id,
             'expires_in': 3600,

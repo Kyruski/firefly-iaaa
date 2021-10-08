@@ -23,23 +23,24 @@ from oauthlib.oauth2 import Server
 from oauthlib.common import Request
 
 from firefly_iaaa.domain.service.request_validator import RequestValidator
-from .request_validator import OauthlibRequestValidator
+from .request_validator import OauthlibRequestValidators
 from oauthlib.oauth2.rfc6749 import tokens
 
 
-class IamRequestValidator(RequestValidator): #does this need to inherit?
+class OauthRequestValidator(RequestValidator): #does this need to inherit?
     _cache: ff.Cache = None
 
-    def __init__(self, validator: OauthlibRequestValidator):
-        with open('key.pem', 'rb') as privatefile:
+    def __init__(self, validator: OauthlibRequestValidators):
+        with open(os.environ['PEM'], 'rb') as privatefile:
             pem_key = privatefile.read()
 
         self.secret = pem_key
-        self.issuer = "PwrLab"
+        self.issuer = os.environ['ISSUER']
         self._server = Server(
             validator, #need to make sure this is instantiated
             token_generator=(lambda x: self.generate_token(x, 'access_token')),
             refresh_token_generator=(lambda x: self.generate_token(x, 'refresh_token')),
+            token_expires_in=3600
         )
 
     def generate_token(self, request, token_type):
@@ -59,10 +60,9 @@ class IamRequestValidator(RequestValidator): #does this need to inherit?
         scopes, credentials = self._server.validate_authorization_request(uri, http_method, body, headers)
 
         credentials_key = str(uuid.uuid4())
-        self._cache.set(credentials_key, value=credentials, ttl=180) #don't know what info given
+        self._cache.set(credentials_key, value=credentials, ttl=180)
         credentials['request'] = self.scrub_sensitive_data(credentials['request'])
         return scopes, credentials, credentials_key
-
 
     def validate_post_auth_request(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
@@ -77,8 +77,6 @@ class IamRequestValidator(RequestValidator): #does this need to inherit?
         headers, body, status = self._server.create_authorization_response(uri, http_method, body, headers, scopes=scopes, credentials=credentials)
         
         return headers, body, status
-
-        pass
 
     def create_token_response(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
@@ -121,7 +119,7 @@ class IamRequestValidator(RequestValidator): #does this need to inherit?
         http_method = request.headers.get('http_method')
         body = request.to_dict()
         headers = request.headers
-        return [uri, http_method, body, headers]
+        return uri, http_method, body, headers
 
     @staticmethod
     def scrub_sensitive_data(request: Request):

@@ -18,13 +18,13 @@ from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 import pytest
 import firefly as ff
 
-from firefly_iaaa.infrastructure.service.oauth_endpoints import IamRequestValidator
+from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
 import json
 
-def test_create_token_response(auth_service: IamRequestValidator, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
+def test_create_token_response(auth_service: OauthRequestValidator, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
     for i in range(6):
@@ -34,7 +34,7 @@ def test_create_token_response(auth_service: IamRequestValidator, bearer_message
             message.headers['http_method'] = 'POST'
             headers, body, status = auth_service.create_token_response(message)
 
-            is_true = ((x == 0 and i in (0, 4)) or (i in (2, 3)))
+            is_true = ((x == 0 and i in (0, 1, 4, 5)) or (i in (2, 3)))
             body = json.loads(body)
             expected_status = 200 if is_true else 400
             assert status == expected_status
@@ -63,7 +63,7 @@ def test_create_token_response(auth_service: IamRequestValidator, bearer_message
             headers, body, status = auth_service.create_token_response(message)
 
 
-def test_create_token_response_missing_data(auth_service: IamRequestValidator, bearer_messages_second_list: List[ff.Message]):
+def test_create_token_response_missing_data(auth_service: OauthRequestValidator, bearer_messages_second_list: List[ff.Message]):
 
     message = bearer_messages_second_list[-1]
     message.headers['http_method'] = 'POST'
@@ -72,7 +72,7 @@ def test_create_token_response_missing_data(auth_service: IamRequestValidator, b
     body = json.loads(body)
     assert body.get('error') is None
 
-    for i in range(16):
+    for i in range(17):
         message = bearer_messages_second_list[i]
         message.headers['http_method'] = 'POST'
         if i == 0:
@@ -106,8 +106,11 @@ def test_create_token_response_missing_data(auth_service: IamRequestValidator, b
         if i == 14:
             message.state = None
         if i == 15:
+            message.password = None
+            message.client_secret = None
+        if i == 16:
             message.token_type_hint = None
 
         headers, body, status = auth_service.create_token_response(message)
         body = json.loads(body)
-        assert (body.get('error') is None) == (i in (0, 3, 4, 8, 9, 10, 12, 14, 15))
+        assert (body.get('error') is None) == (i in (0, 1, 3, 4, 5, 7, 8, 9, 10, 12, 13, 14, 16))

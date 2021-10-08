@@ -2,10 +2,10 @@ from __future__ import annotations
 from typing import List
 
 from oauthlib.common import Request
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 
 
-def test_validate_scopes(validator: OauthlibRequestValidator, oauth_request_list: List[Request]):
+def test_validate_scopes(validator: OauthlibRequestValidators, oauth_request_list: List[Request]):
     scopes = ['fake-scopes', 'faker-scope']
     for i in range(6):
         # Should validate scopes

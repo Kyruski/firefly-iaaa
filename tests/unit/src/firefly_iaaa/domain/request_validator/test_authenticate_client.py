@@ -4,11 +4,11 @@ from typing import List
 from oauthlib.common import Request
 from firefly_iaaa.domain.entity.user import User
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 
 
 
-def test_authenticate_client(validator: OauthlibRequestValidator, oauth_request_list: List[Request], user_list: List[User]):
+def test_authenticate_client(validator: OauthlibRequestValidators, oauth_request_list: List[Request], user_list: List[User]):
     assert validator.authenticate_client(oauth_request_list[-1]) == False, "Testing with no headers or client_id, should return False"
     oauth_request_list[-1].body['username'] = user_list[0].email
     oauth_request_list[-1].body['password'] = 'password1'

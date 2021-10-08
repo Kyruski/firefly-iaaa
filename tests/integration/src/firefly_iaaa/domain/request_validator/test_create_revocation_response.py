@@ -16,10 +16,10 @@ from typing import List
 
 import firefly as ff
 
-from firefly_iaaa.infrastructure.service.oauth_endpoints import IamRequestValidator
+from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 
-def test_revocation_response(auth_service: IamRequestValidator, bearer_messages_list: List[ff.Message], registry):
+def test_revocation_response(auth_service: OauthRequestValidator, bearer_messages_list: List[ff.Message], registry):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
 
@@ -70,13 +70,13 @@ def assert_is_valid(token: BearerToken, should_be = True):
     assert token.is_valid == should_be
     assert token.is_access_valid == should_be
 
-def test_revocation_response_missing_data(auth_service: IamRequestValidator, bearer_messages_second_list: List[ff.Message], registry):
+def test_revocation_response_missing_data(auth_service: OauthRequestValidator, bearer_messages_second_list: List[ff.Message], registry):
 
     message = bearer_messages_second_list[-1]
     message.headers['http_method'] = 'POST'
 
 
-    for i in range(15):
+    for i in range(16):
         message = bearer_messages_second_list[i]
         message.headers['http_method'] = 'POST'
         if i == 0:
@@ -109,6 +109,10 @@ def test_revocation_response_missing_data(auth_service: IamRequestValidator, bea
             message.state = None
         if i == 14:
             message.token_type_hint = None
+        if i == 15:
+            message.client_secret = None
+            message.password = None
+
 
         if i % 3 == 0:
             token = registry(BearerToken).find(lambda x: x.refresh_token == message.token)
@@ -119,8 +123,8 @@ def test_revocation_response_missing_data(auth_service: IamRequestValidator, bea
         
         assert_is_valid(token)
         headers, body, status = auth_service.create_revocation_response(message)
-        assert not token.is_valid == (i % 3 == 0)
-        assert not token.is_access_valid
+        assert not token.is_valid == (i % 3 == 0 and i != 15)
+        assert not token.is_access_valid == (i != 15)
         headers, body, status = auth_service.create_revocation_response(message) #make sure it stays revoked
-        assert not token.is_valid == (i % 3 == 0)
-        assert not token.is_access_valid
+        assert not token.is_valid == (i % 3 == 0 and i != 15)
+        assert not token.is_access_valid == (i != 15)

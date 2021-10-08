@@ -47,10 +47,13 @@ class BearerToken(ff.AggregateRoot):
     created_at: datetime = ff.now()
     activates_at: datetime = ff.optional(default=datetime.utcnow())
     token_type: str = ff.optional(default='Bearer')
+    claims: dict = ff.optional()
     is_access_valid: bool = True
     is_valid: bool = True
 
     def validate_scopes(self, scopes: List[str]):
+        if not scopes:
+            return False
         for scope in scopes:
             if scope not in self.scopes:
                 return False

@@ -7,10 +7,10 @@ from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 import random
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
 
 
-def test_save_authorization_code(validator: OauthlibRequestValidator, oauth_request_list: List[Request], client_list: List[Client], user_list: List[User], registry):
+def test_save_authorization_code(validator: OauthlibRequestValidators, oauth_request_list: List[Request], client_list: List[Client], user_list: List[User], registry):
     for i in range(4):
         code = {
             'code': gen_random_string(36),
@@ -20,7 +20,7 @@ def test_save_authorization_code(validator: OauthlibRequestValidator, oauth_requ
             'state': 'given_by_client',
         }
         code_challenge = gen_random_string(128)
-        code_challenge_method = gen_random_string(6)
+        code_challenge_method = 'S256'
         redirect_uri = gen_random_string(36)
         oauth_request_list[i].scopes = client_list[i].scopes
         oauth_request_list[i].user = user_list[i]
@@ -30,12 +30,13 @@ def test_save_authorization_code(validator: OauthlibRequestValidator, oauth_requ
             oauth_request_list[i].code_challenge_method = code_challenge_method
         validator.save_authorization_code('', code, oauth_request_list[i])
         saved_code = registry(AuthorizationCode).find(lambda x: x.code == code['code'])
+        saved_time = datetime.utcnow()
         assert saved_code.code == code['code']
         assert saved_code.scopes == client_list[i].scopes
         assert saved_code.redirect_uri == redirect_uri
         assert saved_code.user == user_list[i]
         assert saved_code.client == client_list[i]
-        assert (datetime.utcnow() + timedelta(minutes=10)) - saved_code.expires_at < timedelta(seconds=1)
+        assert (saved_time + timedelta(minutes=10)) - saved_code.expires_at < timedelta(seconds=5)
         if i < 2:
             assert saved_code.challenge == code_challenge
             assert saved_code.challenge_method == code_challenge_method

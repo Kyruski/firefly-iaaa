@@ -15,9 +15,9 @@ from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.user import User
 
-from firefly_iaaa.infrastructure.service.oauth_endpoints import IamRequestValidator
+from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
 
-def test_introspect_response(auth_service: IamRequestValidator, introspect_messages: List[ff.Message]):
+def test_introspect_response(auth_service: OauthRequestValidator, introspect_messages: List[ff.Message]):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
     for i in range(6):
@@ -51,8 +51,65 @@ def test_introspect_response(auth_service: IamRequestValidator, introspect_messa
             continue
         message = introspect_messages[0]['active']
         message.headers['http_method'] = method
-        with pytest.raises(InvalidRequestError):
-            headers, body, status = auth_service.create_token_response(message)
+        headers, body, status = auth_service.create_introspect_response(message)
+        body = json.loads(body)
+        assert body.get('error') == 'invalid_request'
+        assert body.get('error_description') == f'Unsupported request method {method}'
+
+
+def test_introspect_missing_data(auth_service: OauthRequestValidator, bearer_messages_second_list: List[ff.Message]):
+
+    message = bearer_messages_second_list[-1]
+    message.headers['http_method'] = 'POST'
+    headers, body, status = auth_service.create_introspect_response(message)
+    body = json.loads(body)
+    assert (body.get('error') is None)
+
+
+    for i in range(17):
+        message = bearer_messages_second_list[i]
+        message.headers['http_method'] = 'POST'
+        if i == 0:
+            message.code_challenge = None
+        if i == 1:
+            message.password = None
+        if i == 2:
+            message.response_type = None
+        if i == 3:
+            message.access_token = None
+        if i == 4:
+            message.client_id = None
+        if i == 5:
+            message.client_secret = None
+        if i == 6:
+            message.code_challenge_method = None
+        if i == 7:
+            message.code = None
+        if i == 8:
+            message.username = None
+        if i == 9:
+            message.grant_type = None
+        if i == 10:
+            message.redirect_uri = None
+        if i == 11:
+            message.code_verifier = None
+        if i == 12:
+            message.password = None
+            message.client_secret = None
+        if i == 13:
+            message.scopes = None
+        if i == 14:
+            message.token_type_hint = None
+        if i == 15:
+            message.state = None
+        if i == 16:
+            message.refresh_token = None
+
+
+
+        headers, body, status = auth_service.create_introspect_response(message)
+        body = json.loads(body)
+        assert (body.get('error') is None) == (i in (0, 1, 3, 4, 6, 7, 9, 10, 13, 15, 16))
 
 
 @pytest.fixture()
