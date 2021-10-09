@@ -12,20 +12,25 @@ from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestVali
 
 def test_auth_request(auth_service: OauthRequestValidator, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
 
+    token_status = ['active', 'expired', 'invalid']
     for i in range(6):
         for x in range(3):
-            message_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
-            message = bearer_messages_list[i][message_selector]
+            message = bearer_messages_list[i][token_status[x]]
             scopes, credentials, credentials_key = auth_service.validate_pre_auth_request(message)
 
+            # Check the credentials client_id is correct
             assert credentials['client_id'] == message.client_id
 
             setattr(message, 'credentials_key', credentials_key)
             headers, body, status = auth_service.validate_post_auth_request(message)
 
             uri = headers['Location']
+            # Make sure it's a redirection status
             assert status == 302
+            # Make sure it includes state in the uri
             assert 'state=abc' in uri
+
+            # Check that the respective code or access token in uri
             if i % 2 == 0:
                 assert 'code=' in uri
             else:
@@ -34,6 +39,7 @@ def test_auth_request(auth_service: OauthRequestValidator, bearer_messages_list:
 
 def test_auth_request_missing_data(auth_service: OauthRequestValidator, bearer_messages_second_list: List[ff.Message]):
 
+    # Check a missing/invalid credentials key ('abc' in this case) does not authenticate
     message = bearer_messages_second_list[-1]
     scopes, credentials, credentials_key = auth_service.validate_pre_auth_request(message)
     assert credentials['client_id'] == message.client_id
@@ -47,11 +53,12 @@ def test_auth_request_missing_data(auth_service: OauthRequestValidator, bearer_m
     headers, body, status = auth_service.validate_post_auth_request(message)
     assert_is_none(headers, body, status)
 
-
+    # Check for various missing attributes from message
     for i in range(16):
         message = bearer_messages_second_list[i]
         message.headers['http_method'] = 'POST'
         if i == 0:
+            # Check missing code challenge results in error
             message.code_challenge = None
             with pytest.raises(MissingCodeChallengeError):
                 scopes, credentials, credentials_key = auth_service.validate_pre_auth_request(message)
@@ -63,6 +70,7 @@ def test_auth_request_missing_data(auth_service: OauthRequestValidator, bearer_m
         if i == 3:
             message.access_token = None
         if i == 4:
+            # Check missing client_id results in error
             message.client_id = None
             with pytest.raises(MissingClientIdError):
                 scopes, credentials, credentials_key = auth_service.validate_pre_auth_request(message)
@@ -76,6 +84,7 @@ def test_auth_request_missing_data(auth_service: OauthRequestValidator, bearer_m
         if i == 8:
             message.username = None
         if i == 9:
+            # Check missing response_type results in error
             message.response_type = None
             with pytest.raises(MissingResponseTypeError):
                 scopes, credentials, credentials_key = auth_service.validate_pre_auth_request(message)
@@ -99,10 +108,15 @@ def test_auth_request_missing_data(auth_service: OauthRequestValidator, bearer_m
         setattr(message, 'credentials_key', credentials_key)
         headers, body, status = auth_service.validate_post_auth_request(message)
 
+
         uri = headers['Location']
         assert status == 302
+
+        # Check that state in uri UNLESS state isn't provided
         if i != 14:
             assert 'state=abc' in uri
+
+        # Check that the respective code or access token in uri
         if i % 2 == 0:
             assert 'code=' in uri
         else:

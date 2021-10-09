@@ -59,6 +59,5 @@ class AuthorizationCode(ff.AggregateRoot):
     def is_expired(self):
         return self.expires_at < datetime.utcnow()
 
-    def validate(self, client_id: str, claims: dict):
-        is_claims = (self.claims == claims) if claims else self.claims is None
-        return self.is_valid and client_id == self.client.client_id and is_claims and not self.is_expired()
+    def validate(self, client_id: str):
+        return self.is_valid and client_id == self.client.client_id and not self.is_expired()

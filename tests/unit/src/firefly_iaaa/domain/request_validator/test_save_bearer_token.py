@@ -20,11 +20,16 @@ def test_save_bearer_token(validator: OauthlibRequestValidators, oauth_request_l
             'refresh_token': gen_random_string(36),
             'state': 'given_by_client',
         }
+
         oauth_request_list[i].scopes = token['scope'].split(' ')
         oauth_request_list[i].user = user_list[i]
+
+        # Check the returned redirect uri is correct
         assert validator.save_bearer_token(token, oauth_request_list[i]) == client_list[i].default_redirect_uri
         saved_token = registry(BearerToken).find(lambda x: x.refresh_token == token['refresh_token'])
         saved_time = datetime.utcnow()
+
+        #Check the saved token exists
         assert saved_token.token_type == token['token_type']
         assert saved_token.access_token == token['access_token']
         assert saved_token.scopes == token['scope'].split(' ')

@@ -22,33 +22,38 @@ from firefly_iaaa.domain.entity.bearer_token import BearerToken
 def test_revocation_response(auth_service: OauthRequestValidator, bearer_messages_list: List[ff.Message], registry):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
-
+    token_status = ['active', 'expired', 'invalid']
     for i in range(6):
         method = VALID_METHOD_TYPES[i]
-        if method == 'POST':
-            continue
-        message = bearer_messages_list[i]['active']
-        message.headers['http_method'] = method
+        # Check all http_methods except for POST don't invalidate token
+        if method != 'POST':
+            message = bearer_messages_list[i]['active']
+            message.headers['http_method'] = method
 
-        old_token = message.token
+            # Save token to reset to later
+            old_token = message.token
 
-        token = registry(BearerToken).find(lambda x: x.access_token == message.access_token)
-        assert_is_valid(token)
-        message.token = message.access_token
-        headers, body, status = auth_service.create_revocation_response(message)
-        assert_is_valid(token)
+            # Check token starts out valid
+            token = registry(BearerToken).find(lambda x: x.access_token == message.access_token)
+            assert_is_valid(token)
+            message.token = message.access_token
+            headers, body, status = auth_service.create_revocation_response(message)
+            # Make sure token doesn't invalidate
+            assert_is_valid(token)
 
-        token = registry(BearerToken).find(lambda x: x.refresh_token == message.refresh_token)
-        assert_is_valid(token)
-        message.token = message.refresh_token
-        headers, body, status = auth_service.create_revocation_response(message) #make sure it stays revoked
-        assert_is_valid(token)
+            token = registry(BearerToken).find(lambda x: x.refresh_token == message.refresh_token)
+            assert_is_valid(token)
+            message.token = message.refresh_token
+            # Make sure token doesn't invalidate
+            headers, body, status = auth_service.create_revocation_response(message)
+            assert_is_valid(token)
 
-        message.token = old_token
+            # Reset to old token
+            message.token = old_token
 
+        
         for x in range(3):
-            message_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
-            message = bearer_messages_list[i][message_selector]
+            message = bearer_messages_list[i][token_status[x]]
             message.headers['http_method'] = 'POST'
 
             if i % 3 == 0:
@@ -58,15 +63,20 @@ def test_revocation_response(auth_service: OauthRequestValidator, bearer_message
             else:
                 continue
             
+            # Check it starts off valid unless 'invalid' (expired should still have valid, vaaidation checks expiration differently)
             assert_is_valid(token, (x != 2))
             headers, body, status = auth_service.create_revocation_response(message)
+
+            # Check access token always revoked
+            # Check that it revokes refresh token if refresh is the provided token (i % 3 == 0) or already 'invalid'
             assert not token.is_valid == (i % 3 == 0 or (x == 2))
             assert not token.is_access_valid
-            headers, body, status = auth_service.create_revocation_response(message) #make sure it stays revoked
+            headers, body, status = auth_service.create_revocation_response(message)
+            # Check that it's still revoked
             assert not token.is_valid == (i % 3 == 0 or (x == 2))
             assert not token.is_access_valid
 
-def assert_is_valid(token: BearerToken, should_be = True):
+def assert_is_valid(token: BearerToken, should_be: bool = True):
     assert token.is_valid == should_be
     assert token.is_access_valid == should_be
 
@@ -75,7 +85,7 @@ def test_revocation_response_missing_data(auth_service: OauthRequestValidator, b
     message = bearer_messages_second_list[-1]
     message.headers['http_method'] = 'POST'
 
-
+    # Check for various missing attributes from message
     for i in range(16):
         message = bearer_messages_second_list[i]
         message.headers['http_method'] = 'POST'
@@ -121,10 +131,14 @@ def test_revocation_response_missing_data(auth_service: OauthRequestValidator, b
         else:
             continue
         
+        # Check is valid at start
         assert_is_valid(token)
         headers, body, status = auth_service.create_revocation_response(message)
+        # Check it revokes unless authentication fails (i == 15)
+        # Check that it revokes refresh token if refresh is the provided token (i % 3 == 0)
         assert not token.is_valid == (i % 3 == 0 and i != 15)
         assert not token.is_access_valid == (i != 15)
-        headers, body, status = auth_service.create_revocation_response(message) #make sure it stays revoked
+        headers, body, status = auth_service.create_revocation_response(message) 
+        # Check that it stays revoked
         assert not token.is_valid == (i % 3 == 0 and i != 15)
         assert not token.is_access_valid == (i != 15)

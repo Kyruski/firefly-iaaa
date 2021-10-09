@@ -28,5 +28,21 @@ class RequestValidator(ABC):
         pass
 
     @abstractmethod
+    def create_token_response(self, request: ff.Message):
+        pass
+
+    @abstractmethod
     def create_response(self, request: ff.Message):
+        pass
+
+    @abstractmethod
+    def verify_request(self, request: ff.Message):
+        pass
+
+    @abstractmethod
+    def create_introspect_response(self, request: ff.Message):
+        pass
+
+    @abstractmethod
+    def create_revocation_response(self, request: ff.Message):
         pass

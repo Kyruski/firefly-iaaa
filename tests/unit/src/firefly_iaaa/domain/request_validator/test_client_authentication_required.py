@@ -9,30 +9,31 @@ from firefly_iaaa.infrastructure.service.request_validator import OauthlibReques
 
 
 def test_client_authentication_required(validator: OauthlibRequestValidators, oauth_request_list: List[Request], user_list: List[User]):
+
+    # Check request with no headers should return False
     assert validator.client_authentication_required(oauth_request_list[-1]) == False, "Testing with no headers or client_id, should return False"
+
+    # Check request with correct headers/login returns Trye
     oauth_request_list[-1].body['username'] = user_list[0]
     oauth_request_list[-1].body['password'] = 'password1'
     assert validator.client_authentication_required(oauth_request_list[-1]) == True, "Testing with headers but no client_id, should return True"
+
+    # Check missing headers returns False (Clearing headers)
     oauth_request_list[-1].body['username'] = None
     oauth_request_list[-1].body['password'] = None
     assert validator.client_authentication_required(oauth_request_list[-1]) == False, "Clearing headers, should return False"
+
+    # Check mismatching username/password still returns true (only checking headers exists)
     oauth_request_list[-1].body['username'] = user_list[1]
     oauth_request_list[-1].body['password'] = 'password1'
     assert validator.client_authentication_required(oauth_request_list[-1]) == True #Doesn't matter if password wrong, it should still return true if headers exist
 
-    oauth_request_list[0].client_id = oauth_request_list[0].client.client_id
-    oauth_request_list[1].client_id = oauth_request_list[1].client.client_id
-    oauth_request_list[2].client_id = oauth_request_list[2].client.client_id
-    oauth_request_list[3].client_id = oauth_request_list[3].client.client_id
-    oauth_request_list[4].client_id = oauth_request_list[4].client.client_id
-    oauth_request_list[5].client_id = oauth_request_list[5].client.client_id
-    oauth_request_list[6].client_id = oauth_request_list[6].client.client_id
-    assert validator.client_authentication_required(oauth_request_list[0]) == False
-    assert validator.client_authentication_required(oauth_request_list[1]) == False
-    assert validator.client_authentication_required(oauth_request_list[2]) == True
-    assert validator.client_authentication_required(oauth_request_list[3]) == True
-    assert validator.client_authentication_required(oauth_request_list[4]) == True
-    assert validator.client_authentication_required(oauth_request_list[5]) == False
-    assert validator.client_authentication_required(oauth_request_list[6]) == True
+    for i in range(7):
+        # Checking if authentication required for client
+        # Based off grant type/is confidential client
+        oauth_request_list[i].client_id = oauth_request_list[i].client.client_id
+        assert validator.client_authentication_required(oauth_request_list[i]) == (i in (2, 3, 4, 6))
+
+    # Check missing client_id returns False
     oauth_request_list[3].client_id = None
     assert validator.client_authentication_required(oauth_request_list[3]) == False

@@ -620,7 +620,7 @@ class OauthlibRequestValidators(RequestValidator):
 
         if not auth_code:
             return False
-        if auth_code.validate(client.client_id, request.claims):
+        if auth_code.validate(client.client_id):
             request.user = auth_code.user
             request.scopes = auth_code.scopes
             if auth_code.claims:

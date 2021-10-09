@@ -19,27 +19,30 @@ def test_save_authorization_code(validator: OauthlibRequestValidators, oauth_req
             'refresh_code': gen_random_string(36),
             'state': 'given_by_client',
         }
+
         code_challenge = gen_random_string(128)
-        code_challenge_method = 'S256'
         redirect_uri = gen_random_string(36)
         oauth_request_list[i].scopes = client_list[i].scopes
         oauth_request_list[i].user = user_list[i]
         oauth_request_list[i].redirect_uri = redirect_uri
+
+        # If pkce is required
         if i < 2:
             oauth_request_list[i].code_challenge = code_challenge
-            oauth_request_list[i].code_challenge_method = code_challenge_method
         validator.save_authorization_code('', code, oauth_request_list[i])
         saved_code = registry(AuthorizationCode).find(lambda x: x.code == code['code'])
         saved_time = datetime.utcnow()
+
+        #Check the code was saved
         assert saved_code.code == code['code']
         assert saved_code.scopes == client_list[i].scopes
         assert saved_code.redirect_uri == redirect_uri
         assert saved_code.user == user_list[i]
         assert saved_code.client == client_list[i]
         assert (saved_time + timedelta(minutes=10)) - saved_code.expires_at < timedelta(seconds=5)
-        if i < 2:
-            assert saved_code.challenge == code_challenge
-            assert saved_code.challenge_method == code_challenge_method
+        
+        #Check challenge was saved
+        assert (saved_code.challenge == code_challenge) == (i < 2)
 
 
 def gen_random_string(num: int = 6):

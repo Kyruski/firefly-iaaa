@@ -20,32 +20,38 @@ from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestVali
 def test_introspect_response(auth_service: OauthRequestValidator, introspect_messages: List[ff.Message]):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
+    token_status = ['active', 'expired', 'invalid']
     for i in range(6):
         for x in range(3):
-            message_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
-            message = introspect_messages[i][message_selector]
+            message = introspect_messages[i][token_status[x]]
             message.headers['http_method'] = 'POST'
             headers, body, status = auth_service.create_introspect_response(message)
 
-            is_true = (i in (0, 1, 3, 4))
+            # is_true is this value because i % 3 == 2 means the token is missing from message
+            is_true = (i % 3 != 2)
             body = json.loads(body)
             expected_status = 200 if is_true else 400
 
+            # Check for the correct status, as well as if error exists and if token is active
             assert status == expected_status
             assert (body.get('error') is None) == is_true
             assert (body.get('active') is None) != is_true
-            if is_true:
-                assert body.get('active') == (is_true and x == 0)
 
+            # Check that active is True or false (x == 0 means only 'active' tokens, and not 'expired' or 'invalid')
+            if is_true:
+                assert body.get('active') == (x == 0)
+                if x == 0:
+                    # Check for the correct token type
+                    if i % 3 == 0:
+                        assert body.get('token_type') == 'refresh_token'
+                    elif i % 3 == 1:
+                        assert body.get('token_type') == 'access_token'
+
+            # Check state exists when not valid
             if not is_true:
                 assert body.get('state') == 'abc'
 
-            if is_true and x == 0:
-                if i % 3 == 0:
-                    assert body.get('token_type') == 'refresh_token'
-                elif i % 3 == 1:
-                    assert body.get('token_type') == 'access_token'
-
+    # Check all http_methods except for POST fail
     for method in VALID_METHOD_TYPES:
         if method == 'POST':
             continue
@@ -65,7 +71,7 @@ def test_introspect_missing_data(auth_service: OauthRequestValidator, bearer_mes
     body = json.loads(body)
     assert (body.get('error') is None)
 
-
+    # Check for various missing attributes from message
     for i in range(17):
         message = bearer_messages_second_list[i]
         message.headers['http_method'] = 'POST'
@@ -105,11 +111,11 @@ def test_introspect_missing_data(auth_service: OauthRequestValidator, bearer_mes
         if i == 16:
             message.refresh_token = None
 
-
-
         headers, body, status = auth_service.create_introspect_response(message)
         body = json.loads(body)
-        assert (body.get('error') is None) == (i in (0, 1, 3, 4, 6, 7, 9, 10, 13, 15, 16))
+        # Check error is missing from the body response when a token was supplied (i % 3 != 2)
+        # Make sure error in body when missing authentication parameters (password and client secret)
+        assert (body.get('error') is None) == ((i % 3 != 2) and (i != 12))
 
 
 @pytest.fixture()
@@ -136,9 +142,3 @@ def introspect_messages(message_factory, bearer_tokens_list: List[BearerToken], 
             message_group[status[x]] = message
         messages.append(message_group)
     return messages
-
-
-def convert_grants(grant):
-    if grant == 'implicit':
-        return 'refresh'
-    return grant

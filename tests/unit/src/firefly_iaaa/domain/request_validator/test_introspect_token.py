@@ -10,15 +10,18 @@ from firefly_iaaa.infrastructure.service.request_validator import OauthlibReques
 
 
 def test_introspect_token(validator: OauthlibRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken]):
+    token_status = ['active', 'expired', 'invalid']
     for i in range(6):
         for x in range(3):
             for token_type in ['refresh_token', 'access_token', None]:
-                bearer_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
-                bearer_token = bearer_tokens_list[i][bearer_selector]
+                bearer_token = bearer_tokens_list[i][token_status[x]]
                 assert_request_empty(oauth_request_list[i])
                 resp = validator.introspect_token(bearer_token.refresh_token, token_type, oauth_request_list[i])
 
+                # Check for refresh token
                 if x == 0:
+                    # Check that all claims exist
+                    # Check the token on the request has been set
                     assert oauth_request_list[i].token['active'] == bearer_token.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client)
                     assert oauth_request_list[i].token['scope'] == bearer_token.scopes
                     assert oauth_request_list[i].token['client_id'] == bearer_token.client.client_id
@@ -32,6 +35,7 @@ def test_introspect_token(validator: OauthlibRequestValidators, oauth_request_li
                     assert oauth_request_list[i].token['iss'] == os.environ['ISSUER']
                     assert oauth_request_list[i].token['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
 
+                    # Check the response is correct
                     assert resp['active'] == bearer_token.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client)
                     assert resp['scope'] == bearer_token.scopes
                     assert resp['client_id'] == bearer_token.client.client_id
@@ -45,12 +49,15 @@ def test_introspect_token(validator: OauthlibRequestValidators, oauth_request_li
                     assert resp['iss'] == os.environ['ISSUER']
                     assert resp['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
                 else:
+                    # Check that invalid/expired tokens return none
                     assert resp is None
-                reset_request(oauth_request_list[i])
-                assert_request_empty(oauth_request_list[i])
+                reset_and_assert_empty(oauth_request_list[i])
                 resp = validator.introspect_token(bearer_token.access_token, token_type, oauth_request_list[i])
 
-                if resp:
+                # Check for access token
+                if x == 0:
+                    # Check that all claims exist
+                    # Check the token on the request has been set
                     assert oauth_request_list[i].token['active'] == bearer_token.validate_access_token(bearer_token.access_token, oauth_request_list[i].client)
                     assert oauth_request_list[i].token['scope'] == bearer_token.scopes
                     assert oauth_request_list[i].token['client_id'] == bearer_token.client.client_id
@@ -64,6 +71,7 @@ def test_introspect_token(validator: OauthlibRequestValidators, oauth_request_li
                     assert oauth_request_list[i].token['iss'] == os.environ['ISSUER']
                     assert oauth_request_list[i].token['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
 
+                    # Check the response is correct
                     assert resp['active'] == bearer_token.validate_access_token(bearer_token.access_token, oauth_request_list[i].client)
                     assert resp['scope'] == bearer_token.scopes
                     assert resp['client_id'] == bearer_token.client.client_id
@@ -76,13 +84,22 @@ def test_introspect_token(validator: OauthlibRequestValidators, oauth_request_li
                     assert resp['aud'] == bearer_token.client.client_id
                     assert resp['iss'] == os.environ['ISSUER']
                     assert resp['jti'] is not None and type(oauth_request_list[i].token['jti']) == type('')
-                reset_request(oauth_request_list[i])
+                else:
+                    # Check that invalid/expired tokens return none
+                    assert resp is None
+                reset_and_assert_empty(oauth_request_list[i])
+
+                # Check a bad/non-existent token returns None
+                resp = validator.introspect_token('bearer_token.access_token', token_type, oauth_request_list[i])
                 assert_request_empty(oauth_request_list[i])
-                validator.introspect_token('bearer_token.access_token', token_type, oauth_request_list[i])
-                assert_request_empty(oauth_request_list[i])
+                assert resp == None
 
 def assert_request_empty(request):
     assert request.token is None
 
 def reset_request(request):
     request.token = None
+
+def reset_and_assert_empty(request):
+    reset_request(request)
+    assert_request_empty(request)

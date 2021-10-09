@@ -27,17 +27,20 @@ import json
 def test_create_token_response(auth_service: OauthRequestValidator, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
+    token_status = ['active', 'expired', 'invalid']
     for i in range(6):
         for x in range(3):
-            message_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
-            message = bearer_messages_list[i][message_selector]
+            message = bearer_messages_list[i][token_status[x]]
             message.headers['http_method'] = 'POST'
             headers, body, status = auth_service.create_token_response(message)
 
+            # is_true should only be true when (token_status is 'active' and grant_type is refresh or authorization_code)
+            # OR when grant_type is client_credentials or password (client credentials and password don't check for active status of a bearer token, so x can be 'expired' or 'invalid')
             is_true = ((x == 0 and i in (0, 1, 4, 5)) or (i in (2, 3)))
             body = json.loads(body)
             expected_status = 200 if is_true else 400
             assert status == expected_status
+            # Check various responses exist or don't exist based on is_true
             assert (body.get('error') is None) == is_true
 
             assert (body.get('access_token') is None) != is_true
@@ -52,8 +55,9 @@ def test_create_token_response(auth_service: OauthRequestValidator, bearer_messa
 
             assert (body.get('scope') is None) != is_true
             if is_true:
-                assert body.get('scope') == ' '.join(bearer_tokens_list[i][message_selector].scopes)
+                assert body.get('scope') == ' '.join(bearer_tokens_list[i][token_status[x]].scopes)
 
+    # Check all http_methods except for POST fail
     for method in VALID_METHOD_TYPES:
         if method == 'POST':
             continue
@@ -72,6 +76,7 @@ def test_create_token_response_missing_data(auth_service: OauthRequestValidator,
     body = json.loads(body)
     assert body.get('error') is None
 
+    # Check for various missing attributes from message
     for i in range(17):
         message = bearer_messages_second_list[i]
         message.headers['http_method'] = 'POST'
@@ -113,4 +118,5 @@ def test_create_token_response_missing_data(auth_service: OauthRequestValidator,
 
         headers, body, status = auth_service.create_token_response(message)
         body = json.loads(body)
+        # Check that error is none as long as grant_type, code (if authorization_code grant), refresh_token (if refresh_token grant), and authentication info is provide for respective grant types
         assert (body.get('error') is None) == (i in (0, 1, 3, 4, 5, 7, 8, 9, 10, 12, 13, 14, 16))

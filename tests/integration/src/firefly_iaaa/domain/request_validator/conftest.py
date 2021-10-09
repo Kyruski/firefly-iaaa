@@ -70,7 +70,7 @@ def bearer_messages_list(message_factory, bearer_tokens_list: List[BearerToken],
                 data={'headers': {'http_method': 'GET', 'uri': bearer_token.client.default_redirect_uri},
                     'username': user_list[i % 6].email,
                     'password': f'password{(i % 6) + 1}',
-                    'grant_type': convert_grants(bearer_token.client.grant_type),
+                    'grant_type': bearer_token.client.grant_type,
                     "access_token": bearer_token.access_token,
                     "client": None,
                     "client_id": bearer_token.client.client_id,
@@ -108,7 +108,7 @@ def bearer_messages_second_list(message_factory, bearer_tokens_second_list: List
             data={'headers': {'http_method': 'GET', 'uri': bearer_token.client.default_redirect_uri},
                 'username': user_list[i % 6].email,
                 'password': f'password{(i % 6) + 1}',
-                'grant_type': convert_grants(bearer_token.client.grant_type),
+                'grant_type': bearer_token.client.grant_type,
                 "access_token": bearer_token.access_token,
                 "client": None,
                 "client_id": bearer_token.client.client_id,
@@ -134,11 +134,6 @@ def bearer_messages_second_list(message_factory, bearer_tokens_second_list: List
         messages.append(message)
     return messages
 
-
-def convert_grants(grant):
-    if grant == 'implicit':
-        return 'refresh'
-    return grant
 
 def generate_code_challenge():
     code_verifier = ''

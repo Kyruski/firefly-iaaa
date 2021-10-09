@@ -7,13 +7,13 @@ from firefly_iaaa.infrastructure.service.request_validator import OauthlibReques
 
 
 def test_validate_refresh_token(validator: OauthlibRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken]):
+    token_status = ['active', 'expired', 'invalid']
     for i in range(6):
         for x in range(3):
-            bearer_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
-            bearer_token = bearer_tokens_list[i][bearer_selector]
+            bearer_token = bearer_tokens_list[i][token_status[x]]
             assert oauth_request_list[i].user is None
 
-            # Checking if refresh token is valid
+            # Checking if refresh token is valid (only x == 0 is valid)
             assert validator.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client, oauth_request_list[i]) == (x == 0)
             assert (oauth_request_list[i].user == bearer_token.user) == (x == 0)
 

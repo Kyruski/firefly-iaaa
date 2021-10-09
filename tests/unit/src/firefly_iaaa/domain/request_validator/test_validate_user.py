@@ -14,7 +14,7 @@ def test_validate_user(validator: OauthlibRequestValidators, oauth_request_list:
         assert validator.validate_user(user_list[i].email, f'password{i + 1}', oauth_request_list[i].client, oauth_request_list[i]) == True
         assert oauth_request_list[i].user == user_list[i]
 
-        # Reseting user on Request
+        # Reseting user on the Request
         oauth_request_list[i].user = None
         assert oauth_request_list[i].user is None
 

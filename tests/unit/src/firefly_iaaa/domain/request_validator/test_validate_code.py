@@ -9,38 +9,39 @@ from firefly_iaaa.infrastructure.service.request_validator import OauthlibReques
 
 
 def test_validate_code(validator: OauthlibRequestValidators, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode], registry):
+    token_status = ['active', 'expired', 'invalid']
     for i in range(6):
         for x in range(3):
-            code_selector = 'active' if x == 0 else 'expired' if x == 1 else 'invalid'
-            auth_code = auth_codes_list[i][code_selector]
+            auth_code = auth_codes_list[i][token_status[x]]
             assert_request_empty(oauth_request_list[i])
+
+            #Should be valid if x is 0 (using valid code)
             assert validator.validate_code('', auth_code.code, oauth_request_list[i].client, oauth_request_list[i]) == (x == 0)
             assert (oauth_request_list[i].user == auth_code.user) == (x == 0)
             assert (oauth_request_list[i].scopes == auth_code.scopes) == (x == 0)
             assert oauth_request_list[i].claims is None
 
-            reset_request(oauth_request_list[i])
-            assert_request_empty(oauth_request_list[i])
+            reset_and_assert_empty(oauth_request_list[i])
 
-            assert validator.validate_code('', auth_code.code, oauth_request_list[(i + 1) % 6].client, oauth_request_list[i]) == False #Check for wrong client
+            # Check for wrong client
+            assert validator.validate_code('', auth_code.code, oauth_request_list[(i + 1) % 6].client, oauth_request_list[i]) == False
             assert oauth_request_list[i].user is None
 
-            reset_request(oauth_request_list[i])
-            assert_request_empty(oauth_request_list[i])
+            reset_and_assert_empty(oauth_request_list[i])
 
             auth = registry(AuthorizationCode).find(auth_code.id_)
             claims = {'data': 'not empty'}
             auth.claims = claims
-            assert validator.validate_code('', auth_code.code, oauth_request_list[i].client, oauth_request_list[i]) == False
 
-            oauth_request_list[i].claims = claims
+            # Check claims is set on the request if exists on the auth code
             assert validator.validate_code('', auth_code.code, oauth_request_list[i].client, oauth_request_list[i]) == (x == 0)
             assert (oauth_request_list[i].user == auth_code.user) == (x == 0)
             assert (oauth_request_list[i].scopes == auth_code.scopes) == (x == 0)
+            assert (oauth_request_list[i].claims == auth_code.claims) == (x == 0)
 
-            reset_request(oauth_request_list[i])
-            assert_request_empty(oauth_request_list[i])
-
+            reset_and_assert_empty(oauth_request_list[i])
+            
+            # Non-validated request should not set claims, scopes, user
             assert validator.validate_code('', 'fake_code', oauth_request_list[i].client, oauth_request_list[i]) == False
             assert_request_empty(oauth_request_list[i])
 
@@ -53,3 +54,7 @@ def reset_request(request):
     request.claims = None
     request.user = None
     request.scopes = None
+
+def reset_and_assert_empty(request):
+    reset_request(request)
+    assert_request_empty(request)

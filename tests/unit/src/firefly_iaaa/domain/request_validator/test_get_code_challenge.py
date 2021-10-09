@@ -12,5 +12,9 @@ from firefly_iaaa.infrastructure.service.request_validator import OauthlibReques
 def test_get_code_challenge(validator: OauthlibRequestValidators, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode], client_list: List[Client]):
     for i in range(6):
         auth_code = auth_codes_list[i]['active']
+
+        # Check correct code challenge returned
         assert validator.get_code_challenge(auth_code.code, oauth_request_list[i]) == auth_code.challenge
+
+        # Check non-existent code returns None
         assert validator.get_code_challenge('auth_code.code', oauth_request_list[i]) is None
