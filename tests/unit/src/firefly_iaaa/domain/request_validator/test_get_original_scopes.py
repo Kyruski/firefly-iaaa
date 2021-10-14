@@ -3,11 +3,11 @@ from typing import List
 
 from oauthlib.common import Request
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
+from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 
 
-def test_get_original_scopes(validator: OauthlibRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken]):
+def test_get_original_scopes(validator: OauthRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[dict]):
     for i in range(6):
         bearer_token = bearer_tokens_list[i]['active']
 

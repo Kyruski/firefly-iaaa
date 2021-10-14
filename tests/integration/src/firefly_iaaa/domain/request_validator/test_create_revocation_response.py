@@ -16,10 +16,10 @@ from typing import List
 
 import firefly as ff
 
-from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
+from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 
-def test_revocation_response(auth_service: OauthRequestValidator, bearer_messages_list: List[ff.Message], registry):
+def test_revocation_response(auth_service: OauthProvider, bearer_messages_list: List[ff.Message], registry):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
     token_status = ['active', 'expired', 'invalid']
@@ -80,7 +80,7 @@ def assert_is_valid(token: BearerToken, should_be: bool = True):
     assert token.is_valid == should_be
     assert token.is_access_valid == should_be
 
-def test_revocation_response_missing_data(auth_service: OauthRequestValidator, bearer_messages_second_list: List[ff.Message], registry):
+def test_revocation_response_missing_data(auth_service: OauthProvider, bearer_messages_second_list: List[ff.Message], registry):
 
     message = bearer_messages_second_list[-1]
     message.headers['http_method'] = 'POST'

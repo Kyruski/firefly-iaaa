@@ -18,13 +18,13 @@ from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 import pytest
 import firefly as ff
 
-from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
+from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
 import json
 
-def test_create_token_response(auth_service: OauthRequestValidator, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
+def test_create_token_response(auth_service: OauthProvider, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[dict]):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
     token_status = ['active', 'expired', 'invalid']
@@ -67,7 +67,7 @@ def test_create_token_response(auth_service: OauthRequestValidator, bearer_messa
             headers, body, status = auth_service.create_token_response(message)
 
 
-def test_create_token_response_missing_data(auth_service: OauthRequestValidator, bearer_messages_second_list: List[ff.Message]):
+def test_create_token_response_missing_data(auth_service: OauthProvider, bearer_messages_second_list: List[ff.Message]):
 
     message = bearer_messages_second_list[-1]
     message.headers['http_method'] = 'POST'
@@ -107,9 +107,9 @@ def test_create_token_response_missing_data(auth_service: OauthRequestValidator,
         if i == 12:
             message.response_type = None
         if i == 13:
-            message.scopes = None
-        if i == 14:
             message.state = None
+        if i == 14:
+            message.scopes = None
         if i == 15:
             message.password = None
             message.client_secret = None

@@ -15,9 +15,9 @@
 from __future__ import annotations
 
 import firefly_di as di
-import infrastructure as infra
+import firefly_iaaa.infrastructure as infra
 
 
 class Container(di.Container):
-    oauthlib_request_validator: infra.OauthlibRequestValidators = infra.OauthlibRequestValidators
-    request_validator: infra.OauthRequestValidator = infra.OauthRequestValidator
+    oauthlib_request_validator: infra.OauthRequestValidators = infra.OauthRequestValidators
+    request_validator: infra.OauthProvider = infra.OauthProvider

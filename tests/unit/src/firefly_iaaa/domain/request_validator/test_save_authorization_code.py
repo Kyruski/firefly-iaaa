@@ -7,10 +7,10 @@ from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 import random
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
+from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
 
 
-def test_save_authorization_code(validator: OauthlibRequestValidators, oauth_request_list: List[Request], client_list: List[Client], user_list: List[User], registry):
+def test_save_authorization_code(validator: OauthRequestValidators, oauth_request_list: List[Request], client_list: List[Client], user_list: List[User], registry):
     for i in range(4):
         code = {
             'code': gen_random_string(36),

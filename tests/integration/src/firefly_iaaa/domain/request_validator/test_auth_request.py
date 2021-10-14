@@ -8,9 +8,9 @@ from firefly_iaaa.domain.entity.user import User
 from oauthlib.oauth2.rfc6749.errors import MissingClientIdError, MissingCodeChallengeError, MissingResponseTypeError
 import firefly as ff
 
-from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
+from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
 
-def test_auth_request(auth_service: OauthRequestValidator, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
+def test_auth_request(auth_service: OauthProvider, bearer_messages_list: List[ff.Message]):
 
     token_status = ['active', 'expired', 'invalid']
     for i in range(6):
@@ -37,7 +37,7 @@ def test_auth_request(auth_service: OauthRequestValidator, bearer_messages_list:
                 assert 'access_token=' in uri
 
 
-def test_auth_request_missing_data(auth_service: OauthRequestValidator, bearer_messages_second_list: List[ff.Message]):
+def test_auth_request_missing_data(auth_service: OauthProvider, bearer_messages_second_list: List[ff.Message]):
 
     # Check a missing/invalid credentials key ('abc' in this case) does not authenticate
     message = bearer_messages_second_list[-1]

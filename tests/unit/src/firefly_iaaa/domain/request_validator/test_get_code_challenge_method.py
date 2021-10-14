@@ -5,11 +5,11 @@ from oauthlib.common import Request
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.client import Client
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
+from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
 
 
 
-def test_get_code_challenge_method(validator: OauthlibRequestValidators, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode], client_list: List[Client]):
+def test_get_code_challenge_method(validator: OauthRequestValidators, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode], client_list: List[Client]):
     for i in range(6):
         auth_code = auth_codes_list[i]['active']
 

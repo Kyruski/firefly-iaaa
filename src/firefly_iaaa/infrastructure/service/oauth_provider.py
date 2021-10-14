@@ -17,25 +17,25 @@ import os
 import uuid
 
 import firefly as ff
-from firefly.domain.service import cache
 import jwt
 from oauthlib.oauth2 import Server
 from oauthlib.common import Request
 
 from firefly_iaaa.domain.service.request_validator import RequestValidator
-from .request_validator import OauthlibRequestValidators
-from oauthlib.oauth2.rfc6749 import tokens
+from .request_validator import OauthRequestValidators
 
 
-class OauthRequestValidator(RequestValidator): #does this need to inherit?
+class OauthProvider(RequestValidator): #does this need to inherit?
     _cache: ff.Cache = None
+    _secret_key: str = None
+    _issuer: str = None
 
-    def __init__(self, validator: OauthlibRequestValidators):
-        with open(os.environ['PEM'], 'rb') as privatefile:
-            pem_key = privatefile.read()
+    def __init__(self, validator: OauthRequestValidators):
+        # with open(os.environ['PEM'], 'rb') as privatefile:
+        #     pem_key = privatefile.read()
 
-        self.secret = pem_key
-        self.issuer = os.environ['ISSUER']
+        # self.secret = pem_key
+        # self.issuer = os.environ['ISSUER']
         self._server = Server(
             validator, #need to make sure this is instantiated
             token_generator=(lambda x: self.generate_token(x, 'access_token')),
@@ -47,12 +47,12 @@ class OauthRequestValidator(RequestValidator): #does this need to inherit?
         token = {
             'jti': str(uuid.uuid4()),
             'aud': request.client_id,
-            'iss': self.issuer,
+            'iss': self._issuer,
             'scope': ' '.join(request.scopes)
         }
         if token_type == 'access_token':
             token['exp'] = datetime.utcnow() + timedelta(seconds=request.expires_in)
-        token = jwt.encode(token, self.secret, algorithm='HS256')
+        token = jwt.encode(token, self._secret_key, algorithm='HS256')
         return token
 
     def validate_pre_auth_request(self, request: ff.Message):
@@ -108,10 +108,16 @@ class OauthRequestValidator(RequestValidator): #does this need to inherit?
     # def create_metadata_response(self, request: ff.Message):
 
 
-    # def authenticate_client(self, request: ff.Message):
-    #     uri, http_method, body, headers = self._get_request_params(request)
-    #     oauth_request = Request(uri, http_method, body, headers)
-    #     return self._server.request_validator.authenticate_client(oauth_request)
+    def authenticate_client(self, request: ff.Message):
+        uri, http_method, body, headers = self._get_request_params(request)
+        oauth_request = Request(uri, http_method, body, headers)
+        return self._server.request_validator.authenticate_client(oauth_request) #!! Check
+
+    def decode_token(self, token):
+        try:
+            return jwt.decode(token, self._secret_key, algorithm='HS256')
+        except (jwt.DecodeError, ValueError):
+            return None
 
     @staticmethod
     def _get_request_params(request: ff.Message):

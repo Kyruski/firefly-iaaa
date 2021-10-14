@@ -5,10 +5,10 @@ from oauthlib.common import Request
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
+from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
 
 
-def test_validate_bearer_token(validator: OauthlibRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
+def test_validate_bearer_token(validator: OauthRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[dict], user_list: List[User], client_list: List[Client]):
 
     #Test the active, expired, and invalid tokens
     for x in range(3):

@@ -15,9 +15,9 @@ from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.user import User
 
-from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
+from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
 
-def test_introspect_response(auth_service: OauthRequestValidator, introspect_messages: List[ff.Message]):
+def test_introspect_response(auth_service: OauthProvider, introspect_messages: List[ff.Message]):
 
     VALID_METHOD_TYPES = ['GET', 'PUT', 'POST', 'DELETE', 'HEAD', 'PATCH']
     token_status = ['active', 'expired', 'invalid']
@@ -63,7 +63,7 @@ def test_introspect_response(auth_service: OauthRequestValidator, introspect_mes
         assert body.get('error_description') == f'Unsupported request method {method}'
 
 
-def test_introspect_missing_data(auth_service: OauthRequestValidator, bearer_messages_second_list: List[ff.Message]):
+def test_introspect_missing_data(auth_service: OauthProvider, bearer_messages_second_list: List[ff.Message]):
 
     message = bearer_messages_second_list[-1]
     message.headers['http_method'] = 'POST'
@@ -119,7 +119,7 @@ def test_introspect_missing_data(auth_service: OauthRequestValidator, bearer_mes
 
 
 @pytest.fixture()
-def introspect_messages(message_factory, bearer_tokens_list: List[BearerToken], user_list: List[User], auth_codes_list: List[AuthorizationCode]):
+def introspect_messages(message_factory, bearer_tokens_list: List[dict], user_list: List[User]):
     messages = []
     status = ['active', 'expired', 'invalid']
     for i in range(6):

@@ -17,12 +17,12 @@ from typing import List
 import pytest
 import firefly as ff
 
-from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
+from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
 
-def test_verify_request(auth_service: OauthRequestValidator, bearer_messages_list: List[ff.Message], bearer_tokens_list: List[BearerToken], user_list: List[User], client_list: List[Client]):
+def test_verify_request(auth_service: OauthProvider, bearer_messages_list: List[ff.Message], user_list: List[User], client_list: List[Client]):
 
     token_status = ['active', 'expired', 'invalid']
     for i in range(6):
@@ -49,7 +49,7 @@ def test_verify_request(auth_service: OauthRequestValidator, bearer_messages_lis
                     assert resp.client is None
                     assert resp.scopes == scopes
 
-def test_verify_request_missing_data(auth_service: OauthRequestValidator, bearer_messages_second_list: List[ff.Message]):
+def test_verify_request_missing_data(auth_service: OauthProvider, bearer_messages_second_list: List[ff.Message]):
 
     message = bearer_messages_second_list[-1]
     validated, resp = auth_service.verify_request(message, message.scopes)

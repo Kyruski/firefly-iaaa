@@ -13,9 +13,11 @@
 #  <http://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
+from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
 import pytest
 
 @pytest.fixture()
-def validator(container):
-    return container.build(OauthlibRequestValidators)
+def validator(container, secret):
+    sut = container.build(OauthRequestValidators)
+    sut._secret_key = secret
+    return sut

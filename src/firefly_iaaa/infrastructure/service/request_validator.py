@@ -24,15 +24,10 @@ from oauthlib.common import Request
 from firefly_iaaa import domain
 
 
-class OauthlibRequestValidators(RequestValidator):
+class OauthRequestValidators(RequestValidator):
     _registry: ff.Registry = None
     _valid_token_type_hints: List[str] = ['refresh_token', 'access_token']
-
-    def __init__(self):
-        with open(os.environ['PEM'], 'rb') as privatefile:
-            pem_key = privatefile.read()
-
-        self.secret = pem_key
+    _secret_key: str = None
 
     def authenticate_client(self, request: Request, *args, **kwargs):
         """Authenticate client through means outside the OAuth 2 spec.
@@ -823,7 +818,7 @@ class OauthlibRequestValidators(RequestValidator):
         return False
 
     def _decode_token(self, token, audience):
-        decoded = jwt.decode(token, self.secret, 'HS256', audience=audience)
+        decoded = jwt.decode(token, self._secret_key, 'HS256', audience=audience)
         return decoded
 
     @staticmethod

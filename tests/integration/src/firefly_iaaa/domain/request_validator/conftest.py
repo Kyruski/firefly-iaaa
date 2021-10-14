@@ -26,18 +26,21 @@ from datetime import datetime, timedelta
 
 import random
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
-from firefly_iaaa.infrastructure.service.oauth_endpoints import OauthRequestValidator
+from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
+from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.user import User
 
 
 @pytest.fixture()
-def auth_service(container, cache):
-    validator = container.build(OauthlibRequestValidators)
-    sut = container.build(OauthRequestValidator, validator=validator)
+def auth_service(container, cache, secret, issuer):
+    validator = container.build(OauthRequestValidators)
+    validator._secret_key = secret
+    sut = container.build(OauthProvider, validator=validator)
     sut._cache = cache
+    sut._secret_key = secret
+    sut._issuer = issuer
     return sut
 
 def generate_token(request, token_type, issuer, secret):
@@ -57,7 +60,7 @@ def cache(container):
     return container.build(MockCache)
 
 @pytest.fixture()
-def bearer_messages_list(message_factory, bearer_tokens_list: List[BearerToken], user_list: List[User], auth_codes_list: List[AuthorizationCode]):
+def bearer_messages_list(message_factory, bearer_tokens_list: List[dict], user_list: List[User], auth_codes_list: List[AuthorizationCode]):
     messages = []
     status = ['active', 'expired', 'invalid']
     for i in range(6):

@@ -4,11 +4,11 @@ from typing import List
 from oauthlib.common import Request
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
+from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
 
 
 
-def test_confirm_redirect_uri(validator: OauthlibRequestValidators, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode]):
+def test_confirm_redirect_uri(validator: OauthRequestValidators, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode]):
     for i in range(6):
         auth_code = auth_codes_list[i]['active']
 

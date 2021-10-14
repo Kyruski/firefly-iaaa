@@ -3,11 +3,11 @@ from typing import List
 
 from oauthlib.common import Request
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
+from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
 
 
 
-def test_authenticate_client_id(validator: OauthlibRequestValidators, oauth_request_list: List[Request]):
+def test_authenticate_client_id(validator: OauthRequestValidators, oauth_request_list: List[Request]):
     for i in range(5):
         # Check returns True when client_id supplied on request with no client_id parameter (i == 0 or 1 is False because they are confidential clients and need authentication)
         oauth_request_list[i].client_id = oauth_request_list[i].client.client_id

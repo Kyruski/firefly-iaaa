@@ -3,11 +3,11 @@ from typing import List
 
 from oauthlib.common import Request
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthlibRequestValidators
+from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
 
 
 
-def test_get_default_scopes(validator: OauthlibRequestValidators, oauth_request_list: List[Request]):
+def test_get_default_scopes(validator: OauthRequestValidators, oauth_request_list: List[Request]):
     for i in range(4):
 
         # Check default scopes for request
