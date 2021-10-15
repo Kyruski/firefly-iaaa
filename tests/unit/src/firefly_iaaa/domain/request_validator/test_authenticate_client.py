@@ -4,7 +4,7 @@ from typing import List
 from oauthlib.common import Request
 from firefly_iaaa.domain.entity.user import User
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 
 
 

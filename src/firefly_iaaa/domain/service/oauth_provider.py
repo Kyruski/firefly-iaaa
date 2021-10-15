@@ -14,6 +14,7 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
 import os
+from typing import KeysView
 import uuid
 
 import firefly as ff
@@ -21,11 +22,10 @@ import jwt
 from oauthlib.oauth2 import Server
 from oauthlib.common import Request
 
-from firefly_iaaa.domain.service.request_validator import RequestValidator
 from .request_validator import OauthRequestValidators
 
 
-class OauthProvider(RequestValidator): #does this need to inherit?
+class OauthProvider(ff.DomainService): #does this need to inherit?
     _cache: ff.Cache = None
     _secret_key: str = None
     _issuer: str = None
@@ -121,8 +121,14 @@ class OauthProvider(RequestValidator): #does this need to inherit?
 
     @staticmethod
     def _get_request_params(request: ff.Message):
-        uri = request.headers.get('uri')
-        http_method = request.headers.get('http_method')
+        try: 
+            uri = request.headers['Host']
+        except KeyError:
+            uri = request.headers.get('uri')
+        try:
+            http_method = request.headers['method']
+        except KeyError:
+            http_method = request.headers.get('http_method')
         body = request.to_dict()
         headers = request.headers
         return uri, http_method, body, headers

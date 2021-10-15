@@ -5,7 +5,7 @@ from oauthlib.common import Request
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.client import Client
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 
 
 

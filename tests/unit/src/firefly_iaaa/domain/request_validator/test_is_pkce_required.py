@@ -4,7 +4,7 @@ from typing import List
 from oauthlib.common import Request
 from firefly_iaaa.domain.entity.client import Client
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 
 def test_is_pkce_required(validator: OauthRequestValidators, oauth_request_list: List[Request], client_list: List[Client]):
     for i in range(4):

@@ -16,7 +16,7 @@ from typing import List
 
 import firefly as ff
 
-from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
+from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 
 def test_revocation_response(auth_service: OauthProvider, bearer_messages_list: List[ff.Message], registry):

@@ -5,7 +5,7 @@ from typing import List
 from oauthlib.common import Request
 
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
-from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 
 
 def test_validate_code(validator: OauthRequestValidators, oauth_request_list: List[Request], auth_codes_list: List[AuthorizationCode], registry):

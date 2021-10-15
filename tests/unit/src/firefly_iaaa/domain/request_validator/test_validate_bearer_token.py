@@ -5,7 +5,7 @@ from oauthlib.common import Request
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
-from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 
 
 def test_validate_bearer_token(validator: OauthRequestValidators, oauth_request_list: List[Request], bearer_tokens_list: List[dict], user_list: List[User], client_list: List[Client]):

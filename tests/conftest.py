@@ -26,7 +26,7 @@ import pytest
 import bcrypt
 import random
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
@@ -106,15 +106,19 @@ def client_list(registry, user_list, tenants_list):
     users = []
     for user in user_list:
         registry(User).append(user)
-        u = registry(User).find(user.sub)
-        users.append(u)
+        # u = registry(User).find(user.sub)
+        users.append(user)
     clients = make_client_list(tenants_list)
+    print('we in here')
+    # registry(User).commit()
+    print('we in here2')
     for i, client in enumerate(clients):
         registry(Client).append(client)
-        c = registry(Client).find(
-            lambda x: (x.name == client.name)
-        )
-        users[i].tenant = c.tenant
+        # c = registry(Client).find(
+        #     lambda x: (x.name == client.name)
+        # )
+        users[i].tenant = client.tenant
+    # registry(Client).commit()
     return clients
 
 @pytest.fixture()

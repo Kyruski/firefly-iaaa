@@ -8,7 +8,7 @@ from firefly_iaaa.domain.entity.user import User
 from oauthlib.oauth2.rfc6749.errors import MissingClientIdError, MissingCodeChallengeError, MissingResponseTypeError
 import firefly as ff
 
-from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
+from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 
 def test_auth_request(auth_service: OauthProvider, bearer_messages_list: List[ff.Message]):
 
@@ -25,6 +25,7 @@ def test_auth_request(auth_service: OauthProvider, bearer_messages_list: List[ff
             headers, body, status = auth_service.validate_post_auth_request(message)
 
             uri = headers['Location']
+            print(headers, body, status)
             # Make sure it's a redirection status
             assert status == 302
             # Make sure it includes state in the uri

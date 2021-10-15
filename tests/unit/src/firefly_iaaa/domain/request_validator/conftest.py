@@ -13,7 +13,7 @@
 #  <http://www.gnu.org/licenses/>.
 from __future__ import annotations
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 import pytest
 
 @pytest.fixture()

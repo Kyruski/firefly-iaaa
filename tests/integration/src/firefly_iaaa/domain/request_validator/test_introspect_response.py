@@ -15,7 +15,7 @@ from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.user import User
 
-from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
+from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 
 def test_introspect_response(auth_service: OauthProvider, introspect_messages: List[ff.Message]):
 

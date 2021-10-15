@@ -18,7 +18,7 @@ from oauthlib.oauth2.rfc6749.errors import InvalidRequestError
 import pytest
 import firefly as ff
 
-from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
+from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User

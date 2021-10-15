@@ -12,7 +12,37 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from .authorization_request import *
-from .add_role_to_user import AddRoleToUser
-from .get_token_access_rights import *
-from .remove_role_from_user import RemoveRoleFromUser
+from __future__ import annotations
+
+import firefly as ff
+from abc import ABC, abstractmethod
+
+
+class RequestValidator(ABC):
+    @abstractmethod
+    def validate_pre_auth_request(self, request: ff.Message):
+        pass
+
+    @abstractmethod
+    def validate_post_auth_request(self, request: ff.Message):
+        pass
+
+    @abstractmethod
+    def create_token_response(self, request: ff.Message):
+        pass
+
+    @abstractmethod
+    def create_response(self, request: ff.Message):
+        pass
+
+    @abstractmethod
+    def verify_request(self, request: ff.Message):
+        pass
+
+    @abstractmethod
+    def create_introspect_response(self, request: ff.Message):
+        pass
+
+    @abstractmethod
+    def create_revocation_response(self, request: ff.Message):
+        pass

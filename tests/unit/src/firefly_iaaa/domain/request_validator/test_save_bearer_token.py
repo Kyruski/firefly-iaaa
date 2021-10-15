@@ -7,7 +7,7 @@ from firefly_iaaa.domain.entity.bearer_token import BearerToken
 import random
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
-from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 
 
 def test_save_bearer_token(validator: OauthRequestValidators, oauth_request_list: List[Request], client_list: List[Client], user_list: List[User], registry):

@@ -26,8 +26,8 @@ from datetime import datetime, timedelta
 
 import random
 
-from firefly_iaaa.infrastructure.service.request_validator import OauthRequestValidators
-from firefly_iaaa.infrastructure.service.oauth_provider import OauthProvider
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.user import User
