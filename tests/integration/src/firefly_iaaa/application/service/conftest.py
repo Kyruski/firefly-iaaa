@@ -11,9 +11,30 @@
 #
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
+from __future__ import annotations
+from typing import Any, List
+import uuid
+import jwt
+import hashlib
+import os
+import re
+from base64 import urlsafe_b64encode
 
-from firefly_iaaa.domain.entity import *
-from firefly_iaaa.domain.error import *
-from firefly_iaaa.domain.value_object import *
-from firefly_iaaa.domain.service import *
-from firefly_iaaa.domain.mock import *
+import pytest
+import firefly as ff
+from datetime import datetime, timedelta
+
+import random
+
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.oauth_provider import OauthProvider
+from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
+from firefly_iaaa.domain.entity.bearer_token import BearerToken
+from firefly_iaaa.domain.entity.user import User
+from firefly_iaaa.domain.mock.mock_cache import MockCache
+
+@pytest.fixture()
+def bearer_messages(bearer_messages_list, registry):
+    registry(BearerToken).commit()
+    registry(AuthorizationCode).commit()
+    return bearer_messages_list

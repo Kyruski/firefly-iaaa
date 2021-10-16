@@ -26,6 +26,7 @@ import pytest
 import bcrypt
 import random
 
+import firefly as ff
 from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
@@ -61,6 +62,14 @@ def config():
             },
         },
     }
+
+@pytest.fixture(autouse=True)
+def set_kernel_user(container):
+    container.kernel.user = ff.User(
+        id='abc123',
+        scopes=['firefly_iaaa.admin'],
+        tenant='tenant-id'
+    )
 
 @pytest.fixture()
 def secret():
@@ -103,22 +112,13 @@ def generate_code_challenge():
 
 @pytest.fixture()
 def client_list(registry, user_list, tenants_list):
-    users = []
-    for user in user_list:
-        registry(User).append(user)
-        # u = registry(User).find(user.sub)
-        users.append(user)
     clients = make_client_list(tenants_list)
-    print('we in here')
-    # registry(User).commit()
-    print('we in here2')
     for i, client in enumerate(clients):
+        registry(User).append(user_list[i])
         registry(Client).append(client)
-        # c = registry(Client).find(
-        #     lambda x: (x.name == client.name)
-        # )
-        users[i].tenant = client.tenant
-    # registry(Client).commit()
+    registry(User).append(user_list[-1])
+    registry(User).commit()
+    registry(Client).commit()
     return clients
 
 @pytest.fixture()
@@ -128,6 +128,7 @@ def tenants_list(registry):
         tenant = Tenant(name=f'tenant{i}')
         tenants.append(tenant)
         registry(Tenant).append(tenant)
+    registry(Tenant).commit()
     return tenants
 
 @pytest.fixture()
@@ -148,9 +149,12 @@ def gen_random_string(num: int = 6):
     return string
 
 @pytest.fixture()
-def user_list():
+def user_list(tenants_list):
     string = gen_random_string()
-    return [ User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}') for i in range(8) ]
+    array = [ User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}', tenant=tenants_list[i]) for i in range(6) ]
+    for i in range(6, 9):
+        array.append(User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}'))
+    return array
 
 def hash_password(password: str, salt: str):
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
@@ -243,6 +247,7 @@ def auth_codes_list(registry, client_list, user_list):
         else:
             code_group['invalid'] = auth_code
     codes.append(code_group)
+    # registry(AuthorizationCode).commit()
     return codes
 
 @pytest.fixture()
@@ -258,7 +263,7 @@ def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
             }
             bearer_token = BearerToken(
                 client=client_list[i],
-                user=user_list[6],
+                user=user_list[-2],
                 scopes=client_list[i].scopes,
                 access_token=generate_token(token_info, 'access_token', issuer, secret),
                 refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
@@ -284,7 +289,7 @@ def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
         }
         bearer_token = BearerToken(
             client=client_list[-1],
-            user=user_list[6],
+            user=user_list[-2],
             scopes=client_list[-1].scopes,
             access_token=generate_token(token_info, 'access_token', issuer, secret),
             refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
@@ -300,4 +305,5 @@ def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
         else:
             token_group['invalid'] = bearer_token
     tokens.append(token_group)
+    # registry(BearerToken).commit()
     return tokens

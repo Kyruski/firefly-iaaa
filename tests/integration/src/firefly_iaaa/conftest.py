@@ -31,6 +31,7 @@ from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.user import User
+from firefly_iaaa.domain.mock.mock_cache import MockCache
 
 
 @pytest.fixture()
@@ -74,26 +75,26 @@ def bearer_messages_list(message_factory, bearer_tokens_list: List[dict], user_l
                     'username': user_list[i % 6].email,
                     'password': f'password{(i % 6) + 1}',
                     'grant_type': bearer_token.client.grant_type,
-                    "access_token": bearer_token.access_token,
-                    "client": None,
-                    "client_id": bearer_token.client.client_id,
-                    "client_secret": bearer_token.client.client_secret if i == 3 else None,
-                    "code": auth_code.code,
-                    "code_challenge": auth_code.challenge,
-                    "code_challenge_method": auth_code.challenge_method,
-                    "code_verifier": auth_code.verifier,
-                    "extra_credentials": None,
-                    "redirect_uri": bearer_token.client.default_redirect_uri,
-                    "refresh_token": bearer_token.refresh_token,
-                    "request_token": None,
-                    "response_type": bearer_token.client.allowed_response_types[0],
-                    "scope": None,
-                    "scopes": bearer_token.scopes,
-                    "state": 'abc',
-                    "token": bearer_token.refresh_token if (i % 3) == 0 else bearer_token.access_token if (i % 3) == 1 else None,
-                    "user": None,
-                    "token_type_hint": 'Bearer',
-                    "credentials_key": None,
+                    'access_token': bearer_token.access_token,
+                    'client': None,
+                    'client_id': bearer_token.client.client_id,
+                    'client_secret': bearer_token.client.client_secret if i == 3 else None,
+                    'code': auth_code.code,
+                    'code_challenge': auth_code.challenge,
+                    'code_challenge_method': auth_code.challenge_method,
+                    'code_verifier': auth_code.verifier,
+                    'extra_credentials': None,
+                    'redirect_uri': bearer_token.client.default_redirect_uri,
+                    'refresh_token': bearer_token.refresh_token,
+                    'request_token': None,
+                    'response_type': bearer_token.client.allowed_response_types[0],
+                    'scope': None,
+                    'scopes': bearer_token.scopes,
+                    'state': 'abc',
+                    'token': bearer_token.refresh_token if (i % 3) == 0 else bearer_token.access_token if (i % 3) == 1 else None,
+                    'user': None,
+                    'token_type_hint': 'Bearer',
+                    'credentials_key': None,
                 }
             )
             message_group[status[x]] = message
@@ -112,26 +113,26 @@ def bearer_messages_second_list(message_factory, bearer_tokens_second_list: List
                 'username': user_list[i % 6].email,
                 'password': f'password{(i % 6) + 1}',
                 'grant_type': bearer_token.client.grant_type,
-                "access_token": bearer_token.access_token,
-                "client": None,
-                "client_id": bearer_token.client.client_id,
-                "client_secret": bearer_token.client.client_secret,
-                "code": auth_code.code,
-                "code_challenge": auth_code.challenge,
-                "code_challenge_method": auth_code.challenge_method,
-                "code_verifier": auth_code.verifier,
-                "extra_credentials": None,
-                "redirect_uri": bearer_token.client.default_redirect_uri,
-                "refresh_token": bearer_token.refresh_token,
-                "request_token": None,
-                "response_type": bearer_token.client.allowed_response_types[0],
-                "scope": None,
-                "scopes": bearer_token.scopes,
-                "state": 'abc',
-                "token": bearer_token.refresh_token if (i % 3) == 0 else bearer_token.access_token if (i % 3) == 1 else None,
-                "user": None,
-                "token_type_hint": 'Bearer',
-                "credentials_key": None,
+                'access_token': bearer_token.access_token,
+                'client': None,
+                'client_id': bearer_token.client.client_id,
+                'client_secret': bearer_token.client.client_secret,
+                'code': auth_code.code,
+                'code_challenge': auth_code.challenge,
+                'code_challenge_method': auth_code.challenge_method,
+                'code_verifier': auth_code.verifier,
+                'extra_credentials': None,
+                'redirect_uri': bearer_token.client.default_redirect_uri,
+                'refresh_token': bearer_token.refresh_token,
+                'request_token': None,
+                'response_type': bearer_token.client.allowed_response_types[0],
+                'scope': None,
+                'scopes': bearer_token.scopes,
+                'state': 'abc',
+                'token': bearer_token.refresh_token if (i % 3) == 0 else bearer_token.access_token if (i % 3) == 1 else None,
+                'user': None,
+                'token_type_hint': 'Bearer',
+                'credentials_key': None,
             }
         )
         messages.append(message)
@@ -172,6 +173,7 @@ def auth_codes_second_list(registry, client_list, user_list):
         )
         registry(AuthorizationCode).append(auth_code)
         codes.append(auth_code)
+    # registry(AuthorizationCode).commit()
     return codes
 
 @pytest.fixture()
@@ -185,7 +187,7 @@ def bearer_tokens_second_list(registry, client_list, user_list, issuer, secret):
         }
         bearer_token = BearerToken(
             client=client_list[i % 6],
-            user=user_list[6],
+            user=user_list[-2],
             scopes=client_list[i % 6].scopes,
             access_token=generate_token(token_info, 'access_token', issuer, secret),
             refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
@@ -193,6 +195,7 @@ def bearer_tokens_second_list(registry, client_list, user_list, issuer, secret):
         )
         registry(BearerToken).append(bearer_token)
         tokens.append(bearer_token)
+    # registry(BearerToken).commit()
     return tokens
 
 def gen_random_string(num: int = 6):
@@ -201,38 +204,3 @@ def gen_random_string(num: int = 6):
     for _ in range(num):
         string += alpha[random.randrange(0, 36)]
     return string
-
-
-class MockCache(ff.Cache):
-    _storage: dict = {}
-
-    def set(self, key: str, value: Any, ttl: int = None, **kwargs):
-        time = (datetime.now() + timedelta(seconds=ttl)) if ttl else None
-        self._storage[key] = {'value': value, 'ttl': time}
-    
-    def get(self, key: str, **kwargs):
-        item = self._storage.get(key)
-        if not item:
-            return None
-        if item['ttl'] is None or datetime.now() < item['ttl']:
-            return item['value']
-        del self._storage[key]
-        return None
-
-    def delete(self, key: str, **kwargs):
-        return None
-
-    def clear(self, **kwargs):
-        return None
-
-    def increment(self, key: str, amount: int = 1, **kwargs) -> Any:
-        return None
-
-    def decrement(self, key: str, amount: int = 1, **kwargs) -> Any:
-        return None
-
-    def add(self, key: str, value: Any, **kwargs) -> Any:
-        return None
-
-    def remove(self, key: str, value: Any, **kwargs) -> Any:
-        return None

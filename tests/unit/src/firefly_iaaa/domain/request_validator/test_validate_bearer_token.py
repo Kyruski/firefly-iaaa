@@ -21,7 +21,7 @@ def test_validate_bearer_token(validator: OauthRequestValidators, oauth_request_
 
             # Check if a bearer token is valid only if it's an 'active' token, and not 'expired' or 'invalid'
             assert validator.validate_bearer_token(token, bearer_token.scopes, oauth_request_list[-1]) == (x == 0)
-            assert (oauth_request_list[-1].user == user_list[6]) == (x == 0)
+            assert (oauth_request_list[-1].user == user_list[-2]) == (x == 0)
             assert (oauth_request_list[-1].client == client_list[-1]) == (x == 0)
             assert (oauth_request_list[-1].scopes == bearer_token.scopes) == (x == 0)
             reset_and_assert_empty(oauth_request_list[-1])

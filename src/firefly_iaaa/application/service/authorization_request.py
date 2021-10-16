@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import firefly as ff
 import firefly_iaaa.domain as domain
+from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauthEndpoint
 
 
-# @ff.command_handler('firefly_iaaa.AuthorizationRequest')
 @ff.rest('/iaaa/authorization_request', method='POST', tags=['public'])
-class OauthAuthorizationRequestService(ff.ApplicationService):
-    _oauth_provider: domain.OauthProvider = None
-    _kernel: ff.Kernel = None
-    _message_factory: ff.MessageFactory = ff.MessageFactory()
+class OauthAuthorizationRequestService(GenericOauthEndpoint):
     _cache: ff.Cache = None
+    _registry: ff.Registry = None
 
     def __call__(self, **kwargs):
         message = self._make_message(kwargs) #! check more
@@ -39,17 +37,17 @@ class OauthAuthorizationRequestService(ff.ApplicationService):
         #! return scopes, client
         return resp
 
-    def _get_client_id(self, client_id):
-        return client_id or self._kernel.user.id
-
     def _make_message(self, incoming_kwargs: dict):
+        headers = self._add_method_to_headers(incoming_kwargs)
         message_body = {
-            'headers': incoming_kwargs['headers']['http_request'].get('headers'),
+            'headers': headers,
             'token': incoming_kwargs.get('token'),
-            "client_id": self._get_client_id(incoming_kwargs.get('client_id')),
-            "state": incoming_kwargs.get('state')
+            'client_id': self._get_client_id(incoming_kwargs.get('client_id')),
+            'state': incoming_kwargs.get('state'),
+            'response_type': incoming_kwargs.get('response_type'),
+            'code_challenge': incoming_kwargs.get('code_challenge'),
+            'code_challenge_method': incoming_kwargs.get('code_challenge_method')
         }
-        print('message body:', message_body['client_id'], 'kwargs', incoming_kwargs.get('client_id'))
 
         if incoming_kwargs.get('username'):
             message_body['username'] = incoming_kwargs.get('username') 
@@ -68,26 +66,23 @@ class OauthAuthorizationRequestService(ff.ApplicationService):
 @ff.rest(
     '/iaaa/create_authorization', method='POST', tags=['public']
 )
-@ff.command_handler('firefly_iaaa.CreateAuthorization')
-class OauthCreateAuthorizationService(ff.ApplicationService):
-    _oauth_provider: domain.OauthProvider = None
-    _kernel: ff.Kernel = None
-    _message_factory: ff.MessageFactory = None
+class OauthCreateAuthorizationService(GenericOauthEndpoint):
     _cache: ff.Cache = None
 
     def __call__(self, **kwargs):
         message = self._make_message(kwargs) #! check more
-        
         headers, body, status = self._oauth_provider.validate_post_auth_request(message)
 
 
         #! return scopes, client
-        return ff.Envelope.add_forwarding_address(headers['Location'])
+        return ff.Envelope.wrap({}).add_forwarding_address(headers['Location'])
+
 
     def _make_message(self, incoming_kwargs: dict):
+        headers = self._add_method_to_headers(incoming_kwargs)
         message_body = {
-            'headers': incoming_kwargs.get('headers'),
-            "state": incoming_kwargs.get('state'),
+            'headers': headers,
+            'state': incoming_kwargs.get('state'),
             'redirect_uri': incoming_kwargs.get('redirect_uri'),
             'client_id': incoming_kwargs.get('client_id'),
             'scopes': incoming_kwargs.get('scopes'),

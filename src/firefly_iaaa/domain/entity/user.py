@@ -66,7 +66,7 @@ class User(ff.AggregateRoot):
         if 'email' in kwargs:
             kwargs['email'] = str(kwargs['email']).lower()
         try:
-            kwargs['salt'] = bcrypt.gensalt()
+            kwargs['salt'] = bcrypt.gensalt().decode()
             kwargs['password_hash'] = User._hash_password(kwargs['password'], kwargs['salt'])
         except KeyError:
             raise ff.MissingArgument('password is a required field for User::create()')
@@ -74,14 +74,14 @@ class User(ff.AggregateRoot):
 
     @classmethod
     def _hash_password(cls, password: str, salt: str):
-        return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+        return bcrypt.hashpw(password.encode('utf-8'), salt.encode()).decode('utf-8')
 
     def correct_password(self, password: str):
         return self.password_hash == User._hash_password(password, self.salt)
     # __pragma__('noskip')
 
     def generate_scrubbed_user(self):
-        return {
+        resp = {
             'sub': self.sub,
             'name': self.name,
             'given_name': self.given_name,
@@ -102,5 +102,7 @@ class User(ff.AggregateRoot):
             'phone_number_verified': self.phone_number_verified,
             'updated_at': self.updated_at,
             'created_at': self.created_at,
-            'tenant_id': self.tenant.id,
         }
+        if self.tenant is not None:
+            resp['tenant_id'] = self.tenant.id,
+        return resp

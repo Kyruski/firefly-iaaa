@@ -1,35 +1,29 @@
 from __future__ import annotations
 
 import firefly as ff
-import firefly_iaaa.domain as domain
-import firefly_iaaa.infrastructure as infra
+import json
+from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauthEndpoint
 
 
 @ff.rest(
     '/iaaa/create_token', method='POST', tags=['public']
 )
-@ff.command_handler('firefly_iaaa.TokenCreation')
-class OauthTokenCreationService(ff.ApplicationService):
-    _oauth_provider: infra.OauthProvider = None
-    _kernel: ff.Kernel = None
-    _message_factory: ff.MessageFactory = None
+class OauthTokenCreationService(GenericOauthEndpoint):
 
     def __call__(self, **kwargs):
-        message = self._make_message(kwargs)
+        message = self._make_message(kwargs) #! check more
 
         headers, body, status =  self._oauth_provider.create_token_response(message)
         # if status == 200:
         #     body = json.loads(body)
         # #? Add headers?
 
-        return body
-
-    def _get_client_id(self, client_id):
-        return client_id or self._kernel.user.id
+        return json.loads(body)
 
     def _make_message(self, incoming_kwargs: dict):
+        headers = self._add_method_to_headers(incoming_kwargs)
         message_body = {
-            'headers': incoming_kwargs.get('headers'),
+            'headers': headers,
             'grant_type': incoming_kwargs.get('grant_type'),
             "client_id": self._get_client_id(incoming_kwargs.get('client_id')),
             "state": incoming_kwargs.get('state')
@@ -43,6 +37,8 @@ class OauthTokenCreationService(ff.ApplicationService):
             message_body['client_secret'] = incoming_kwargs.get('client_secret') 
         if incoming_kwargs.get('code'):
             message_body['code'] = incoming_kwargs.get('code') 
+        if incoming_kwargs.get('code_verifier'):
+            message_body['code_verifier'] = incoming_kwargs.get('code_verifier') 
         if incoming_kwargs.get('token'):
             message_body['token'] = incoming_kwargs.get('token')
 

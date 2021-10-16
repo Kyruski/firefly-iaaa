@@ -22,7 +22,6 @@ def test_client_authentication_required(validator: OauthRequestValidators, oauth
     oauth_request_list[-1].body['username'] = None
     oauth_request_list[-1].body['password'] = None
     assert validator.client_authentication_required(oauth_request_list[-1]) == False, "Clearing headers, should return False"
-
     # Check mismatching username/password still returns true (only checking headers exists)
     oauth_request_list[-1].body['username'] = user_list[1]
     oauth_request_list[-1].body['password'] = 'password1'

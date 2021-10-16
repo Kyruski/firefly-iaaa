@@ -25,7 +25,6 @@ def test_auth_request(auth_service: OauthProvider, bearer_messages_list: List[ff
             headers, body, status = auth_service.validate_post_auth_request(message)
 
             uri = headers['Location']
-            print(headers, body, status)
             # Make sure it's a redirection status
             assert status == 302
             # Make sure it includes state in the uri

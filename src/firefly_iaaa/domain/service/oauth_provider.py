@@ -122,7 +122,7 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
     @staticmethod
     def _get_request_params(request: ff.Message):
         try: 
-            uri = request.headers['Host']
+            uri = request.headers['Origin']
         except KeyError:
             uri = request.headers.get('uri')
         try:

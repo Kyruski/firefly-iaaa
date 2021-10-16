@@ -40,7 +40,7 @@ class OAuthAuthenticator(ff.Handler):
 
             try:
                 decoded = self._oauth_provider.decode(token)
-                print(decoded)
+                # print(decoded)
                 if decoded is None:
                     raise ff.UnauthenticatedError()
             except InvalidTokenError:

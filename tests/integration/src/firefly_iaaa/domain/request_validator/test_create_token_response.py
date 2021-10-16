@@ -81,7 +81,7 @@ def test_create_token_response_missing_data(auth_service: OauthProvider, bearer_
         message = bearer_messages_second_list[i]
         message.headers['http_method'] = 'POST'
         if i == 0:
-            message.username = None
+            message.code_verifier = None
         if i == 1:
             message.password = None
         if i == 2:
@@ -99,7 +99,7 @@ def test_create_token_response_missing_data(auth_service: OauthProvider, bearer_
         if i == 8:
             message.code_challenge_method = None
         if i == 9:
-            message.code_verifier = None
+            message.username = None
         if i == 10:
             message.redirect_uri = None
         if i == 11:
@@ -119,4 +119,4 @@ def test_create_token_response_missing_data(auth_service: OauthProvider, bearer_
         headers, body, status = auth_service.create_token_response(message)
         body = json.loads(body)
         # Check that error is none as long as grant_type, code (if authorization_code grant), refresh_token (if refresh_token grant), and authentication info is provide for respective grant types
-        assert (body.get('error') is None) == (i in (0, 1, 3, 4, 5, 7, 8, 9, 10, 12, 13, 14, 16))
+        assert (body.get('error') is None) == (i in (1, 3, 4, 5, 7, 8, 9, 10, 12, 13, 14, 16))

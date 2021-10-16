@@ -14,5 +14,8 @@
 
 from .authorization_request import *
 from .add_role_to_user import AddRoleToUser
+from .create_token import OauthTokenCreationService
+from .revoke_token import OauthTokenRevocationService
 from .get_token_access_rights import *
 from .remove_role_from_user import RemoveRoleFromUser
+from .generic_oauth_endpoint import GenericOauthEndpoint

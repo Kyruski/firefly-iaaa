@@ -757,9 +757,6 @@ class OauthRequestValidators(RequestValidator):
         return False
 
     def _get_client(self, client_id: str):
-        print('clientid is:', client_id)
-        x = self._registry(domain.Client).find(client_id)
-        print('round 2: client found is: ', x)
         if client_id is None:
             return None
         return self._registry(domain.Client).find(client_id)
