@@ -39,11 +39,11 @@ class OauthTokenCreationService(GenericOauthEndpoint):
             message_body['code'] = incoming_kwargs.get('code') 
         if incoming_kwargs.get('code_verifier'):
             message_body['code_verifier'] = incoming_kwargs.get('code_verifier') 
-        if incoming_kwargs.get('token'):
-            message_body['token'] = incoming_kwargs.get('token')
+        if incoming_kwargs.get('refresh_token'):
+            message_body['refresh_token'] = incoming_kwargs.get('refresh_token')
 
         return self._message_factory.query(
-            name='a1b2c3', #!??????
+            name='OauthCreateTokenMessage',
             data=message_body
         )
 

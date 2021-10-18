@@ -14,11 +14,13 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from typing import List
 import uuid
 import hashlib
 import re
 import os
 from base64 import urlsafe_b64encode
+from firefly import domain
 
 import jwt
 from firefly_iaaa.domain.entity import tenant
@@ -37,6 +39,7 @@ from firefly_iaaa.domain.entity.scope import Scope
 from firefly_iaaa.domain.entity.tenant import Tenant
 from firefly_iaaa.domain.entity.user import User
 from oauthlib.common import Request
+from firefly_iaaa.domain.mock import MockCache
 
 from dotenv import load_dotenv
 
@@ -65,9 +68,9 @@ def config():
 
 @pytest.fixture(autouse=True)
 def set_kernel_user(container):
-    container.kernel.user = ff.User(
+    container.kernel.user = domain.User(
         id='abc123',
-        scopes=['firefly_iaaa.admin'],
+        scopes=['fake-scopes'],
         tenant='tenant-id'
     )
 
@@ -247,7 +250,6 @@ def auth_codes_list(registry, client_list, user_list):
         else:
             code_group['invalid'] = auth_code
     codes.append(code_group)
-    # registry(AuthorizationCode).commit()
     return codes
 
 @pytest.fixture()
@@ -305,5 +307,50 @@ def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
         else:
             token_group['invalid'] = bearer_token
     tokens.append(token_group)
-    # registry(BearerToken).commit()
     return tokens
+
+
+@pytest.fixture()
+def cache(container):
+    return container.build(MockCache)
+
+@pytest.fixture()
+def bearer_messages_list(message_factory, bearer_tokens_list: List[dict], user_list: List[User], auth_codes_list: List[AuthorizationCode]):
+    messages = []
+    status = ['active', 'expired', 'invalid']
+    for i in range(6):
+        message_group = {}
+        for x in range(3):
+            bearer_token = bearer_tokens_list[i % 6][status[x]]
+            auth_code = auth_codes_list[i % 6][status[x]]
+            message = message_factory.query(
+                name='a1b2c3',
+                data={'headers': {'http_method': 'GET', 'uri': bearer_token.client.default_redirect_uri},
+                    'username': user_list[i % 6].email,
+                    'password': f'password{(i % 6) + 1}',
+                    'grant_type': bearer_token.client.grant_type,
+                    'access_token': bearer_token.access_token,
+                    'client': None,
+                    'client_id': bearer_token.client.client_id,
+                    'client_secret': bearer_token.client.client_secret if i == 3 else None,
+                    'code': auth_code.code,
+                    'code_challenge': auth_code.challenge,
+                    'code_challenge_method': auth_code.challenge_method,
+                    'code_verifier': auth_code.verifier,
+                    'extra_credentials': None,
+                    'redirect_uri': bearer_token.client.default_redirect_uri,
+                    'refresh_token': bearer_token.refresh_token,
+                    'request_token': None,
+                    'response_type': bearer_token.client.allowed_response_types[0],
+                    'scope': None,
+                    'scopes': bearer_token.scopes,
+                    'state': 'abc',
+                    'token': bearer_token.refresh_token if (i % 3) == 0 else bearer_token.access_token if (i % 3) == 1 else None,
+                    'user': None,
+                    'token_type_hint': 'Bearer',
+                    'credentials_key': None,
+                }
+            )
+            message_group[status[x]] = message
+        messages.append(message_group)
+    return messages

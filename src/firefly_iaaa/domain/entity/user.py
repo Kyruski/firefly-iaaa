@@ -59,8 +59,9 @@ class User(ff.AggregateRoot):
     salt: str = ff.optional()
     roles: List[Role] = ff.list_()
     tenant: Tenant = ff.optional(index=True)
+    tenant_id: str = ff.optional(index=True)
 
-    # __pragma__('skip')
+    # __pragma__('skip')    @classmethod
     @classmethod
     def create(cls, **kwargs):
         if 'email' in kwargs:
@@ -70,6 +71,10 @@ class User(ff.AggregateRoot):
             kwargs['password_hash'] = User._hash_password(kwargs['password'], kwargs['salt'])
         except KeyError:
             raise ff.MissingArgument('password is a required field for User::create()')
+        try:
+            kwargs['tenant_id'] = kwargs['tenant'].id
+        except KeyError:
+            pass
         return cls(**ff.build_argument_list(kwargs, cls))
 
     @classmethod

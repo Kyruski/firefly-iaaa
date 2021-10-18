@@ -28,6 +28,7 @@ class OauthRequestValidators(RequestValidator):
     _registry: ff.Registry = None
     _valid_token_type_hints: List[str] = ['refresh_token', 'access_token']
     _secret_key: str = None
+    _kernel: ff.Kernel = None
 
     def authenticate_client(self, request: Request, *args, **kwargs):
         """Authenticate client through means outside the OAuth 2 spec.
@@ -379,6 +380,9 @@ class OauthRequestValidators(RequestValidator):
             return False
         return bearer_token.validate_scopes(request_scopes)
 
+    def rotate_refresh_token(self, request):
+        return True
+
     def revoke_token(self, token: str, token_type_hint: str, request: Request, *args, **kwargs):
         """Revoke an access or refresh token.
 
@@ -485,6 +489,7 @@ class OauthRequestValidators(RequestValidator):
             - Resource Owner Password Credentials Grant (might not associate a client)
             - Client Credentials grant
         """
+        #! Invalidate old refresh?
         bearer_token = self._generate_bearer_token(token, request)
         self._registry(domain.BearerToken).append(bearer_token)
         return request.client.default_redirect_uri
@@ -544,9 +549,12 @@ class OauthRequestValidators(RequestValidator):
         if not bearer_token:
             return False
         decoded_token = self._decode_token(token, bearer_token.client.client_id)
-        for scope in scopes:
-            if scope not in decoded_token['scope'].split(' '):
-                return False
+        try:
+            for scope in scopes:
+                if scope not in decoded_token['scope'].split(' '):
+                    return False
+        except TypeError:
+            scopes = decoded_token['scope'].split(' ')
         if bearer_token.validate(scopes):
             request.user = bearer_token.user
             request.client = bearer_token.client
@@ -821,11 +829,12 @@ class OauthRequestValidators(RequestValidator):
         decoded = jwt.decode(token, self._secret_key, 'HS256', audience=audience)
         return decoded
 
-    @staticmethod
-    def _generate_bearer_token(token: dict, request: Request):
+    def _generate_bearer_token(self, token: dict, request: Request):
+        user = request.user or self._registry(domain.User).find(lambda x: x.tenant_id == request.client.tenant_id)
+        client = request.client or self._registry(domain.Client).find(lambda x: x.tenant_id == request.user.tenant_id)
         return domain.BearerToken(
-            client=request.client,
-            user=request.user,
+            client=client,
+            user=user,
             scopes=request.scopes,
             access_token=token['access_token'],
             expires_at=datetime.utcnow() + timedelta(seconds=token['expires_in']),
@@ -834,11 +843,11 @@ class OauthRequestValidators(RequestValidator):
             claims=request.claims
         )
 
-    @staticmethod
-    def _generate_authorization_code(code: dict, request: Request, claims: dict):
+    def _generate_authorization_code(self, code: dict, request: Request, claims: dict):
+        user = request.user or self._kernel.user
         return domain.AuthorizationCode(
             client=request.client,
-            user=request.user,
+            user=user,
             scopes=request.scopes,
             code=code['code'],
             expires_at=datetime.utcnow() + timedelta(minutes=10),

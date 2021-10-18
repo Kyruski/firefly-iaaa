@@ -46,7 +46,7 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
             'state': incoming_kwargs.get('state'),
             'response_type': incoming_kwargs.get('response_type'),
             'code_challenge': incoming_kwargs.get('code_challenge'),
-            'code_challenge_method': incoming_kwargs.get('code_challenge_method')
+            # 'code_challenge_method': incoming_kwargs.get('code_challenge_method')
         }
 
         if incoming_kwargs.get('username'):
@@ -58,7 +58,7 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
 
 
         message = self._message_factory.query(
-            name='a1b2c3', #!??????
+            name='OauthAuthorizationRequestMessage',
             data=message_body
         )
         return message
@@ -92,6 +92,6 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
 
 
         return self._message_factory.query(
-            name='a1b2c3', #!??????
+            name='OauthCreateAuthorizationMessage',
             data=message_body
         )

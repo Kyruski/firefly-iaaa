@@ -11,16 +11,25 @@ async def test_auth_request(client, system_bus, registry, bearer_messages: List[
             'headers': bearer_messages[0]['active'].headers,
             'client_id': bearer_messages[0]['active'].client_id,
             'username': bearer_messages[0]['active'].username,
-            'password': bearer_messages[0]['active'].password,
-            'response_type': bearer_messages[0]['active'].response_type,
-            'code_challenge': bearer_messages[0]['active'].code_challenge,
-            'code_challenge_method': bearer_messages[0]['active'].code_challenge_method,
             'state': bearer_messages[0]['active'].state,
     }
 
-    initial_response = await client.post('/firefly-iaaa/iaaa/authorization_request', data=json.dumps(data), headers={'Origin': 'abc'})
+    first_response = await client.post('/firefly-iaaa/iaaa/authorization_request', data=json.dumps(data), headers={'Origin': 'abc'})
+    assert first_response.status == 500
 
-    resp = json.loads(await initial_response.text())
+    data['response_type'] = bearer_messages[0]['active'].response_type
+    second_response = await client.post('/firefly-iaaa/iaaa/authorization_request', data=json.dumps(data), headers={'Origin': 'abc'})
+    assert second_response.status == 500
+
+    data['password'] = bearer_messages[0]['active'].password
+    third_response = await client.post('/firefly-iaaa/iaaa/authorization_request', data=json.dumps(data), headers={'Origin': 'abc'})
+    assert third_response.status == 500
+
+    data['code_challenge'] = bearer_messages[0]['active'].code_challenge
+    fourth_response = await client.post('/firefly-iaaa/iaaa/authorization_request', data=json.dumps(data), headers={'Origin': 'abc'})
+    assert fourth_response.status == 200
+    resp = json.loads(await fourth_response.text())
+
     assert isinstance(resp['scopes'], list)
     assert resp['credentials_key'] is not None
     assert resp['client_id'] is not None

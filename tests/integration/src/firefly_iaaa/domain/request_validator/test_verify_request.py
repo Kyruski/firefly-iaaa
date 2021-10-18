@@ -86,11 +86,7 @@ def test_verify_request_missing_data(auth_service: OauthProvider, bearer_message
         if i == 12:
             message.response_type = None
         if i == 13:
-            # Missing scopes should error out
             message.scopes = None
-            with pytest.raises(TypeError):
-                validated, resp = auth_service.verify_request(message, message.scopes)
-            continue
         if i == 14:
             message.state = None
         if i == 15:

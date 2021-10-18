@@ -15,33 +15,58 @@
 from __future__ import annotations
 
 import firefly as ff
-import firefly_iaaa.infrastructure as infra
+import firefly_iaaa.domain as domain
 
 
 class AuthorizeRequest(ff.Handler, ff.LoggerAware):
     _kernel: ff.Kernel = None
-    _oauth_provider: infra.OauthProvider = None
+    _oauth_provider: domain.OauthProvider = None
 
     def handle(self, message: ff.Message):
         # Should have scopes and access_token on message
-        if not message.access_token:
+
+        try:
+            if not message.access_token:
+                token = self._get_token()
+                if not token:
+                    return False
+                message.access_token = token
+        except AttributeError:
             token = self._get_token()
             if not token:
                 return False
             message.access_token = token
-        if not message.scopes:
-            message.scopes = self._kernel.user.scopes
+        if message.access_token.lower().startswith('bearer'):
+            message.access_token = message.access_token.split(' ')[-1]
+        token = self._oauth_provider.decode_token(message.access_token, self._kernel.user.id)
+        try:
+            if not message.scopes:
+                message.scopes = token.get('scopes') if token else self._kernel.user.scopes
+        except AttributeError:
+            message.scopes = token.get('scopes') if token else self._kernel.user.scopes
 
-        validated, resp = self._oauth_provider.verify_request(message)
+        message.token = message.access_token
+        validated, resp = self._oauth_provider.verify_request(message, message.scopes)
         #! requested resource/resource owner
         #compare to user on resp
         return validated
 
     def _get_token(self):
         token = None
-        for k, v in self._kernel.http_request['headers'].items():
-            if k.lower() == 'authorization':
-                if not v.lower().startswith('bearer'):
-                    raise ff.UnauthenticatedError()
-                token = v.split(' ')[-1]
+        try:
+            for k, v in self._kernel.http_request['headers'].items():
+                if k.lower() == 'authorization':
+                    if not v.lower().startswith('bearer'):
+                        raise ff.UnauthenticatedError()
+                    token = v
+        except TypeError as e:
+            if e.__str__().startswith("'NoneType'"):
+                pass
+            else:
+                raise TypeError(e)
+        if not token:
+            try:
+                token = self._kernel.user.token
+            except Exception as e:
+                raise(e)
         return token

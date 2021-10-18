@@ -14,20 +14,21 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import firefly as ff
-import firefly_iaaa.infrastructure as infra
+import firefly_iaaa.domain as domain
 from jwt import InvalidTokenError
 
 
 @ff.authenticator()
-class OAuthAuthenticator(ff.Handler):
+class OAuthAuthenticator(ff.Handler, ff.LoggerAware):
     # _jwt_service: domain.JwtService = None
     _kernel: ff.Kernel = None
-    _oauth_provider: infra.OauthProvider = None
+    _oauth_provider: domain.OauthProvider = None
+    _request_validator: domain.OauthRequestValidators = None
 
     def handle(self, message: ff.Message, *args, **kwargs):
+        self.debug('Authenticating with Cognito')
+        self.debug(self._kernel)
         if self._kernel.http_request and self._kernel.secured:
             token = None
             for k, v in self._kernel.http_request['headers'].items():
@@ -36,21 +37,25 @@ class OAuthAuthenticator(ff.Handler):
                         raise ff.UnauthenticatedError()
                     token = v.split(' ')[-1]
             if token is None:
-                raise ff.UnauthenticatedError()
+                try:
+                    token = message.access_token
+                except:
+                    raise ff.UnauthenticatedError()
 
+            self.debug('Decoding token')
             try:
-                decoded = self._oauth_provider.decode(token)
-                # print(decoded)
+                decoded = self._oauth_provider.decode_token(token, self._kernel.user.id) #!USE CLIENT ID
                 if decoded is None:
                     raise ff.UnauthenticatedError()
-            except InvalidTokenError:
+                self.debug('Result from decode: %s', decoded)
+            except InvalidTokenError as e:
                 raise ff.UnauthenticatedError()
             
-            # if not self.request_validator.authenticate_client(message):
+            #! Set client or user?
+            # if not self._request_validator.authenticate_client(message):
             #     raise ff.UnauthenticatedError()
-
+    
             self._kernel.user.token = decoded
-            self._kernel.user.scopes = decoded['scopes']
+            self._kernel.user.scopes = decoded['scope']
             return True
-
         return self._kernel.secured is not True

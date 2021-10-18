@@ -113,10 +113,12 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
         oauth_request = Request(uri, http_method, body, headers)
         return self._server.request_validator.authenticate_client(oauth_request) #!! Check
 
-    def decode_token(self, token):
+    def decode_token(self, token, audience):
+        if token.lower().startswith('bearer'):
+            token = token.split(' ')[-1]
         try:
-            return jwt.decode(token, self._secret_key, algorithm='HS256')
-        except (jwt.DecodeError, ValueError):
+            return jwt.decode(token, self._secret_key, 'HS256', audience=audience)
+        except (jwt.DecodeError, ValueError) as e:
             return None
 
     @staticmethod
