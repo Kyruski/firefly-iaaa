@@ -8,13 +8,20 @@ import firefly_iaaa.domain as domain
 class GenericOauthEndpoint(ff.ApplicationService, ABC):
     _oauth_provider: domain.OauthProvider = None
     _kernel: ff.Kernel = None
+    _registry: ff.Registry = None
     _message_factory: ff.MessageFactory = None
 
     def __call__(self, **kwargs):
         pass
 
     def _get_client_id(self, client_id):
-        return client_id or self._kernel.user.id
+        if client_id:
+            return client_id
+        user = self._registry(domain.User).find(lambda x: x.sub == self._kernel.user.id)
+        if not user:
+            return self._kernel.user.id
+        client = self._registry(domain.Client).find(lambda x: x.tenant_id == user.tenant_id)
+        return client.client_id
 
     def _add_method_to_headers(self, incoming_kwargs: dict):
         try:

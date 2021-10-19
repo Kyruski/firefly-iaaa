@@ -18,12 +18,12 @@ import firefly as ff
 import firefly_iaaa.domain as domain
 
 
-class AuthorizeRequest(ff.Handler, ff.LoggerAware):
+class AuthorizeRequest(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
     _kernel: ff.Kernel = None
+    _registry: ff.Registry = None
     _oauth_provider: domain.OauthProvider = None
 
     def handle(self, message: ff.Message):
-        # Should have scopes and access_token on message
 
         try:
             if not message.access_token:
@@ -38,17 +38,29 @@ class AuthorizeRequest(ff.Handler, ff.LoggerAware):
             message.access_token = token
         if message.access_token.lower().startswith('bearer'):
             message.access_token = message.access_token.split(' ')[-1]
-        token = self._oauth_provider.decode_token(message.access_token, self._kernel.user.id)
+        # user = self.request('iaaa.User', lambda x: x.sub == self._kernel.user.id)
+        # client_id = self._kernel.user.id
+        # if user:
+        #     client = self.request('iaaa.Client', lambda x: x.tenant_id == user.tenant_id)
+        #     client_id = client.client_id
+        # token = self._oauth_provider.decode_token(message.access_token, client_id)
+
+        try:
+            resp = self.request('iaaa.GetClientUserAndToken', data={'token': token, 'user_id': self._kernel.user.id})
+            decoded= resp['decoded']
+            user = resp['user']
+            client_id = resp['client_id']
+        except:
+            raise ff.UnauthorizedError()
         try:
             if not message.scopes:
-                message.scopes = token.get('scopes') if token else self._kernel.user.scopes
+                message.scopes = decoded.get('scope').split(' ') if decoded else self._kernel.user.scopes
         except AttributeError:
-            message.scopes = token.get('scopes') if token else self._kernel.user.scopes
+            message.scopes = decoded.get('scope').split(' ') if decoded else self._kernel.user.scopes
 
         message.token = message.access_token
         validated, resp = self._oauth_provider.verify_request(message, message.scopes)
-        #! requested resource/resource owner
-        #compare to user on resp
+
         return validated
 
     def _get_token(self):
@@ -57,7 +69,7 @@ class AuthorizeRequest(ff.Handler, ff.LoggerAware):
             for k, v in self._kernel.http_request['headers'].items():
                 if k.lower() == 'authorization':
                     if not v.lower().startswith('bearer'):
-                        raise ff.UnauthenticatedError()
+                        raise ff.UnauthorizedError()
                     token = v
         except TypeError as e:
             if e.__str__().startswith("'NoneType'"):

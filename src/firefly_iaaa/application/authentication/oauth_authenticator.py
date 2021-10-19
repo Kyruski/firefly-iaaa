@@ -20,7 +20,7 @@ from jwt import InvalidTokenError
 
 
 @ff.authenticator()
-class OAuthAuthenticator(ff.Handler, ff.LoggerAware):
+class OAuthAuthenticator(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
     # _jwt_service: domain.JwtService = None
     _kernel: ff.Kernel = None
     _oauth_provider: domain.OauthProvider = None
@@ -44,18 +44,28 @@ class OAuthAuthenticator(ff.Handler, ff.LoggerAware):
 
             self.debug('Decoding token')
             try:
-                decoded = self._oauth_provider.decode_token(token, self._kernel.user.id) #!USE CLIENT ID
-                if decoded is None:
-                    raise ff.UnauthenticatedError()
-                self.debug('Result from decode: %s', decoded)
-            except InvalidTokenError as e:
+                resp = self.request('iaaa.GetClientUserAndToken', data={'token': token, 'user_id': self._kernel.user.id})
+                decoded= resp['decoded']
+                user = resp['user']
+                client_id = resp['client_id']
+            except:
                 raise ff.UnauthenticatedError()
-            
-            #! Set client or user?
-            # if not self._request_validator.authenticate_client(message):
+            # client_id = self._kernel.user.id
+            # if not user:
             #     raise ff.UnauthenticatedError()
+            # # if user:
+            # client = self.request('iaaa.Client', lambda x: x.tenant_id == user.tenant_id)
+            # client_id = client.client_id
+            # try:
+            #     decoded = self._oauth_provider.decode_token(token, client_id) #!USE CLIENT ID
+            #     if decoded is None:
+            #         raise ff.UnauthenticatedError()
+            #     self.debug('Result from decode: %s', decoded)
+            # except InvalidTokenError as e:
+            #     raise ff.UnauthenticatedError()
+            
     
             self._kernel.user.token = decoded
-            self._kernel.user.scopes = decoded['scope']
+            self._kernel.user.scopes = decoded['scope'].split(' ')
             return True
         return self._kernel.secured is not True

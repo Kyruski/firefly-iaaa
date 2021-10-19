@@ -17,12 +17,12 @@ async def test_revoke_token_endpoint(client, system_bus, registry, bearer_messag
     token = registry(domain.BearerToken).find(lambda x: x.refresh_token == bearer_messages[0]['active'].refresh_token)
     assert token.is_valid
     assert token.is_access_valid
-    first_response = await client.post('/firefly-iaaa/iaaa/revoke_token', data=json.dumps(data), headers={'Origin': 'abc'})
+    first_response = await client.post('/firefly-iaaa/iaaa/revoke_token', data=json.dumps(data), headers={'Referer': 'abc'})
     assert token.is_valid
     assert token.is_access_valid
 
     data['token'] = bearer_messages[0]['active'].refresh_token
-    second_response = await client.post('/firefly-iaaa/iaaa/revoke_token', data=json.dumps(data), headers={'Origin': 'abc'})
+    second_response = await client.post('/firefly-iaaa/iaaa/revoke_token', data=json.dumps(data), headers={'Referer': 'abc'})
     token = registry(domain.BearerToken).find(lambda x: x.refresh_token == bearer_messages[0]['active'].refresh_token)
     assert not token.is_valid
     assert not token.is_access_valid
@@ -38,12 +38,12 @@ async def test_revoke_token_endpoint(client, system_bus, registry, bearer_messag
     token = registry(domain.BearerToken).find(lambda x: x.access_token == bearer_messages[1]['active'].access_token)
     assert token.is_valid
     assert token.is_access_valid
-    first_response = await client.post('/firefly-iaaa/iaaa/revoke_token', data=json.dumps(data), headers={'Origin': 'abc'})
+    first_response = await client.post('/firefly-iaaa/iaaa/revoke_token', data=json.dumps(data), headers={'Referer': 'abc'})
     assert token.is_valid
     assert token.is_access_valid
 
     data['token'] = bearer_messages[1]['active'].access_token
-    second_response = await client.post('/firefly-iaaa/iaaa/revoke_token', data=json.dumps(data), headers={'Origin': 'abc'})
+    second_response = await client.post('/firefly-iaaa/iaaa/revoke_token', data=json.dumps(data), headers={'Referer': 'abc'})
     token = registry(domain.BearerToken).find(lambda x: x.access_token == bearer_messages[1]['active'].access_token)
     assert token.is_valid
     assert not token.is_access_valid

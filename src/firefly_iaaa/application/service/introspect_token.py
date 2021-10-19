@@ -6,14 +6,14 @@ from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauth
 
 
 @ff.rest(
-    '/iaaa/create_token', method='POST', tags=['public']
+    '/iaaa/introspect_token', method='POST', tags=['public']
 )
-class OauthTokenCreationService(GenericOauthEndpoint):
+class OauthTokenIntrospectionService(GenericOauthEndpoint):
 
     def __call__(self, **kwargs):
         message = self._make_message(kwargs)
 
-        headers, body, status =  self._oauth_provider.create_token_response(message)
+        headers, body, status =  self._oauth_provider.create_introspect_response(message)
         # if status == 200:
         #     body = json.loads(body)
         # #? Add headers?
@@ -24,9 +24,9 @@ class OauthTokenCreationService(GenericOauthEndpoint):
         headers = self._add_method_to_headers(incoming_kwargs)
         message_body = {
             'headers': headers,
-            'grant_type': incoming_kwargs.get('grant_type'),
-            "client_id": self._get_client_id(incoming_kwargs.get('client_id')),
-            "state": incoming_kwargs.get('state')
+            'client_id': self._get_client_id(incoming_kwargs.get('client_id')),
+            'state': incoming_kwargs.get('state'),
+            'token': incoming_kwargs.get('token')
         }
 
         if incoming_kwargs.get('username'):
@@ -35,14 +35,16 @@ class OauthTokenCreationService(GenericOauthEndpoint):
             message_body['password'] = incoming_kwargs.get('password') 
         if incoming_kwargs.get('client_secret'):
             message_body['client_secret'] = incoming_kwargs.get('client_secret') 
-        if incoming_kwargs.get('code'):
-            message_body['code'] = incoming_kwargs.get('code') 
-        if incoming_kwargs.get('code_verifier'):
-            message_body['code_verifier'] = incoming_kwargs.get('code_verifier') 
-        if incoming_kwargs.get('refresh_token'):
-            message_body['refresh_token'] = incoming_kwargs.get('refresh_token')
+        if not message_body['token']:
+            if incoming_kwargs.get('access_token'):
+                message_body['token'] = incoming_kwargs.get('access_token') 
+        if not message_body['token']:
+            if incoming_kwargs.get('refresh_token'):
+                message_body['token'] = incoming_kwargs.get('refresh_token')
+        if incoming_kwargs.get('token_type_hint'):
+            message_body['token_type_hint'] = incoming_kwargs.get('token_type_hint')
 
         return self._message_factory.query(
-            name='OauthCreateTokenMessage',
+            name='OauthIntrospectTokenMessage',
             data=message_body
         )

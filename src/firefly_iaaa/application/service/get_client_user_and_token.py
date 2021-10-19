@@ -12,12 +12,25 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from .authorization_request import *
-from .add_role_to_user import AddRoleToUser
-from .create_token import OauthTokenCreationService
-from .generic_oauth_endpoint import GenericOauthEndpoint
-from .get_token_access_rights import *
-from .get_client_user_and_token import GetClientUserAndToken
-from .introspect_token import OauthTokenIntrospectionService
-from .remove_role_from_user import RemoveRoleFromUser
-from .revoke_token import OauthTokenRevocationService
+from __future__ import annotations
+
+import firefly as ff
+import firefly_iaaa.domain as domain
+
+@ff.query_handler('iaaa.GetClientUserAndToken')
+class GetClientUserAndToken(ff.ApplicationService):
+    _registry: ff.Registry = None
+    _oauth_provider: domain.OauthProvider = None
+
+    def __call__(self, token, user_id):
+        user = self._registry(domain.User).find(lambda x: x.sub == user_id)
+        if user:
+            client = self._registry(domain.Client).find(lambda x: x.tenant_id == user.tenant_id)
+            client_id = client.client_id
+        decoded = self._oauth_provider.decode_token(token, client_id)
+
+        return {
+            'decoded': decoded,
+            'user': user,
+            'client_id': client,
+        }

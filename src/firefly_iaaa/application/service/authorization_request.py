@@ -29,24 +29,19 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
             resp['code_challenge'] = credentials['code_challenge']
         if 'code_challenge_method' in credentials:
             resp['code_challenge_method'] = credentials['code_challenge_method']
-        # if 'nonce' in credentials:
-        #     kwargs['nonce'] = credentials['nonce']
         # if 'claims' in credentials:
         #     kwargs['claims'] = json.dumps(credentials['claims'])
-
-        #! return scopes, client
         return resp
 
     def _make_message(self, incoming_kwargs: dict):
         headers = self._add_method_to_headers(incoming_kwargs)
         message_body = {
             'headers': headers,
-            'token': incoming_kwargs.get('token'),
+            #add state
             'client_id': self._get_client_id(incoming_kwargs.get('client_id')),
             'state': incoming_kwargs.get('state'),
             'response_type': incoming_kwargs.get('response_type'),
             'code_challenge': incoming_kwargs.get('code_challenge'),
-            # 'code_challenge_method': incoming_kwargs.get('code_challenge_method')
         }
 
         if incoming_kwargs.get('username'):
@@ -73,8 +68,9 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         message = self._make_message(kwargs) #! check more
         headers, body, status = self._oauth_provider.validate_post_auth_request(message)
 
+        if not headers and not body and not status:
+            raise ff.UnauthorizedError()
 
-        #! return scopes, client
         return ff.Envelope.wrap({}).add_forwarding_address(headers['Location'])
 
 

@@ -14,7 +14,7 @@ async def test_authenticate(bearer_messages_list: List[ff.Message], message_fact
     }
 
     auth_token = bearer_messages_list[0]['active'].access_token
-    http_request = {'headers': {'Host': '127.0.0.1:62244', 'Origin': 'abc', 'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate', 'User-Agent': 'Python/3.7 aiohttp/3.7.4.post0', 'Content-Length': '82', 'Content-Type': 'text/plain; charset=utf-8'}, 'method': 'POST', 'path': '/firefly-iaaa/iaaa/create_token', 'content_type': 'text/plain', 'content_length': 82, 'query': {}, 'url': '/firefly-iaaa/iaaa/create_token'}
+    http_request = {'headers': {'Host': '127.0.0.1:62244', 'Referer': 'abc', 'Accept': '*/*', 'Accept-Encoding': 'gzip, deflate', 'User-Agent': 'Python/3.7 aiohttp/3.7.4.post0', 'Content-Length': '82', 'Content-Type': 'text/plain; charset=utf-8'}, 'method': 'POST', 'path': '/firefly-iaaa/iaaa/create_token', 'content_type': 'text/plain', 'content_length': 82, 'query': {}, 'url': '/firefly-iaaa/iaaa/create_token'}
     message = message_factory.query(
         name='a1b2c3',
         data=data,
@@ -54,6 +54,7 @@ async def test_authenticate(bearer_messages_list: List[ff.Message], message_fact
     assert validated
 
 @pytest.fixture()
-def sut(container):
+def sut(container, system_bus):
     cont = container.build(application.OAuthAuthenticator)
+    cont.request = system_bus.request
     return cont

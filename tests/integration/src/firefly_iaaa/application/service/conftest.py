@@ -23,6 +23,7 @@ from base64 import urlsafe_b64encode
 import pytest
 import firefly as ff
 from datetime import datetime, timedelta
+import firefly_iaaa.domain as domain
 
 import random
 
@@ -38,3 +39,9 @@ def bearer_messages(bearer_messages_list, registry):
     registry(BearerToken).commit()
     registry(AuthorizationCode).commit()
     return bearer_messages_list
+
+
+def set_kernel_user(registry, kernel, message):
+    found_client = registry(domain.Client).find(lambda x: x.client_id == message.client_id)
+    found_user = registry(domain.User).find(lambda x: x.tenant_id == found_client.tenant_id)
+    kernel.user.id = found_user.sub

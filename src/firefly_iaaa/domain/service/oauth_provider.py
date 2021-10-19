@@ -73,9 +73,13 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
         credentials = self._cache.get(credentials_key)
         if not credentials:
             return None, None, None
-        scopes = credentials['request'].scopes
-        headers, body, status = self._server.create_authorization_response(uri, http_method, body, headers, scopes=scopes, credentials=credentials)
         
+        if not request.scopes:
+            return None, None, None
+        headers, body, status = self._server.create_authorization_response(uri, http_method, body, headers, scopes=request.scopes, credentials=credentials)
+
+        if headers.get('Location'):
+            self._cache.delete(credentials_key)
         return headers, body, status
 
     def create_token_response(self, request: ff.Message):
@@ -123,14 +127,8 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
 
     @staticmethod
     def _get_request_params(request: ff.Message):
-        try: 
-            uri = request.headers['Origin']
-        except KeyError:
-            uri = request.headers.get('uri')
-        try:
-            http_method = request.headers['method']
-        except KeyError:
-            http_method = request.headers.get('http_method')
+        uri = request.headers.get('Referer') or request.headers.get('Origin') or request.headers.get('uri')
+        http_method = request.headers.get('method') or request.headers.get('http_method')
         body = request.to_dict()
         headers = request.headers
         return uri, http_method, body, headers

@@ -489,9 +489,12 @@ class OauthRequestValidators(RequestValidator):
             - Resource Owner Password Credentials Grant (might not associate a client)
             - Client Credentials grant
         """
-        #! Invalidate old refresh?
         bearer_token = self._generate_bearer_token(token, request)
         self._registry(domain.BearerToken).append(bearer_token)
+        try:
+            request.old_token.invalidate()
+        except AttributeError:
+            pass
         return request.client.default_redirect_uri
 
     def validate_bearer_token(self, token: str, scopes: List[str], request: Request):
@@ -698,6 +701,7 @@ class OauthRequestValidators(RequestValidator):
             return False
         if bearer_token.validate_refresh_token(refresh_token, client):
             request.user = bearer_token.user
+            request.old_token = bearer_token
             return True
         return False
 
@@ -844,7 +848,7 @@ class OauthRequestValidators(RequestValidator):
         )
 
     def _generate_authorization_code(self, code: dict, request: Request, claims: dict):
-        user = request.user or self._kernel.user
+        user = request.user or self._registry(domain.User).find(lambda x: x.sub == self._kernel.user.id)
         return domain.AuthorizationCode(
             client=request.client,
             user=user,
