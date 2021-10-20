@@ -29,6 +29,7 @@ import bcrypt
 import random
 
 import firefly as ff
+from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
@@ -73,6 +74,16 @@ def set_kernel_user(container):
         scopes=['fake-scopes'],
         tenant='tenant-id'
     )
+
+@pytest.fixture()
+def auth_service(container, cache, secret, issuer):
+    validator = container.build(OauthRequestValidators)
+    validator._secret_key = secret
+    sut = container.build(OauthProvider, validator=validator)
+    sut._cache = cache
+    sut._secret_key = secret
+    sut._issuer = issuer
+    return sut
 
 @pytest.fixture()
 def secret():

@@ -7,7 +7,12 @@ import json
 import firefly_iaaa.domain as domain
 import firefly_iaaa.application as application
 
-async def test_authorize_request(bearer_messages_list: List[ff.Message], message_factory, sut, kernel):
+async def test_authorize_request(transport, bearer_messages_list: List[ff.Message], message_factory, sut, kernel, user_list, auth_service, container):
+    transport.register_handler('iaaa.GetClientUserAndToken', lambda t, u: {
+            'decoded': auth_service.decode_token(t, bearer_messages_list[0]['active'].client_id),
+            'user': user_list[-2],
+            'client_id': bearer_messages_list[0]['active'].client_id,
+        })
     kernel.user.id = bearer_messages_list[0]['active'].client_id
     data = {
             'headers': bearer_messages_list[0]['active'].headers,
@@ -30,8 +35,6 @@ async def test_authorize_request(bearer_messages_list: List[ff.Message], message
     )
     validated = sut.handle(message)
     assert validated
-
-
 
 @pytest.fixture()
 def sut(container):

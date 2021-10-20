@@ -24,7 +24,7 @@ class AuthorizeRequest(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
     _oauth_provider: domain.OauthProvider = None
 
     def handle(self, message: ff.Message):
-
+        token = None
         try:
             if not message.access_token:
                 token = self._get_token()

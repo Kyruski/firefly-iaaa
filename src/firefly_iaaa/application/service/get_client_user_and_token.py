@@ -32,5 +32,5 @@ class GetClientUserAndToken(ff.ApplicationService):
         return {
             'decoded': decoded,
             'user': user,
-            'client_id': client,
+            'client_id': client_id,
         }

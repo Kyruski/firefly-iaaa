@@ -34,16 +34,6 @@ from firefly_iaaa.domain.entity.user import User
 from firefly_iaaa.domain.mock.mock_cache import MockCache
 
 
-@pytest.fixture()
-def auth_service(container, cache, secret, issuer):
-    validator = container.build(OauthRequestValidators)
-    validator._secret_key = secret
-    sut = container.build(OauthProvider, validator=validator)
-    sut._cache = cache
-    sut._secret_key = secret
-    sut._issuer = issuer
-    return sut
-
 def generate_token(request, token_type, issuer, secret):
     token_info = {
         'jti': str(uuid.uuid4()),
