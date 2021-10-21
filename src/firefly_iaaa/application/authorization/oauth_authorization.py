@@ -31,19 +31,17 @@ class AuthorizeRequest(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
                 if not token:
                     return False
                 message.access_token = token
+            else:
+                token = message.access_token
         except AttributeError:
             token = self._get_token()
             if not token:
                 return False
             message.access_token = token
+        if not message.access_token and not token:
+            return False
         if message.access_token.lower().startswith('bearer'):
             message.access_token = message.access_token.split(' ')[-1]
-        # user = self.request('iaaa.User', lambda x: x.sub == self._kernel.user.id)
-        # client_id = self._kernel.user.id
-        # if user:
-        #     client = self.request('iaaa.Client', lambda x: x.tenant_id == user.tenant_id)
-        #     client_id = client.client_id
-        # token = self._oauth_provider.decode_token(message.access_token, client_id)
 
         try:
             resp = self.request('iaaa.GetClientUserAndToken', data={'token': token, 'user_id': self._kernel.user.id})
@@ -58,7 +56,9 @@ class AuthorizeRequest(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
         except AttributeError:
             message.scopes = decoded.get('scope').split(' ') if decoded else self._kernel.user.scopes
 
+        print('aaaaaaaaaaa')
         message.token = message.access_token
+        print('msmsm', message.token, message.access_token)
         validated, resp = self._oauth_provider.verify_request(message, message.scopes)
 
         return validated

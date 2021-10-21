@@ -14,19 +14,19 @@ async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: 
     }
     set_kernel_user(registry, kernel, bearer_messages[0]['active'])
 
-    first_response = await client.post('/firefly-iaaa/iaaa/authorization_request', data=json.dumps(data), headers={'Referer': 'abc'})
+    first_response = await client.post('/firefly-iaaa/iaaa/authorization-request', data=json.dumps(data), headers={'Referer': 'abc'})
     assert first_response.status == 500
 
     data['response_type'] = bearer_messages[0]['active'].response_type
-    second_response = await client.post('/firefly-iaaa/iaaa/authorization_request', data=json.dumps(data), headers={'Referer': 'abc'})
+    second_response = await client.post('/firefly-iaaa/iaaa/authorization-request', data=json.dumps(data), headers={'Referer': 'abc'})
     assert second_response.status == 500
 
     data['password'] = bearer_messages[0]['active'].password
-    third_response = await client.post('/firefly-iaaa/iaaa/authorization_request', data=json.dumps(data), headers={'Referer': 'abc'})
+    third_response = await client.post('/firefly-iaaa/iaaa/authorization-request', data=json.dumps(data), headers={'Referer': 'abc'})
     assert third_response.status == 500
 
     data['code_challenge'] = bearer_messages[0]['active'].code_challenge
-    fourth_response = await client.post('/firefly-iaaa/iaaa/authorization_request', data=json.dumps(data), headers={'Referer': 'abc'})
+    fourth_response = await client.post('/firefly-iaaa/iaaa/authorization-request', data=json.dumps(data), headers={'Referer': 'abc'})
     assert fourth_response.status == 200
     resp = json.loads(await fourth_response.text())
 
@@ -42,6 +42,6 @@ async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: 
     }
     data['scopes'] = [data['scopes'][0]]
 
-    creation_response = await client.post('/firefly-iaaa/iaaa/create_authorization', data = json.dumps(data), headers={'Referer': 'abc'})
+    creation_response = await client.post('/firefly-iaaa/iaaa/create-authorization', data = json.dumps(data), headers={'Referer': 'abc'})
 
     assert creation_response.status < 400

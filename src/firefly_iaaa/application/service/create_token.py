@@ -6,7 +6,7 @@ from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauth
 
 
 @ff.rest(
-    '/iaaa/create_token', method='POST', tags=['public']
+    '/iaaa/create-token', method='POST', tags=['public']
 )
 class OauthTokenCreationService(GenericOauthEndpoint):
 

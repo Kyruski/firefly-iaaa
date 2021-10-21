@@ -547,22 +547,32 @@ class OauthRequestValidators(RequestValidator):
             - Resource Owner Password Credentials Grant
             - Client Credentials Grant
         """
+        print('1')
         bearer_token: domain.BearerToken
-        bearer_token, _ = self._get_bearer_token(token)
-        if not bearer_token:
+        print('2')
+        bearer_token, token_type = self._get_bearer_token(token)
+        print('3', token)
+        if not bearer_token or token_type != 'access_token':
+            print(token_type, bearer_token)
             return False
+        print('4')
         decoded_token = self._decode_token(token, bearer_token.client.client_id)
+        print('5')
         try:
             for scope in scopes:
                 if scope not in decoded_token['scope'].split(' '):
                     return False
         except TypeError:
+            print('6')
             scopes = decoded_token['scope'].split(' ')
+        print('7')
         if bearer_token.validate(scopes):
+            print('8')
             request.user = bearer_token.user
             request.client = bearer_token.client
             request.scopes = bearer_token.scopes
             return True
+        print('9')
         return False
 
     def validate_client_id(self, client_id: str, request: Request, *args, **kwargs):
@@ -779,6 +789,7 @@ class OauthRequestValidators(RequestValidator):
         )
 
     def _get_bearer_token(self, token: str, token_type_hint: str = None):
+        print('aaa', token)
         if token is None:
             return None, None
         refresh_criteria = lambda x: (x.refresh_token == token)
@@ -791,6 +802,7 @@ class OauthRequestValidators(RequestValidator):
 
         bearer_token = self._registry(domain.BearerToken).find(criteria[current_token_type])
         token_type = self._valid_token_type_hints[current_token_type]
+        print('aaaaaaaa', bearer_token)
 
         if not bearer_token:
             current_token_type = (current_token_type + 1) % 2

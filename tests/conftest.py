@@ -48,6 +48,7 @@ from dotenv import load_dotenv
 @pytest.fixture(scope="session")
 def config():
     load_dotenv()
+    os.environ['CONTEXT'] = 'firefly_iaaa'
     return {
         'contexts': {
             'firefly_iaaa': {

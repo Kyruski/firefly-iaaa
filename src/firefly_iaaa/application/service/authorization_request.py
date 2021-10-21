@@ -5,7 +5,7 @@ import firefly_iaaa.domain as domain
 from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauthEndpoint
 
 
-@ff.rest('/iaaa/authorization_request', method='POST', tags=['public'])
+@ff.rest('/iaaa/authorization-request', method='POST', tags=['public'])
 class OauthAuthorizationRequestService(GenericOauthEndpoint):
     _cache: ff.Cache = None
     _registry: ff.Registry = None
@@ -59,7 +59,7 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
         return message
 
 @ff.rest(
-    '/iaaa/create_authorization', method='POST', tags=['public']
+    '/iaaa/create-authorization', method='POST', tags=['public']
 )
 class OauthCreateAuthorizationService(GenericOauthEndpoint):
     _cache: ff.Cache = None

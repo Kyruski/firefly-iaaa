@@ -6,7 +6,7 @@ from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauth
 
 
 @ff.rest(
-    '/iaaa/introspect_token', method='POST', tags=['public']
+    '/iaaa/introspect-token', method='POST', tags=['public']
 )
 class OauthTokenIntrospectionService(GenericOauthEndpoint):
 
