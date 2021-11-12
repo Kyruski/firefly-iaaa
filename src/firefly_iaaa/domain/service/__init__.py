@@ -24,5 +24,6 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
+from firefly_iaaa.domain.service.cognito_login import CognitoLogin
 from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.service.oauth_provider import OauthProvider
