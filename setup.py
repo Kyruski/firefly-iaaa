@@ -32,6 +32,7 @@ setuptools.setup(
         'firefly-framework>=1.2.3',
         'firefly-aws>=1.2.0',
         'PyJWT>=2.1.0',
+        'oauthlib>=3.1.1',
     ],
     extras_require={
         'AWS Cognito Support': ['firefly-aws>=1.1.0'],
