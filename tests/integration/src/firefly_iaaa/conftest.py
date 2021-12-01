@@ -58,7 +58,8 @@ def bearer_messages_second_list(message_factory, bearer_tokens_second_list: List
         auth_code = auth_codes_second_list[i]
         message = message_factory.query(
             name='a1b2c3',
-            data={'headers': {'http_method': 'GET', 'uri': bearer_token.client.default_redirect_uri},
+            data={
+                'headers': {'http_method': 'GET', 'uri': bearer_token.client.default_redirect_uri},
                 'username': user_list[i % 6].email,
                 'password': f'password{(i % 6) + 1}',
                 'grant_type': bearer_token.client.grant_type,

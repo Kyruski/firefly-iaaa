@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import firefly as ff
 import json
-from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauthEndpoint
+from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
 
 
 @ff.rest(
-    '/iaaa/create-token', method='POST', tags=['public']
+    '/iaaa/token', method='POST', tags=['public']
 )
 class OauthTokenCreationService(GenericOauthEndpoint):
 

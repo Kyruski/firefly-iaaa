@@ -13,9 +13,10 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from typing import Dict
 
 import firefly as ff
-from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauthEndpoint
+from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
 import firefly_iaaa.domain as domain
 
 
@@ -51,7 +52,7 @@ class OAuthLogin(GenericOauthEndpoint):
                     else:
                         ff.UnauthenticatedError()
                 if success:
-                    user = self._transfer_cognito_user_to_native_user(username, password)
+                    user = self._transfer_cognito_user_to_native_user(username, password, data['decoded_id_token'])
                     return user
             except:
                 raise ff.UnauthenticatedError()
@@ -59,12 +60,12 @@ class OAuthLogin(GenericOauthEndpoint):
             raise ff.UnauthenticatedError('Incorrect Password')
         
 
-    def _transfer_cognito_user_to_native_user(self, username: str, password: str, name: str):
+    def _transfer_cognito_user_to_native_user(self, username: str, password: str, data: Dict):
         self.debug('Transfering Cognito user to In-House user')
-        resp = self.invoke('firefly_iaaa.OAuthRegister', {
-            'username': username,
-            'password': password,
-        })
+        data['email'] = username
+        data['username'] = username
+        data['password'] = password
+        resp = self.invoke('firefly_iaaa.OAuthRegister', data)
         if resp.get('success'):
             return resp
         elif 'error' in resp:

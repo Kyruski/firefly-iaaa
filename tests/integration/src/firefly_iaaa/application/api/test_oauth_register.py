@@ -7,12 +7,11 @@ from firefly_iaaa import domain
 
 async def test_oauth_register_endpoint(client, registry, bearer_messages: List[ff.Message], kernel):
     data = {
-            'headers': bearer_messages[2]['active'].headers,
             'state': bearer_messages[2]['active'].state,
             'username': 'abc@email.com',
     }
 
-    first_response = await client.post('/firefly-iaaa/iaaa/register', data=json.dumps(data), headers={'Referer': 'abc'})
+    first_response = await client.post('/firefly-iaaa/iaaa/registers', data=json.dumps(data), headers={'Referer': 'abc'})
     assert first_response.status == 500
 
     user = registry(domain.User).find(lambda x: x.email == data['username'])
@@ -22,7 +21,6 @@ async def test_oauth_register_endpoint(client, registry, bearer_messages: List[f
     second_response = await client.post('/firefly-iaaa/iaaa/register', data=json.dumps(data), headers={'Referer': 'abc'})
     assert second_response.status == 200
     resp = json.loads(await second_response.text())
-    print(resp)
     assert resp['access_token'] is not None
     assert 'refresh_token' in resp
     assert resp['expires_in'] == 3600

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from abc import ABC
+from abc import ABC, abstractmethod
 
 import firefly as ff
 import firefly_iaaa.domain as domain
@@ -11,6 +11,7 @@ class GenericOauthEndpoint(ff.ApplicationService, ABC):
     _registry: ff.Registry = None
     _message_factory: ff.MessageFactory = None
 
+    @abstractmethod
     def __call__(self, **kwargs):
         pass
 

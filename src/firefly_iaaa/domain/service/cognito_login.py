@@ -54,7 +54,8 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
                     'refresh_token': resp['AuthenticationResult']['RefreshToken'],
                     'access_token': resp['AuthenticationResult']['AccessToken'],
                     'expires_in': resp['AuthenticationResult']['ExpiresIn'],
-                    'token_type': resp['AuthenticationResult']['TokenType']
+                    'token_type': resp['AuthenticationResult']['TokenType'],
+                    'decoded_id_token': self._jwt_decoder.decode(resp['AuthenticationResult']['IdToken'])
                 }
             }
         else:

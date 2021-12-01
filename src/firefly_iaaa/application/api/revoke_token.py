@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import firefly as ff
 import firefly_iaaa.domain as domain
-from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauthEndpoint
+from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
 
 
 @ff.rest(
-    '/iaaa/revoke-token', method='POST', tags=['public']
+    '/iaaa/revoke', method='POST', tags=['public']
 )
 class OauthTokenRevocationService(GenericOauthEndpoint):
     _oauth_provider: domain.OauthProvider = None

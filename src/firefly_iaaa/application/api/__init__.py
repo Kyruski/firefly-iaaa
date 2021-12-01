@@ -12,8 +12,10 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from .authentication import *
-from .authorization import *
-from .container import Container
-from .service import *
-from .api import *
+from .authorization_request import *
+from .create_token import OauthTokenCreationService
+from .generic_oauth_endpoint import GenericOauthEndpoint
+from .introspect_token import OauthTokenIntrospectionService
+from .oauth_login import OAuthLogin
+from .oauth_register import OAuthRegister
+from .revoke_token import OauthTokenRevocationService

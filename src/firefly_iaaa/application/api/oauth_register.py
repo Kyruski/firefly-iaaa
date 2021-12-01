@@ -13,10 +13,11 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from typing import Dict
 
 import firefly as ff
 import uuid
-from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauthEndpoint
+from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
 import firefly_iaaa.domain as domain
 
 
@@ -36,18 +37,17 @@ class OAuthRegister(GenericOauthEndpoint):
         if found_user:
             return {'error': 'User already exists'}
 
-        self.create_entities(username, password)
+        self.create_entities(**kwargs)
         kwargs['grant_type'] = 'password'
 
         return self.invoke('firefly_iaaa.OAuthLogin', kwargs, async_=False)
 
 
-    def create_entities(self, username: str, password: str):
+    def create_entities(self, username: str, password: str, **kwargs):
         new_tenant = domain.Tenant(name=f'user_tenant_{username}')
         self._registry(domain.Tenant).append(new_tenant)
 
-
-        new_user = domain.User.create(email=username, password=password, tenant=new_tenant)
+        new_user = domain.User.create(email=username, password=password, tenant=new_tenant, **kwargs)
         self._registry(domain.User).append(new_user)
 
         new_client = domain.Client.create(
