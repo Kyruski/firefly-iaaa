@@ -29,7 +29,9 @@ setuptools.setup(
     package_dir={'': 'src'},
     install_requires=[
         'bcrypt>=3.1.7',
-        'firefly-framework>=1.1.15',
+        'firefly-framework>=1.2.3',
+        'firefly-aws>=1.2.0',
+        'PyJWT>=2.1.0',
     ],
     extras_require={
         'AWS Cognito Support': ['firefly-aws>=1.1.0'],
