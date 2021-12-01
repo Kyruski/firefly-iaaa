@@ -95,7 +95,7 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
 
     def verify_request(self, request: ff.Message, scopes):
         uri, http_method, body, headers = self._get_request_params(request)
-        print('aaaaaaaaaaaaa111')
+
         is_valid, req = self._server.verify_request(uri, http_method, body, headers, scopes=scopes)
         req = self.scrub_sensitive_data(req)
         return is_valid, req

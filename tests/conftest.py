@@ -23,20 +23,15 @@ from base64 import urlsafe_b64encode
 from firefly import domain
 
 import jwt
-from firefly_iaaa.domain.entity import tenant
 import pytest
 import bcrypt
 import random
 
-import firefly as ff
 from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
-from firefly_iaaa.domain.entity.grant import Grant
-from firefly_iaaa.domain.entity.role import Role
-from firefly_iaaa.domain.entity.scope import Scope
 from firefly_iaaa.domain.entity.tenant import Tenant
 from firefly_iaaa.domain.entity.user import User
 from oauthlib.common import Request
@@ -189,7 +184,6 @@ def make_client_list(tenants):
             uses_pkce=(i % 2 == 0 and i < 4),
             scopes=['fake-scopes', f'faker-scope{i}'],
             client_secret=gen_random_string(36),
-
         )
         clients.append(client)
     client = Client.create(
@@ -358,6 +352,7 @@ def bearer_messages_list(message_factory, bearer_tokens_list: List[dict], user_l
                     'scopes': bearer_token.scopes,
                     'state': 'abc',
                     'token': bearer_token.refresh_token if (i % 3) == 0 else bearer_token.access_token if (i % 3) == 1 else None,
+                    'email': bearer_token.user.email,
                     'user': None,
                     'token_type_hint': 'Bearer',
                     'credentials_key': None,

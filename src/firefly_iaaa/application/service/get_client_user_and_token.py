@@ -25,7 +25,7 @@ class GetClientUserAndToken(ff.ApplicationService):
     def __call__(self, token, user_id):
         user = self._registry(domain.User).find(lambda x: x.sub == user_id)
         if user:
-            client = self._registry(domain.Client).find(lambda x: x.tenant_id == user.tenant_id)
+            client = self._registry(domain.Client).find(lambda x: (x.tenant_id == user.tenant_id) | (x.client_id == user.sub))
             client_id = client.client_id
         decoded = self._oauth_provider.decode_token(token, client_id)
 

@@ -19,5 +19,7 @@ from .generic_oauth_endpoint import GenericOauthEndpoint
 from .get_token_access_rights import *
 from .get_client_user_and_token import GetClientUserAndToken
 from .introspect_token import OauthTokenIntrospectionService
+from .oauth_login import OAuthLogin
+from .oauth_register import OAuthRegister
 from .remove_role_from_user import RemoveRoleFromUser
 from .revoke_token import OauthTokenRevocationService

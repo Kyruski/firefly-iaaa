@@ -31,6 +31,10 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
             resp['code_challenge_method'] = credentials['code_challenge_method']
         # if 'claims' in credentials:
         #     kwargs['claims'] = json.dumps(credentials['claims'])
+        # redirect_url = f'https://${subdomain}.pwrlab.com/authorize?' #!!!!
+        # for k, v in resp:
+        #     redirect_url += f'{k}={v}'
+        # return redirect_url
         return resp
 
     def _make_message(self, incoming_kwargs: dict):
@@ -51,12 +55,10 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
         if incoming_kwargs.get('client_secret'):
             message_body['client_secret'] = incoming_kwargs.get('client_secret')
 
-
-        message = self._message_factory.query(
+        return self._message_factory.query(
             name='OauthAuthorizationRequestMessage',
             data=message_body
         )
-        return message
 
 @ff.rest(
     '/iaaa/create-authorization', method='POST', tags=['public']

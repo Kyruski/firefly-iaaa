@@ -108,7 +108,6 @@ def test_auth_request_missing_data(auth_service: OauthProvider, bearer_messages_
         setattr(message, 'credentials_key', credentials_key)
         headers, body, status = auth_service.validate_post_auth_request(message)
 
-        print(i)
         if i == 13:
             assert headers is None
             assert body is None

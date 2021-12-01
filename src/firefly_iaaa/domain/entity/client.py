@@ -29,7 +29,6 @@ from __future__ import annotations
 from typing import List
 
 import firefly as ff
-from firefly_iaaa.domain.entity.user import User
 from .tenant import Tenant
 
 authorization_code = 'authorization_code'
@@ -72,7 +71,11 @@ class Client(ff.AggregateRoot):
         try:
             kwargs['tenant_id'] = kwargs['tenant'].id
         except KeyError:
-            raise ff.MissingArgument('tenant is a required field for Client::create()')
+            raise ff.MissingArgument('Tenant is a required field for Client::create()')
+        try:
+            kwargs['grant_type'] = kwargs['grant_type']
+        except KeyError:
+            raise ff.MissingArgument('enant is a required field for Client::create()')
         return cls(**ff.build_argument_list(kwargs, cls))
 
     def validate_redirect_uri(self, redirect_uri: str):
@@ -103,7 +106,7 @@ class Client(ff.AggregateRoot):
             (self.grant_type == authorization_code and not self.requires_pkce())
 
     def validate_client_secret(self, secret):
-        return self._client_secret == secret
+        return self.client_secret == secret
 
     def inactivate(self):
         self.is_active = False

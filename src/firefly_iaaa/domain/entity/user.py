@@ -82,6 +82,8 @@ class User(ff.AggregateRoot):
         return bcrypt.hashpw(password.encode('utf-8'), salt.encode()).decode('utf-8')
 
     def correct_password(self, password: str):
+        if not password:
+            return False
         return self.password_hash == User._hash_password(password, self.salt)
     # __pragma__('noskip')
 

@@ -13,39 +13,36 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-import json
 
 import firefly as ff
-from firefly_iaaa.application.service.create_token import OauthTokenCreationService
+from firefly_iaaa.application.service.generic_oauth_endpoint import GenericOauthEndpoint
 import firefly_iaaa.domain as domain
 
-from firefly_iaaa.domain.entity.user import User
 
-
-@ff.rest('/iaaa/authorization-request', method='POST', tags=['public'])
-class OAuthLogin(OauthTokenCreationService):
+@ff.rest('/iaaa/login', method='POST', tags=['public'])
+class OAuthLogin(GenericOauthEndpoint):
     _cognito_login: domain.CognitoLogin = None
 
     def __call__(self, **kwargs):
-        self.debug('Logging in with Native')
-        username = kwargs.get('username')
-        password = kwargs.get('password')
+        self.debug('Logging in with In-House')
+        try:
+            username = kwargs['username']
+            password = kwargs['password']
+        except KeyError:
+            raise Exception('Missing username/password')
+        tokens = None
 
-        found_user = self._registry(User).find(lambda x: x.email == username)
+        found_user = self._registry(domain.User).find(lambda x: x.email == username)
+
         if found_user.correct_password(password):
-            #loggedIn?
-            return True
+            tokens = self._get_tokens(kwargs)
         else:
-            user = self._try_cognito(username, password)
-            if not isinstance(user, User):
-                return False
-        # THen what?
-        # resp = self._get_tokens(kwargs)
-        return True
+            tokens = self._try_cognito(username, password)
+        return tokens
 
     def _try_cognito(self, username: str, password: str):
-        # if len(self._registry(User).find(lambda x: x.email == username)):
-        if self._registry(User).find(lambda x: x.email == username) is None:
+        self.debug('Switching to Cognito Log in')
+        if self._registry(domain.User).find(lambda x: x.email == username) is None:
             try:
                 message, error, success, data = self._cognito_login(username, password) #data has tokens and idToken
                 if error:
@@ -62,15 +59,19 @@ class OAuthLogin(OauthTokenCreationService):
             raise ff.UnauthenticatedError('Incorrect Password')
         
 
-    def _transfer_cognito_user_to_native_user(self, username: str, password: str):
-        ## NEED SALT
-        new_user = User.create(email=username, password=password)
-        self._registry(User).append(new_user)
-        return new_user
+    def _transfer_cognito_user_to_native_user(self, username: str, password: str, name: str):
+        self.debug('Transfering Cognito user to In-House user')
+        resp = self.invoke('firefly_iaaa.OAuthRegister', {
+            'username': username,
+            'password': password,
+        })
+        if resp.get('success'):
+            return resp
+        elif 'error' in resp:
+            raise Exception(resp['error'])
 
-    # def _get_tokens(self, kwargs: dict):
-    #     message = self._make_message(kwargs)
-
-    #     headers, body, status =  self._oauth_provider.create_token_response(message)
-
-    #     return json.loads(body)
+    def _get_tokens(self, kwargs: dict):
+        if not kwargs['headers']['http_request']['headers'].get('Referer'):
+            kwargs['headers']['http_request']['headers']['Referer'] = 'https://www.pwrlab.com/',
+        resp = self.invoke('firefly_iaaa.OauthTokenCreationService', kwargs, async_=False)
+        return resp

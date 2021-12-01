@@ -15,7 +15,6 @@ def test_validate_bearer_token(validator: OauthRequestValidators, oauth_request_
         #Test 2 token types (refresh and access)
         token_status = ['active', 'expired', 'invalid']
         for t in range(2):
-            print(x,  t)
             bearer_token = bearer_tokens_list[-1][token_status[x]]
             assert_request_empty(oauth_request_list[-1])
             token = bearer_token.refresh_token if t == 0 else bearer_token.access_token

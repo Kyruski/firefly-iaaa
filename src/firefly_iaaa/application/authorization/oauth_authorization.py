@@ -56,9 +56,7 @@ class AuthorizeRequest(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
         except AttributeError:
             message.scopes = decoded.get('scope').split(' ') if decoded else self._kernel.user.scopes
 
-        print('aaaaaaaaaaa')
         message.token = message.access_token
-        print('msmsm', message.token, message.access_token)
         validated, resp = self._oauth_provider.verify_request(message, message.scopes)
 
         return validated
