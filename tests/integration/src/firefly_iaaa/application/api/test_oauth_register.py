@@ -11,9 +11,8 @@ async def test_oauth_register_endpoint(client, registry, bearer_messages: List[f
             'username': 'abc@email.com',
     }
 
-    first_response = await client.post('/firefly-iaaa/iaaa/registers', data=json.dumps(data), headers={'Referer': 'abc'})
+    first_response = await client.post('/firefly-iaaa/iaaa/register', data=json.dumps(data), headers={'Referer': 'abc'})
     assert first_response.status == 500
-
     user = registry(domain.User).find(lambda x: x.email == data['username'])
     assert not user
 

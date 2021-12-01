@@ -13,35 +13,37 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import Dict
+from typing import List
 
 import firefly as ff
 import uuid
-from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
 import firefly_iaaa.domain as domain
 
 
-@ff.rest('/iaaa/register', method='POST', tags=['public'])
-class OAuthRegister(GenericOauthEndpoint):
+@ff.command_handler()
+class CreateUser(ff.ApplicationService):
+    _registry: ff.Registry = None
 
-    def __call__(self, **kwargs):
-        self.debug('Registering User')
-        try:
-            username = kwargs['username']
-            password = kwargs['password']
-        except KeyError:
-            raise Exception('Missing username/password')
+    def __call__(self, username: str, password: str, tenant_name: str, grant_type: str, scopes: List, **kwargs):
+        tenant = domain.Tenant(
+            name=tenant_name
+        )
+        user = domain.User.create(
+            email=username,
+            password=password,
+            tenant=tenant,
+            **kwargs
+        )
+        client = domain.Client.create(
+            tenant=tenant,
+            name=username,
+            grant_type=grant_type,
+            scopes=['full_access'],
+            client_secret=uuid.uuid4(),
+            **kwargs
+        )
 
-        found_user = self._registry(domain.User).find(lambda x: x.email == username)
-
-        if found_user:
-            return {'error': 'User already exists'}
-
-        kwargs.update({
-            'tenant_name': f'user_tenant_{username}',
-            'grant_type': 'password',
-            'scopes': ['full_access']
-        })
-        self.invoke('firefly_iaaa.CreateUser', kwargs)
-
-        return self.invoke('firefly_iaaa.OAuthLogin', kwargs, async_=False)
+        # Append at end to avoid appending before an error during entity creation
+        self._registry(domain.Tenant).append(tenant)
+        self._registry(domain.User).append(user)
+        self._registry(domain.Client).append(client)
