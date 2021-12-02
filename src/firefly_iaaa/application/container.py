@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 import os
-import pathlib
+import base64
 
 import firefly as ff
 
@@ -31,4 +31,4 @@ class Container(di.Container):
     oauthlib_request_validator: domain.OauthRequestValidators = domain.OauthRequestValidators
     request_validator: domain.OauthProvider = domain.OauthProvider
     message_factory: ff.MessageFactory = ff.MessageFactory
-    secret_key: str = lambda x: pathlib.Path(os.listdir('.').__str__() + os.getcwd().__str__()).read_text()
+    secret_key: str = lambda x: str(base64.b64decode(os.environ['PEM']), "utf-8")
