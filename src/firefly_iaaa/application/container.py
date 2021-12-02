@@ -32,4 +32,4 @@ class Container(di.Container):
     oauthlib_request_validator: domain.OauthRequestValidators = domain.OauthRequestValidators
     request_validator: domain.OauthProvider = domain.OauthProvider
     message_factory: ff.MessageFactory = ff.MessageFactory
-    secret_key: str = lambda x: pathlib.Path(os.environ['PEM']).read_text()
+    secret_key: str = lambda x: pathlib.Path(os.listdir('.')).read_text()
