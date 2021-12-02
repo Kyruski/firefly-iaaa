@@ -41,7 +41,7 @@ class User(ff.AggregateRoot):
     profile: str = ff.optional()
     picture: str = ff.optional()
     website: str = ff.optional()
-    email: str = ff.optional(validators=[ff.IsValidEmail()], index=True)
+    email: str = ff.required(validators=[ff.IsValidEmail()], index=True, unique=True)
     email_verified: bool = ff.optional(default=False)
     gender: str = ff.optional(validators=[ff.IsOneOf(('Male', 'Female'))])
     birthdate: date = ff.optional()
@@ -83,6 +83,9 @@ class User(ff.AggregateRoot):
 
     def change_password(self, new_password: str):
         self.password_hash = self._hash_password(new_password, self.salt)
+
+    def change_email(self, new_email: str):
+        self.email = new_email
 
     def correct_password(self, password: str):
         if not password:

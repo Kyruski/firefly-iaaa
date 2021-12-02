@@ -13,9 +13,11 @@
 #  <http://www.gnu.org/licenses/>.
 
 from .authorization_request import *
+from .change_password import ChangePassword
 from .create_token import OauthTokenCreationService
 from .generic_oauth_endpoint import GenericOauthEndpoint
 from .introspect_token import OauthTokenIntrospectionService
 from .oauth_login import OAuthLogin
 from .oauth_register import OAuthRegister
+from .reset_password import ResetPassword
 from .revoke_token import OauthTokenRevocationService
