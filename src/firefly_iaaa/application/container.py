@@ -23,9 +23,8 @@ import firefly_iaaa.domain as domain
 
 from firefly_aws import infrastructure as aws_infra
 from firefly_iaaa.domain.mock.mock_cache import MockCache
-from dotenv import load_dotenv
 
-load_dotenv()
+
 class Container(di.Container):
     cache: ff.Cache = MockCache if \
         os.environ.get('FF_ENVIRONMENT') == 'test' else aws_infra.DdbCache
