@@ -39,6 +39,14 @@ class OAuthLogin(GenericOauthEndpoint):
             tokens = self._get_tokens(kwargs)
         else:
             tokens = self._try_cognito(username, password)
+
+        # access_cookie = f"accessToken={tokens['access_token']}; HttpOnly; Max-Age={tokens['expires_in']}"
+        # refresh_cookie = f"refreshToken={tokens['refresh_token']}; HttpOnly"
+
+        # for k,v in tokens:
+        #     cookie = f'Set-Cookie: {k}={v}'
+        #     if k in ('access_token', 'refresh_token'):
+        #         headers[f'Set-Cookie: {k}'] = v
         return tokens
 
     def _try_cognito(self, username: str, password: str):

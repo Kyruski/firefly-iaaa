@@ -31,7 +31,7 @@ setuptools.setup(
         'bcrypt>=3.1.7',
         'firefly-framework>=1.2.3',
         'firefly-aws>=1.2.0',
-        'PyJWT>=2.1.0',
+        'PyJWT[crypto]>=2.1.0',
         'oauthlib>=3.1.1',
     ],
     extras_require={

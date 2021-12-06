@@ -41,7 +41,7 @@ class User(ff.AggregateRoot):
     profile: str = ff.optional()
     picture: str = ff.optional()
     website: str = ff.optional()
-    email: str = ff.required(validators=[ff.IsValidEmail()], index=True, unique=True)
+    email: str = ff.optional(validators=[ff.IsValidEmail()], index=True, unique=True)
     email_verified: bool = ff.optional(default=False)
     gender: str = ff.optional(validators=[ff.IsOneOf(('Male', 'Female'))])
     birthdate: date = ff.optional()
@@ -74,7 +74,7 @@ class User(ff.AggregateRoot):
         try:
             kwargs['tenant_id'] = kwargs['tenant'].id
         except KeyError:
-            pass
+            raise ff.MissingArgument('tenant is a required field for User::create()')
         return cls(**ff.build_argument_list(kwargs, cls))
 
     @classmethod

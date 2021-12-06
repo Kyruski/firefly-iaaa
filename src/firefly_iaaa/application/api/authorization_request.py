@@ -7,35 +7,14 @@ from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndp
 
 @ff.rest('/iaaa/authorize', method='GET', tags=['public'])
 class OauthAuthorizationRequestService(GenericOauthEndpoint):
-    _cache: ff.Cache = None
     _registry: ff.Registry = None
 
     def __call__(self, **kwargs):
         message = self._make_message(kwargs) #! check more
 
-        scopes, credentials, credentials_key = self._oauth_provider.validate_pre_auth_request(message)
-        # if status == 200:
-        #     body = json.loads(body)
-        # #? Add headers?
-        resp = {
-            'redirect_uri': credentials.get('redirect_uri'),
-            'client_id': credentials.get('client_id'),
-            'scopes': scopes,
-            'credentials_key': credentials_key,
-            'response_type': credentials.get('response_type'),
+        resp = self._oauth_provider.validate_pre_auth_request(message)
 
-        }
-        if 'code_challenge' in credentials:
-            resp['code_challenge'] = credentials['code_challenge']
-        if 'code_challenge_method' in credentials:
-            resp['code_challenge_method'] = credentials['code_challenge_method']
-        # if 'claims' in credentials:
-        #     kwargs['claims'] = json.dumps(credentials['claims'])
-        # redirect_url = f'https://${subdomain}.pwrlab.com/authorize?' #!!!!
-        # for k, v in resp:
-        #     redirect_url += f'{k}={v}'
-        # return redirect_url
-        return resp
+        return self._make_response(*resp)
 
     def _make_message(self, incoming_kwargs: dict):
         headers = self._add_method_to_headers(incoming_kwargs)
@@ -60,11 +39,31 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
             data=message_body
         )
 
+    def _make_response(self, scopes, credentials, credentials_key, ):
+        resp = {
+            'redirect_uri': credentials.get('redirect_uri'),
+            'client_id': credentials.get('client_id'),
+            'scopes': scopes,
+            'credentials_key': credentials_key,
+            'response_type': credentials.get('response_type'),
+
+        }
+        if 'code_challenge' in credentials:
+            resp['code_challenge'] = credentials['code_challenge']
+        if 'code_challenge_method' in credentials:
+            resp['code_challenge_method'] = credentials['code_challenge_method']
+        # if 'claims' in credentials:
+        #     kwargs['claims'] = json.dumps(credentials['claims'])
+        # redirect_url = f'https://${subdomain}.pwrlab.com/authorize?' #!!!!
+        # for k, v in resp:
+        #     redirect_url += f'{k}={v}'
+        # return redirect_url
+        return resp
+
 @ff.rest(
     '/iaaa/authorize', method='POST', tags=['public']
 )
 class OauthCreateAuthorizationService(GenericOauthEndpoint):
-    _cache: ff.Cache = None
 
     def __call__(self, **kwargs):
         message = self._make_message(kwargs) #! check more

@@ -13,33 +13,38 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+import uuid
 
 import firefly as ff
-import firefly_iaaa.domain as domain
-
-import secrets
-import string
-
-VALID_CHARACTERS = string.ascii_letters + string.digits
+from firefly_iaaa import domain
 
 
 @ff.rest('/iaaa/reset-password', method='POST', tags=['public'])
 class ResetPassword(ff.ApplicationService):
     _registry: ff.Registry = None
+    _cache: ff.Cache = None
+    _subdomain: str = None
 
     def __call__(self, **kwargs):
-        self.debug('Resetting Password for User')
         try:
             username = kwargs['username']
         except KeyError:
             raise Exception('Missing username/password')
 
-        found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
+        found_user = self._registry(domain.User).find(lambda x: x.email == username)
+        if not found_user:
+            return False
 
-        if found_user:
-            new_password = ''.join(secrets.choice(VALID_CHARACTERS) for _ in range(16))
-            found_user.change_password(new_password)
-            self.debug('Password Successfully Reset')
-            self.invoke('firefly_messaging.ResetPassword', {'password': new_password}, async_=False)#! FIRE EMAIL
+        cache_id = str(uuid.uuid4())
+        self._cache.set(cache_id, value={'message': 'reset', 'username': username}, ttl=1800)
+        reset_url = f'https://${self._subdomain}.pwrlab.com/change-password?request_id={cache_id}'
+
+        try:
+            self.invoke(
+                'firefly_messaging.PasswordReset',
+                {'reset_url': reset_url},
+                async_=False
+            )#! FIRE EMAIL
             return True
-        return False
+        except:
+            return False

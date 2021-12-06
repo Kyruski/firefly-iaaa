@@ -28,6 +28,7 @@ async def test_oauth_login_endpoint(client, registry, bearer_messages: List[ff.M
     assert resp['access_token'] is not None
     assert 'refresh_token' in resp
     assert resp['expires_in'] == 3600
+
     
     data['password'] = 'wrong password'
     fifth_response = await client.post('/firefly-iaaa/iaaa/login', data=json.dumps(data), headers={'Referer': 'abc'})

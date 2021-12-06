@@ -30,10 +30,11 @@ class MockCache(ff.Cache):
             return None
         if item['ttl'] is None or datetime.now() < item['ttl']:
             return item['value']
-        del self._storage[key]
         return None
 
     def delete(self, key: str, **kwargs):
+        self._storage[key] = None
+        del self._storage[key]
         return None
 
     def clear(self, **kwargs):
@@ -50,3 +51,6 @@ class MockCache(ff.Cache):
 
     def remove(self, key: str, value: Any, **kwargs) -> Any:
         return None
+
+    def list(self):
+        return self._storage.items()

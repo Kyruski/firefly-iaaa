@@ -20,23 +20,25 @@ import firefly_iaaa.domain as domain
 
 @ff.rest('/iaaa/change-password', method='POST', tags=['public'])
 class ChangePassword(ff.ApplicationService):
+    _cache: ff.Cache = None
     _registry: ff.Registry = None
 
     def __call__(self, **kwargs):
         self.debug('Changing password for User')
         try:
-            username = kwargs['username']
-            old_password = kwargs['old_password']
+            request_id = kwargs['request_id']
+            payload = self._cache.get(request_id)
+            if payload['message'] == 'reset':
+                username = payload['username']
             new_password = kwargs['new_password']
-        except KeyError:
+        except KeyError as e:
             raise Exception('Missing username/password')
 
         found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
-        print('aaaaaaaaaaa', username, old_password, new_password, found_user)
+
         if found_user:
-            if found_user.correct_password(old_password):
-                found_user.change_password(new_password)
-                self.debug('Password Successfully Changed')
-                return True
-            raise Exception('Incorrect password for User')
-        raise Exception('No User with matching password')
+            found_user.change_password(new_password)
+            self.debug('Password Successfully Changed')
+            self._cache.delete(request_id)
+            return True
+        raise Exception('No User found')

@@ -19,6 +19,7 @@ import uuid
 import hashlib
 import re
 import os
+import base64
 from base64 import urlsafe_b64encode
 from firefly import domain
 
@@ -83,10 +84,7 @@ def auth_service(container, cache, secret, issuer):
 
 @pytest.fixture()
 def secret():
-    with open(os.environ['PEM'], 'rb') as privatefile:
-        pem_key = privatefile.read()
-
-    return pem_key
+    return str(base64.b64decode(os.environ['PEM']), "utf-8")
 
 @pytest.fixture()
 def issuer():
@@ -134,7 +132,7 @@ def client_list(registry, user_list, tenants_list):
 @pytest.fixture()
 def tenants_list(registry):
     tenants = []
-    for i in range(7):
+    for i in range(9):
         tenant = Tenant(name=f'tenant{i}')
         tenants.append(tenant)
         registry(Tenant).append(tenant)
@@ -163,7 +161,7 @@ def user_list(tenants_list):
     string = gen_random_string()
     array = [ User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}', tenant=tenants_list[i]) for i in range(6) ]
     for i in range(6, 9):
-        array.append(User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}'))
+        array.append(User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}', tenant=tenants_list[i]))
     return array
 
 def hash_password(password: str, salt: str):
