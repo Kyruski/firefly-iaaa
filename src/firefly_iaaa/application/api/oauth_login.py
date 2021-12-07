@@ -93,7 +93,8 @@ class OAuthLogin(GenericOauthEndpoint):
         return resp
 
     def _make_response(self, tokens):
-        envelope = ff.Envelope.wrap({'message': 'success'})
+        tokens.update({'message': 'success'})
+        envelope = ff.Envelope.wrap(tokens) #{'message': 'success'})
         # envelope = envelope.set_cookie(name='accessToken', value=tokens['access_token'], httponly=True, max_age=tokens['expires_in'])
         # if 'refresh_token' in tokens:
         #     envelope = envelope.set_cookie(name='refreshToken', value=tokens['refresh_token'], httponly=True)

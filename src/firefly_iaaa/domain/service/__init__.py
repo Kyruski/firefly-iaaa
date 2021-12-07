@@ -27,3 +27,4 @@
 from firefly_iaaa.domain.service.cognito_login import CognitoLogin
 from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.service.oauth_provider import OauthProvider
+from firefly_iaaa.domain.service.send_reset_email import SendResetEmail

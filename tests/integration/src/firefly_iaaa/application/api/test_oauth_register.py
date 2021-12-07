@@ -32,4 +32,3 @@ async def test_oauth_register_endpoint(client, registry, bearer_messages: List[f
     assert third_response.status == 200
     resp = json.loads(await third_response.text())
     assert 'error' in resp
-    assert False

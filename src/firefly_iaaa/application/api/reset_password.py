@@ -24,6 +24,7 @@ class ResetPassword(ff.ApplicationService):
     _registry: ff.Registry = None
     _cache: ff.Cache = None
     _subdomain: str = None
+    _send_reset_email: domain.SendResetEmail = None
 
     def __call__(self, **kwargs):
         try:
@@ -37,14 +38,8 @@ class ResetPassword(ff.ApplicationService):
 
         cache_id = str(uuid.uuid4())
         self._cache.set(cache_id, value={'message': 'reset', 'username': username}, ttl=1800)
-        reset_url = f'https://${self._subdomain}.pwrlab.com/change-password?request_id={cache_id}'
-
         try:
-            self.invoke(
-                'firefly_messaging.PasswordReset',
-                {'reset_url': reset_url},
-                async_=False
-            )#! FIRE EMAIL
+            resp = self._send_reset_email(username, cache_id)
             return True
-        except:
+        except Exception as e:
             return False
