@@ -40,7 +40,7 @@ async def test_reset_password(client, transport, cache, registry, context_map):
     first_response = await client.post('/firefly-iaaa/iaaa/reset-password', data=json.dumps({}))
     assert first_response.status == 500
     assert not cache.list()
-    # print(context_map)
+
     second_response = await client.post('/firefly-iaaa/iaaa/reset-password', data=json.dumps({'username': username}))
     assert second_response.status == 200
     cache_list = cache.list()
@@ -59,4 +59,3 @@ async def test_reset_password(client, transport, cache, registry, context_map):
     assert len(cache_list) == 1
     assert list(cache_list)[0][1]['value']['username'] == username
     assert list(cache_list)[0][1]['value']['message'] == 'reset'
-    assert False

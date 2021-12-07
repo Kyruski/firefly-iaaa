@@ -21,36 +21,29 @@ import firefly_iaaa.domain as domain
 
 
 @ff.command_handler()
-class CreateUser(ff.ApplicationService):
+class MakeUserEntities(ff.ApplicationService):
     _registry: ff.Registry = None
 
-    def __call__(self, username: str, password: str, tenant_name: str, grant_type: str, scopes: List, **kwargs):
-        print('a', kwargs)
+    def __call__(self, username: str, password: str, tenant_name: str, grant_type: str, scopes: List = [], **kwargs):
         tenant = domain.Tenant(
             name=tenant_name
         )
-        print('b', tenant)
         user = domain.User.create(
             email=username,
             password=password,
             tenant=tenant,
             **kwargs
         )
-        print('c')
         client = domain.Client.create(
             tenant=tenant,
             name=username,
             grant_type=grant_type,
-            scopes=['full_access'],
+            scopes=scopes,
             client_secret=uuid.uuid4(),
             **kwargs
         )
-        print('d')
 
         # Append at end to avoid appending before an error during entity creation
         self._registry(domain.Tenant).append(tenant)
-        print('e')
         self._registry(domain.User).append(user)
-        print('f')
         self._registry(domain.Client).append(client)
-        print('g')

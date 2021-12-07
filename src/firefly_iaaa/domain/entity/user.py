@@ -64,7 +64,6 @@ class User(ff.AggregateRoot):
     # __pragma__('skip')    @classmethod
     @classmethod
     def create(cls, **kwargs):
-        print('kwargs', kwargs)
         if 'email' in kwargs:
             kwargs['email'] = str(kwargs['email']).lower()
         try:

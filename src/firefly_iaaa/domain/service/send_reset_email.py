@@ -35,18 +35,15 @@ class SendResetEmail(ff.DomainService):
             'bcc_addresses': []
         }
         try:
-            print(data)
             x = self.invoke('firefly_messaging.SendSESEmail', data)
-            print('yyyyyyyyyyy', x)
             return True
         except Exception as e:
-            print(';xxxxxxxxxxxxxxxx', e)
             return False
 
     def _gen_html_body(self, reset_url):
         return f"""<h1 style="text-align: center;">Password Reset</h1>
 <br><br>
-Trouble signing in? We received a request to reset your password. To continue with resetting your password.
+Trouble signing in? We received a request to reset your password.
 <br><br>
 If you would like to continue with resetting the password for your account, <a href="{reset_url}" >Click Here</a>. Or copy and paste this URL into your browser: <br><a href="{reset_url}" >{reset_url}</a>
 <br><br>
@@ -60,7 +57,7 @@ Cheers,
     def _gen_text_body(self, reset_url):
         return f"""Password Reset
 
-Trouble signing in? We received a request to reset your password. To continue with resetting your password.
+Trouble signing in? We received a request to reset your password.
 
 If you would like to continue with resetting the password for your account, copy and paste this URL into your browser: {reset_url}
 
