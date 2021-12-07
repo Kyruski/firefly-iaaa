@@ -42,6 +42,7 @@ class OAuthRegister(GenericOauthEndpoint):
             'grant_type': 'password',
             'scopes': ['full_access']
         })
+        print('Before Create User')
         self.invoke('firefly_iaaa.CreateUser', kwargs)
-
+        print('aaaaaa185')
         return self.invoke('firefly_iaaa.OAuthLogin', kwargs, async_=False)

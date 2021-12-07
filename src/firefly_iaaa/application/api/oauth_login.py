@@ -25,6 +25,7 @@ class OAuthLogin(GenericOauthEndpoint):
     _cognito_login: domain.CognitoLogin = None
 
     def __call__(self, **kwargs):
+        print('aaaaaaaaa')
         self.debug('Logging in with In-House')
         try:
             username = kwargs['username']
@@ -32,13 +33,18 @@ class OAuthLogin(GenericOauthEndpoint):
         except KeyError:
             raise Exception('Missing username/password')
         tokens = None
+        print('aaaaaaaaa')
 
         found_user = self._registry(domain.User).find(lambda x: x.email == username)
+        print('aaaaaaaab')
 
         if found_user.correct_password(password):
+            print('aaaaaaaac')
             tokens = self._get_tokens(kwargs)
         else:
+            print('aaaaaaaad')
             tokens = self._try_cognito(username, password)
+        print('aaaaaaaae')
 
         # access_cookie = f"accessToken={tokens['access_token']}; HttpOnly; Max-Age={tokens['expires_in']}"
         # refresh_cookie = f"refreshToken={tokens['refresh_token']}; HttpOnly"
@@ -47,7 +53,8 @@ class OAuthLogin(GenericOauthEndpoint):
         #     cookie = f'Set-Cookie: {k}={v}'
         #     if k in ('access_token', 'refresh_token'):
         #         headers[f'Set-Cookie: {k}'] = v
-        return tokens
+        print('aaaaaaaaf')
+        return self._make_response(tokens)
 
     def _try_cognito(self, username: str, password: str):
         self.debug('Switching to Cognito Log in')
@@ -84,3 +91,10 @@ class OAuthLogin(GenericOauthEndpoint):
             kwargs['headers']['http_request']['headers']['Referer'] = 'https://www.pwrlab.com/',
         resp = self.invoke('firefly_iaaa.OauthTokenCreationService', kwargs, async_=False)
         return resp
+
+    def _make_response(self, tokens):
+        envelope = ff.Envelope.wrap({'message': 'success'})
+        # envelope = envelope.set_cookie(name='accessToken', value=tokens['access_token'], httponly=True, max_age=tokens['expires_in'])
+        # if 'refresh_token' in tokens:
+        #     envelope = envelope.set_cookie(name='refreshToken', value=tokens['refresh_token'], httponly=True)
+        return envelope

@@ -1,8 +1,9 @@
 bcrypt==3.1.7
 firefly-framework==1.2.3
+# firefly-framework @ git+https://github.com/Kyruski/firefly-framework.git@adding-cookies
 firefly-aws==1.2.0
 .
 oauthlib==3.1.1
-pytest==6.2.5
 PyJWT[crypto]==2.1.0
+pytest==6.2.5
 pytest-aiohttp==0.3.0
