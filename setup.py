@@ -29,7 +29,8 @@ setuptools.setup(
     package_dir={'': 'src'},
     install_requires=[
         'bcrypt>=3.1.7',
-        'firefly-framework>=1.2.3',
+        'firefly-framework @ git+https://github.com/Kyruski/firefly-framework.git@adding-cookies',
+        'firefly-messaging @ git+https://github.com/Kyruski/firefly-messaging.git@adding-aws-ses',
         'firefly-aws>=1.2.0',
         'PyJWT[crypto]>=2.1.0',
         'oauthlib>=3.1.1',
