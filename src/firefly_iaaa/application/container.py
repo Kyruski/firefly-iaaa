@@ -33,5 +33,7 @@ class Container(di.Container):
     oauthlib_request_validator: domain.OauthRequestValidators = domain.OauthRequestValidators
     request_validator: domain.OauthProvider = domain.OauthProvider
     message_factory: ff.MessageFactory = ff.MessageFactory
+    debugging_print_one: str = lambda x: print('WE HAVE AN OS ENVIRONMENT', os.environ)
+    debugging_print_two: str = lambda x: print('WE HAVE AN OS ENVIRONMENT', os.environ.__dict__)
     secret_key: str = lambda x: str(base64.b64decode(os.environ['PEM']), "utf-8")
     subdomain: str = lambda x: 'staging-connected-sports'
