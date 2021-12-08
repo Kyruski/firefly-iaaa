@@ -23,10 +23,7 @@ import firefly_iaaa.domain as domain
 
 from firefly_aws import infrastructure as aws_infra
 from firefly_iaaa.domain.mock.mock_cache import MockCache
-from dotenv import load_dotenv
 
-
-load_dotenv()
 
 def abc(x):
     print('WE HAVE AN OS ENVIRONMENT', os.environ)
