@@ -17,8 +17,8 @@ class OauthTokenIntrospectionService(GenericOauthEndpoint):
         # if status == 200:
         #     body = json.loads(body)
         # #? Add headers?
-
-        return json.loads(body)
+        
+        return self._make_response(json.loads(body), headers)
 
     def _make_message(self, incoming_kwargs: dict):
         headers = self._add_method_to_headers(incoming_kwargs)

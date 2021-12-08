@@ -39,11 +39,11 @@ async def test_introspect_token_endpoint(client, kernel, registry, bearer_messag
 
 
 async def assert_success(response, message):
-    resp = json.loads(await response.text())
+    resp = json.loads(await response.text())['data']
     assert response.status == 200
     assert resp['active']
     assert resp['scope'] == message.scopes
     
 async def assert_error(response):
-    resp = json.loads(await response.text())
+    resp = json.loads(await response.text())['data']
     assert 'error' in resp

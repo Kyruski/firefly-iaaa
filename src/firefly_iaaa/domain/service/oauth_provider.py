@@ -107,7 +107,9 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
 
     def create_revocation_response(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
+        print(body)
         headers, body, status = self._server.create_revocation_response(uri, http_method, body, headers)
+        print(headers, body, status)
         return headers, body, status
 
     # def create_metadata_response(self, request: ff.Message):

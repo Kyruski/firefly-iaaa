@@ -47,7 +47,8 @@ class OAuthLogin(GenericOauthEndpoint):
         #     cookie = f'Set-Cookie: {k}={v}'
         #     if k in ('access_token', 'refresh_token'):
         #         headers[f'Set-Cookie: {k}'] = v
-        return self._make_response(tokens)
+        print('a', type(tokens))
+        return self._make_local_response(tokens)
 
     def _try_cognito(self, username: str, password: str):
         self.debug('Switching to Cognito Log in')
@@ -85,10 +86,23 @@ class OAuthLogin(GenericOauthEndpoint):
         resp = self.invoke('firefly_iaaa.OauthTokenCreationService', kwargs, async_=False)
         return resp
 
-    def _make_response(self, tokens):
-        tokens.update({'message': 'success'})
-        envelope = ff.Envelope.wrap(tokens)
-        envelope = envelope.set_cookie(name='accessToken', value=tokens['access_token'], httponly=True, max_age=tokens['expires_in'])
-        if 'refresh_token' in tokens:
-            envelope = envelope.set_cookie(name='refreshToken', value=tokens['refresh_token'], httponly=True)
+    def _make_local_response(self, tokens):
+        body = tokens.body['data'] if isinstance(tokens, ff.Envelope) else tokens
+
+        cookies = []
+        access_cookie = {
+            'name': 'accessToken',
+            'value': body['access_token'],
+            'httponly': True,
+            'max_age': body['expires_in'],
+        }
+        cookies.append(access_cookie)
+        if 'refresh_token' in body:
+            refresh_cookie = {
+                'name': 'refreshToken',
+                'value': body['refresh_token'],
+                'httponly': True,
+            }
+            cookies.append(refresh_cookie)
+        envelope = self._make_response(tokens, cookies=cookies)
         return envelope

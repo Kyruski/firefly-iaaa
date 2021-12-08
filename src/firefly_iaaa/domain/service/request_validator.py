@@ -394,14 +394,18 @@ class OauthRequestValidators(RequestValidator):
         Method is used by:
             - Revocation Endpoint
         """
+        print('abcsssss11111')
         bearer_token: domain.BearerToken
         bearer_token, token_type = self._get_bearer_token(token, token_type_hint)
-
+        print('abcsssss222')
         if not bearer_token:
+            print('abcsssss333')
             return
         if token_type == 'refresh_token':
+            print('abcsssss444')
             bearer_token.invalidate()
         else:
+            print('abcsssss555')
             bearer_token.invalidate_access_token()
 
     def save_authorization_code(self, client_id: str, code: dict, request: Request, *args, **kwargs):

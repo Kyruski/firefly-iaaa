@@ -3,6 +3,9 @@ from typing import List
 
 import firefly as ff
 import json
+import pytest
+import urllib
+from aiohttp import ClientConnectionError
 from .conftest import set_kernel_user
 
 async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: List[ff.Message]):
@@ -26,23 +29,35 @@ async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: 
 
     data['code_challenge'] = bearer_messages[0]['active'].code_challenge
     fourth_response = await client.get('/firefly-iaaa/iaaa/authorize', params=data, headers={'Referer': 'abc'})
-    assert fourth_response.status == 200
-    resp = json.loads(await fourth_response.text())
 
-    assert isinstance(resp['scopes'], list)
-    assert resp['credentials_key'] is not None
-    assert resp['client_id'] is not None
+    assert fourth_response._history is not None
+    assert fourth_response._history[0].status == 303
+    assert 'Location' in fourth_response._history[0]._headers
+    assert 'scopes' in fourth_response._history[0]._headers['Location']
+    assert 'credentials_key' in fourth_response._history[0]._headers['Location']
+    assert 'client_id' in fourth_response._history[0]._headers['Location']
+    assert fourth_response.status == 200
+
+    params = urllib.parse.parse_qs(urllib.parse.urlparse(fourth_response._history[0]._headers['Location']).query)
+    assert 'client_id' in params
+    client_id = params['client_id'][0]
+    assert 'scopes' in params
+    scopes = params['scopes'][0].strip('][').split(', ')
+    assert 'credentials_key' in params
+    credentials_key = params['credentials_key'][0]
+
 
 
     # missing credentials key
     data = {
-        'client_id': resp['client_id'],
-        'scopes': [resp['scopes'][0]],
+        'client_id': client_id,
+        'scopes': [scopes[0]],
     }
+
 
     creation_response_1 = await client.post('/firefly-iaaa/iaaa/authorize', data = json.dumps(data), headers={'Referer': 'abc'})
     assert creation_response_1.status == 401
 
-    data['credentials_key'] = resp['credentials_key']
-    creation_response_2 = await client.post('/firefly-iaaa/iaaa/authorize', data = json.dumps(data), headers={'Referer': 'abc'})
-    assert creation_response_2.status < 400
+    data['credentials_key'] = credentials_key
+    with pytest.raises(ClientConnectionError) as e:
+        creation_response_2 = await client.post('/firefly-iaaa/iaaa/authorize', data = json.dumps(data), headers={'Referer': 'abc'})

@@ -33,13 +33,11 @@ class ResetPassword(ff.ApplicationService):
             raise Exception('Missing username/password')
 
         found_user = self._registry(domain.User).find(lambda x: x.email == username)
-        if not found_user:
-            return False
-
-        cache_id = str(uuid.uuid4())
-        self._cache.set(cache_id, value={'message': 'reset', 'username': username}, ttl=1800)
-        try:
-            resp = self._send_reset_email(username, cache_id)
-            return True
-        except Exception as e:
-            return False
+        if found_user:
+            cache_id = str(uuid.uuid4())
+            self._cache.set(cache_id, value={'message': 'reset', 'username': username}, ttl=1800)
+            try:
+                self._send_reset_email(username, cache_id)
+            except Exception as e:
+                return False
+        return {'message': 'success'}

@@ -1,4 +1,5 @@
 from __future__ import annotations
+import json
 
 import firefly as ff
 import firefly_iaaa.domain as domain
@@ -21,7 +22,7 @@ class OauthTokenRevocationService(GenericOauthEndpoint):
         #     body = json.loads(body)
         # #? Add headers?
 
-        return body
+        return self._make_response(headers=headers)
 
     def _make_message(self, incoming_kwargs: dict):
         headers = self._add_method_to_headers(incoming_kwargs)

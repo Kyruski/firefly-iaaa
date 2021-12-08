@@ -14,11 +14,8 @@ class OauthTokenCreationService(GenericOauthEndpoint):
         message = self._make_message(kwargs)
 
         headers, body, status =  self._oauth_provider.create_token_response(message)
-        # if status == 200:
-        #     body = json.loads(body)
-        # #? Add headers?
 
-        return json.loads(body)
+        return self._make_response(json.loads(body), headers)
 
     def _make_message(self, incoming_kwargs: dict):
         headers = self._add_method_to_headers(incoming_kwargs)

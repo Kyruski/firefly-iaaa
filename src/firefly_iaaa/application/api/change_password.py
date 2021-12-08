@@ -40,5 +40,5 @@ class ChangePassword(ff.ApplicationService):
             found_user.change_password(new_password)
             self.debug('Password Successfully Changed')
             self._cache.delete(request_id)
-            return True
+            return {'message': 'success'}
         raise Exception('No User found')
