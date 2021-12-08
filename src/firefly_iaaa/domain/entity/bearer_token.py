@@ -72,10 +72,8 @@ class BearerToken(ff.AggregateRoot):
         self.is_access_valid = False
 
     def invalidate(self):
-        print(self.refresh_token, self.is_valid)
         self.invalidate_access_token()
         self.is_valid = False
-        print(self.refresh_token, self.is_valid)
 
 
     def _has_expired(self):

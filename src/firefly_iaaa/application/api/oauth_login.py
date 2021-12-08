@@ -47,7 +47,7 @@ class OAuthLogin(GenericOauthEndpoint):
         #     cookie = f'Set-Cookie: {k}={v}'
         #     if k in ('access_token', 'refresh_token'):
         #         headers[f'Set-Cookie: {k}'] = v
-        print('a', type(tokens))
+
         return self._make_local_response(tokens)
 
     def _try_cognito(self, username: str, password: str):
