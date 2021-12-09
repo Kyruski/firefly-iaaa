@@ -34,12 +34,14 @@ class OAuthAuthenticator(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
             for k, v in self._kernel.http_request['headers'].items():
                 if k.lower() == 'authorization':
                     if not v.lower().startswith('bearer'):
+                        print('abc1')
                         raise ff.UnauthenticatedError()
                     token = v.split(' ')[-1]
             if token is None:
                 try:
                     token = message.access_token
                 except:
+                    print('abc2')
                     raise ff.UnauthenticatedError()
 
             self.debug('Decoding token')
@@ -49,6 +51,7 @@ class OAuthAuthenticator(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
                 user = resp['user']
                 client_id = resp['client_id']
             except:
+                print('abc3')
                 raise ff.UnauthenticatedError()
             # client_id = self._kernel.user.id
             # if not user:

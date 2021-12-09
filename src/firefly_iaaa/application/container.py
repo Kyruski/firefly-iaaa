@@ -27,18 +27,11 @@ from dotenv import load_dotenv
 
 
 load_dotenv()
-
-def abc(x):
-    print('WE HAVE AN OS ENVIRONMENT', os.environ)
-    print('WE HAVE AN OS ENVIRONMENT', os.environ.__dict__)
-    return str(base64.b64decode(os.environ['PEM']), "utf-8")
-
-
 class Container(di.Container):
     cache: ff.Cache = MockCache if \
         os.environ.get('FF_ENVIRONMENT') == 'test' else aws_infra.DdbCache
     oauthlib_request_validator: domain.OauthRequestValidators = domain.OauthRequestValidators
     request_validator: domain.OauthProvider = domain.OauthProvider
     message_factory: ff.MessageFactory = ff.MessageFactory
-    secret_key: str = lambda x: abc(x)
+    secret_key: str = lambda x: str(base64.b64decode(os.environ['PEM']), "utf-8")
     subdomain: str = lambda x: 'staging-connected-sports'

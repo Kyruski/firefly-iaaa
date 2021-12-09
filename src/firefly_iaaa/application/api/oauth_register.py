@@ -25,7 +25,7 @@ import firefly_iaaa.domain as domain
 class OAuthRegister(GenericOauthEndpoint):
 
     def __call__(self, **kwargs):
-        self.debug('Registering User')
+        self.info('Registering User')
         print('1')
         try:
             print('2')
