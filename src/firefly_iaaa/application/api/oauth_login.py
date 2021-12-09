@@ -13,110 +13,27 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import Dict
 
 import firefly as ff
-from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
+from firefly_iaaa.application.api.generic_oauth_iam_endpoint import GenericOauthIamEndpoint
 import firefly_iaaa.domain as domain
 
 
-@ff.command_handler('firefly_iaaa.OauthLogin')
-@ff.rest('/iaaa/login', method='POST', tags=['public'])
-class OAuthLogin(GenericOauthEndpoint):
-    _cognito_login: domain.CognitoLogin = None
+@ff.rest('/iaaa/login', method='POST', tags=['public'], secure=False)
+class OAuthLogin(GenericOauthIamEndpoint):
+    _oauth_login: domain.OAuthLogin = None
 
     def __call__(self, **kwargs):
         self.debug('Logging in with In-House')
-        print('x1')
+
         try:
             username = kwargs['username']
             password = kwargs['password']
         except KeyError:
             raise Exception('Missing email/password')
-        print('x2')
-        tokens = None
-        print('x3', username)
 
-        found_user = self._registry(domain.User).find(lambda x: x.email == username)
-        print('x4', found_user)
+        headers, body = self._oauth_login(kwargs)
+        if not body:
+            raise ff.UnauthenticatedError()
 
-        if found_user:
-            if found_user.correct_password(password):
-                print('x5')
-                tokens = self._get_tokens(kwargs)
-        else:
-            print('x6')
-            tokens = self._try_cognito(username, password)
-
-        print('x7')
-        # access_cookie = f"accessToken={tokens['access_token']}; HttpOnly; Max-Age={tokens['expires_in']}"
-        # refresh_cookie = f"refreshToken={tokens['refresh_token']}; HttpOnly"
-
-        # for k,v in tokens:
-        #     cookie = f'Set-Cookie: {k}={v}'
-        #     if k in ('access_token', 'refresh_token'):
-        #         headers[f'Set-Cookie: {k}'] = v
-
-        return self._make_local_response(tokens)
-
-    def _try_cognito(self, username: str, password: str):
-        self.debug('Switching to Cognito Log in')
-        print('We got into here', username)
-        if self._registry(domain.User).find(lambda x: x.email == username) is None:
-            try:
-                message, error, success, data = self._cognito_login(username, password) #data has tokens and idToken
-                print('xyz1', message, error, success, data)
-                if error:
-                    if message:
-                        print('aaaa1')
-                        ff.UnauthenticatedError(message)
-                    else:
-                        print('aaaa2')
-                        ff.UnauthenticatedError()
-                if success:
-                    user = self._transfer_cognito_user_to_native_user(username, password, data['decoded_id_token'])
-                    return user
-            except:
-                print('aaaa3')
-                raise ff.UnauthenticatedError()
-        else:
-            raise ff.UnauthenticatedError('Incorrect Password')
-        
-
-    def _transfer_cognito_user_to_native_user(self, username: str, password: str, data: Dict):
-        self.debug('Transfering Cognito user to In-House user')
-        data['email'] = username
-        data['username'] = username
-        data['password'] = password
-        resp = self.invoke(f'{self._context}.OAuthRegister', data)
-        if resp.get('success'):
-            return resp
-        elif 'error' in resp:
-            raise Exception(resp['error'])
-
-    def _get_tokens(self, kwargs: dict):
-        if not kwargs['headers']['http_request']['headers'].get('Referer'):
-            kwargs['headers']['http_request']['headers']['Referer'] = 'https://www.pwrlab.com/',
-        resp = self.invoke(f'{self._context}.OauthTokenCreationService', kwargs, async_=False)
-        return resp
-
-    def _make_local_response(self, tokens):
-        body = tokens.body['data'] if isinstance(tokens, ff.Envelope) else tokens
-
-        cookies = []
-        access_cookie = {
-            'name': 'accessToken',
-            'value': body['access_token'],
-            'httponly': True,
-            'max_age': body['expires_in'],
-        }
-        cookies.append(access_cookie)
-        if 'refresh_token' in body:
-            refresh_cookie = {
-                'name': 'refreshToken',
-                'value': body['refresh_token'],
-                'httponly': True,
-            }
-            cookies.append(refresh_cookie)
-        envelope = self._make_response(tokens, cookies=cookies)
-        return envelope
+        return self._make_local_response(body, headers)

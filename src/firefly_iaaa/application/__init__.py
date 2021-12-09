@@ -12,8 +12,7 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from .authentication import *
-from .authorization import *
-from .container import Container
-from .service import *
 from .api import *
+from .container import Container
+from .middleware import *
+from .service import *

@@ -15,58 +15,35 @@
 from __future__ import annotations
 
 import firefly as ff
+from firefly_iaaa.application.middleware.generic_oauth_middleware import GenericOauthMiddleware
 import firefly_iaaa.domain as domain
-from jwt import InvalidTokenError
 
 
 @ff.authenticator()
-class OAuthAuthenticator(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
-    # _jwt_service: domain.JwtService = None
-    _kernel: ff.Kernel = None
-    _oauth_provider: domain.OauthProvider = None
+class OAuthAuthenticator(GenericOauthMiddleware):
     _request_validator: domain.OauthRequestValidators = None
 
     def handle(self, message: ff.Message, *args, **kwargs):
         self.info('Authenticating')
         self.info(self._kernel)
         if self._kernel.http_request and self._kernel.secured:
-            token = None
-            for k, v in self._kernel.http_request['headers'].items():
-                if k.lower() == 'authorization':
-                    if not v.lower().startswith('bearer'):
-                        print('abc1')
-                        raise ff.UnauthenticatedError()
-                    token = v.split(' ')[-1]
+            token = self._retrieve_token_from_http_request()
+            if token:
+                token = token.split(' ')[-1]
             if token is None:
                 try:
                     token = message.access_token
                 except:
-                    print('abc2')
                     raise ff.UnauthenticatedError()
 
             self.debug('Decoding token')
             try:
-                resp = self.request(f'{self._context}.GetClientUserAndToken', data={'token': token, 'user_id': self._kernel.user.id})
+                resp = self._get_client_user_and_token(token, self._kernel.user.id)
                 decoded= resp['decoded']
                 user = resp['user']
                 client_id = resp['client_id']
             except:
-                print('abc3')
                 raise ff.UnauthenticatedError()
-            # client_id = self._kernel.user.id
-            # if not user:
-            #     raise ff.UnauthenticatedError()
-            # # if user:
-            # client = self.request('iaaa.Client', lambda x: x.tenant_id == user.tenant_id)
-            # client_id = client.client_id
-            # try:
-            #     decoded = self._oauth_provider.decode_token(token, client_id) #!USE CLIENT ID
-            #     if decoded is None:
-            #         raise ff.UnauthenticatedError()
-            #     self.debug('Result from decode: %s', decoded)
-            # except InvalidTokenError as e:
-            #     raise ff.UnauthenticatedError()
-            
     
             self._kernel.user.token = decoded
             self._kernel.user.scopes = decoded['scope'].split(' ')

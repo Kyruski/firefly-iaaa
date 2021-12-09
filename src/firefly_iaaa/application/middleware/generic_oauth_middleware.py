@@ -11,31 +11,24 @@
 #
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
-from __future__ import annotations
-from typing import Any, List
-import uuid
-import jwt
-import hashlib
-import os
-import re
-from base64 import urlsafe_b64encode
 
-import pytest
+from __future__ import annotations
+
 import firefly as ff
-from datetime import datetime, timedelta
 import firefly_iaaa.domain as domain
 
-import random
 
-from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
-from firefly_iaaa.domain.service.oauth_provider import OauthProvider
-from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
-from firefly_iaaa.domain.entity.bearer_token import BearerToken
-from firefly_iaaa.domain.entity.user import User
-from firefly_iaaa.domain.mock.mock_cache import MockCache
+class GenericOauthMiddleware(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
+    _kernel: ff.Kernel = None
+    _oauth_provider: domain.OauthProvider = None
+    _get_client_user_and_token: domain.GetClientUserAndToken = None
 
+    def handle(self, message: ff.Message):
+        pass
 
-def set_kernel_user(registry, kernel, message):
-    found_client = registry(domain.Client).find(lambda x: x.client_id == message.client_id)
-    found_user = registry(domain.User).find(lambda x: x.tenant_id == found_client.tenant_id)
-    kernel.user.id = found_user.sub
+    def _retrieve_token_from_http_request(self):
+        for k, v in self._kernel.http_request['headers'].items():
+            if k.lower() == 'authorization':
+                if not v.lower().startswith('bearer'):
+                    raise ff.UnauthorizedError()
+                return v

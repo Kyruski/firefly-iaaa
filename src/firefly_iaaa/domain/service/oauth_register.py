@@ -11,31 +11,31 @@
 #
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
-from __future__ import annotations
-from typing import Any, List
-import uuid
-import jwt
-import hashlib
-import os
-import re
-from base64 import urlsafe_b64encode
 
-import pytest
+from __future__ import annotations
+
 import firefly as ff
-from datetime import datetime, timedelta
 import firefly_iaaa.domain as domain
 
-import random
 
-from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
-from firefly_iaaa.domain.service.oauth_provider import OauthProvider
-from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
-from firefly_iaaa.domain.entity.bearer_token import BearerToken
-from firefly_iaaa.domain.entity.user import User
-from firefly_iaaa.domain.mock.mock_cache import MockCache
+class OAuthRegister(ff.DomainService):
+    _oauth_login: domain.OAuthLogin = None
+    _registry: ff.Registry = None
+    _make_user: domain.MakeUser = None
 
+    def __call__(self, passed_in_kwargs: dict):
+        self.info('Registering User')
+        username = passed_in_kwargs['username']
 
-def set_kernel_user(registry, kernel, message):
-    found_client = registry(domain.Client).find(lambda x: x.client_id == message.client_id)
-    found_user = registry(domain.User).find(lambda x: x.tenant_id == found_client.tenant_id)
-    kernel.user.id = found_user.sub
+        found_user = self._registry(domain.User).find(lambda x: x.email == username)
+
+        if found_user:
+            return {'error': 'User already exists'}
+
+        passed_in_kwargs.update({
+            'tenant_name': f'user_tenant_{username}',
+            'grant_type': 'password',
+            'scopes': ['full_access']
+        })
+        self._make_user(**passed_in_kwargs)
+        return self._oauth_login(passed_in_kwargs)

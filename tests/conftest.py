@@ -73,6 +73,12 @@ def set_kernel_user(container):
     )
 
 @pytest.fixture()
+def bearer_messages(bearer_messages_list, registry):
+    registry(BearerToken).commit()
+    registry(AuthorizationCode).commit()
+    return bearer_messages_list
+
+@pytest.fixture()
 def auth_service(container, cache, secret, issuer):
     validator = container.build(OauthRequestValidators)
     validator._secret_key = secret

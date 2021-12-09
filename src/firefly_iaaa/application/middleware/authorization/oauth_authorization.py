@@ -15,13 +15,12 @@
 from __future__ import annotations
 
 import firefly as ff
+from firefly_iaaa.application.middleware.generic_oauth_middleware import GenericOauthMiddleware
 import firefly_iaaa.domain as domain
 
 
-class AuthorizeRequest(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
-    _kernel: ff.Kernel = None
+class AuthorizeRequest(GenericOauthMiddleware):
     _registry: ff.Registry = None
-    _oauth_provider: domain.OauthProvider = None
 
     def handle(self, message: ff.Message):
         token = None
@@ -44,7 +43,7 @@ class AuthorizeRequest(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
             message.access_token = message.access_token.split(' ')[-1]
 
         try:
-            resp = self.request(f'{self._context}.GetClientUserAndToken', data={'token': token, 'user_id': self._kernel.user.id})
+            resp = self._get_client_user_and_token(token, self._kernel.user.id)
             decoded= resp['decoded']
             user = resp['user']
             client_id = resp['client_id']
@@ -64,11 +63,7 @@ class AuthorizeRequest(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
     def _get_token(self):
         token = None
         try:
-            for k, v in self._kernel.http_request['headers'].items():
-                if k.lower() == 'authorization':
-                    if not v.lower().startswith('bearer'):
-                        raise ff.UnauthorizedError()
-                    token = v
+            token = self._retrieve_token_from_http_request()
         except TypeError as e:
             if e.__str__().startswith("'NoneType'"):
                 pass

@@ -16,6 +16,7 @@ from .authorization_request import *
 from .change_password import ChangePassword
 from .create_token import OauthTokenCreationService
 from .generic_oauth_endpoint import GenericOauthEndpoint
+from .generic_oauth_iam_endpoint import GenericOauthIamEndpoint
 from .introspect_token import OauthTokenIntrospectionService
 from .oauth_login import OAuthLogin
 from .oauth_register import OAuthRegister

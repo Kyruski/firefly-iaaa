@@ -15,5 +15,4 @@
 from .make_user_entities import MakeUserEntities
 from .add_role_to_user import AddRoleToUser
 from .get_token_access_rights import *
-from .get_client_user_and_token import GetClientUserAndToken
 from .remove_role_from_user import RemoveRoleFromUser

@@ -23,12 +23,6 @@ from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.user import User
 from firefly_iaaa.domain.mock.mock_cache import MockCache
 
-@pytest.fixture()
-def bearer_messages(bearer_messages_list, registry):
-    registry(BearerToken).commit()
-    registry(AuthorizationCode).commit()
-    return bearer_messages_list
-
 
 def set_kernel_user(registry, kernel, message):
     found_client = registry(domain.Client).find(lambda x: x.client_id == message.client_id)

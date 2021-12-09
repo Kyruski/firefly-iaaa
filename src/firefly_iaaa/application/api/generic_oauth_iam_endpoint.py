@@ -14,20 +14,31 @@
 
 from __future__ import annotations
 
-import firefly as ff
-from firefly_iaaa.application.api.generic_oauth_iam_endpoint import GenericOauthIamEndpoint
-import firefly_iaaa.domain as domain
+from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
 
 
-@ff.rest('/iaaa/register', method='POST', tags=['public'], secured=False)
-class OAuthRegister(GenericOauthIamEndpoint):
-    _oauth_register: domain.OAuthRegister = None
+class GenericOauthIamEndpoint(GenericOauthEndpoint):
 
     def __call__(self, **kwargs):
-        self.info('Registering User')
-        if 'username' not in kwargs or 'password' not in kwargs:
-            raise Exception('Missing username/password')
-        resp = self._oauth_register(kwargs)
-        if 'error' in resp:
-            return resp
-        return self._make_local_response(resp[1], resp[0])
+        pass
+
+    def _make_local_response(self, tokens, headers):
+        # body = tokens.body['data'] if isinstance(tokens, ff.Envelope) else tokens
+
+        cookies = []
+        access_cookie = {
+            'name': 'accessToken',
+            'value': tokens['access_token'],
+            'httponly': True,
+            'max_age': tokens['expires_in'],
+        }
+        cookies.append(access_cookie)
+        if 'refresh_token' in tokens:
+            refresh_cookie = {
+                'name': 'refreshToken',
+                'value': tokens['refresh_token'],
+                'httponly': True,
+            }
+            cookies.append(refresh_cookie)
+        envelope = self._make_response(tokens, headers=headers, cookies=cookies)
+        return envelope

@@ -36,6 +36,9 @@ class SendResetEmail(ff.DomainService):
         }
         try:
             x = self.invoke('firefly_messaging.SendSESEmail', data)
+            print('WE HAVE RESPONSE FROM EMAIL', x)
+            print('WE HAVE RESPONSE FROM EMAIL', dir(x))
+            print('WE HAVE RESPONSE FROM EMAIL', x.__dict__)
             return True
         except Exception as e:
             return False

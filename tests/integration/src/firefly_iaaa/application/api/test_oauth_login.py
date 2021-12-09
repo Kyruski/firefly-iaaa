@@ -4,7 +4,7 @@ from typing import List
 import firefly as ff
 import json
 
-async def test_oauth_login_endpoint(client, registry, bearer_messages: List[ff.Message], kernel):
+async def test_oauth_login_endpoint(client, registry, bearer_messages: List[ff.Message], kernel, context_map):
     data = {
             'state': bearer_messages[2]['active'].state,
             'username': bearer_messages[2]['active'].username,

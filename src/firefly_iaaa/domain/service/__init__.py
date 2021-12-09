@@ -24,7 +24,13 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
+from firefly_iaaa.domain.service.create_token import CreateToken
 from firefly_iaaa.domain.service.cognito_login import CognitoLogin
-from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
+from firefly_iaaa.domain.service.get_client_id import GetClientId
+from firefly_iaaa.domain.service.get_client_user_and_token import GetClientUserAndToken
+from firefly_iaaa.domain.service.make_user import MakeUser
+from firefly_iaaa.domain.service.oauth_login import OAuthLogin
 from firefly_iaaa.domain.service.oauth_provider import OauthProvider
+from firefly_iaaa.domain.service.oauth_register import OAuthRegister
+from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.service.send_reset_email import SendResetEmail

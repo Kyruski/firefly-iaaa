@@ -13,24 +13,36 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from typing import List
 
 import firefly as ff
+import uuid
 import firefly_iaaa.domain as domain
 
-@ff.query_handler()
-class GetClientUserAndToken(ff.ApplicationService):
+
+class MakeUser(ff.DomainService):
     _registry: ff.Registry = None
-    _oauth_provider: domain.OauthProvider = None
 
-    def __call__(self, token, user_id):
-        user = self._registry(domain.User).find(lambda x: x.sub == user_id)
-        if user:
-            client = self._registry(domain.Client).find(lambda x: (x.tenant_id == user.tenant_id) | (x.client_id == user.sub))
-            client_id = client.client_id
-        decoded = self._oauth_provider.decode_token(token, client_id)
+    def __call__(self, username: str, password: str, tenant_name: str, grant_type: str, scopes: List = [], **kwargs):
+        tenant = domain.Tenant(
+            name=tenant_name
+        )
+        user = domain.User.create(
+            email=username,
+            password=password,
+            tenant=tenant,
+            **kwargs
+        )
+        client = domain.Client.create(
+            tenant=tenant,
+            name=username,
+            grant_type=grant_type,
+            scopes=scopes,
+            client_secret=uuid.uuid4(),
+            **kwargs
+        )
 
-        return {
-            'decoded': decoded,
-            'user': user,
-            'client_id': client_id,
-        }
+        # Append at end to avoid appending before an error during entity creation
+        self._registry(domain.Tenant).append(tenant)
+        self._registry(domain.User).append(user)
+        self._registry(domain.Client).append(client)
