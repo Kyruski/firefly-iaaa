@@ -17,8 +17,10 @@ from typing import Dict
 
 import firefly as ff
 import uuid
+import os
 from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
 import firefly_iaaa.domain as domain
+from firefly_iaaa.application import container
 
 
 @ff.rest('/iaaa/register', method='POST', tags=['public'], secured=False)
@@ -48,5 +50,7 @@ class OAuthRegister(GenericOauthEndpoint):
         })
         print('5')
         self.invoke('firefly_iaaa.MakeUserEntities', kwargs)
-        print('6')
-        return self.invoke('firefly_iaaa.OAuthLogin', kwargs, async_=False)
+        print('6', os.environ.__dict__)
+        print('6', self.__dict__)
+        context = os.environ['CONTEXT']
+        return self.invoke(f'${context}.OAuthLogin', kwargs, async_=False)
