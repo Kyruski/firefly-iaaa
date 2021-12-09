@@ -51,6 +51,6 @@ class OAuthRegister(GenericOauthEndpoint):
         print('5')
         self.invoke('firefly_iaaa.MakeUserEntities', kwargs)
         print('6', os.environ.__dict__)
-        print('6', self.__dict__)
+        print('6', dir(self))
         context = os.environ['CONTEXT']
         return self.invoke(f'${context}.OAuthLogin', kwargs, async_=False)
