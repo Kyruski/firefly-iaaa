@@ -25,6 +25,7 @@ class OAuthRegister(ff.DomainService):
 
     def __call__(self, passed_in_kwargs: dict):
         self.info('Registering User')
+        print('KWARGS coming into OauthRegister domain', passed_in_kwargs)
         username = passed_in_kwargs['username']
 
         found_user = self._registry(domain.User).find(lambda x: x.email == username)

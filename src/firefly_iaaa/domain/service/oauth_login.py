@@ -28,6 +28,7 @@ class OAuthLogin(ff.DomainService):
 
     def __call__(self, passed_in_kwargs: dict):
         self.debug('Logging in with In-House')
+        print('KWARGS coming into OauthLogin domain', passed_in_kwargs)
         username = passed_in_kwargs['username']
         password = passed_in_kwargs['password']
         tokens = [None, None]
@@ -72,6 +73,10 @@ class OAuthLogin(ff.DomainService):
         raise Exception()
 
     def _get_tokens(self, kwargs: dict):
+        print('we got them kwargs in tokens', kwargs)
+        print('we got them kwargs in tokens', kwargs['headers'])
+        print('we got them kwargs in tokens', kwargs['headers']['http_request'])
+        print('we got them kwargs in tokens', kwargs['headers']['http_request']['headers'])
         if not kwargs['headers']['http_request']['headers'].get('Referer'):
             kwargs['headers']['http_request']['headers']['Referer'] = 'https://www.pwrlab.com/',
         resp = self._create_token(kwargs)

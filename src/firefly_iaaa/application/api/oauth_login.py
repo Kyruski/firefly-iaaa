@@ -25,7 +25,7 @@ class OAuthLogin(GenericOauthIamEndpoint):
 
     def __call__(self, **kwargs):
         self.debug('Logging in with In-House')
-
+        print('KWARGS coming into OauthLogin API', kwargs)
         try:
             username = kwargs['username']
             password = kwargs['password']
