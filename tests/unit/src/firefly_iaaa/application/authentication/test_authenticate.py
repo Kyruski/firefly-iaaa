@@ -8,7 +8,7 @@ import firefly_iaaa.domain as domain
 import firefly_iaaa.application as application
 
 async def test_authenticate(bearer_messages_list: List[ff.Message], message_factory, sut, kernel, transport, auth_service, user_list):
-    transport.register_handler('iaaa.GetClientUserAndToken', lambda t: {
+    transport.register_handler('firefly_iaaa.GetClientUserAndToken', lambda t: {
         'decoded': auth_service.decode_token(bearer_messages_list[0]['active'].access_token, bearer_messages_list[0]['active'].client_id),
         'user': user_list[-2],
         'client_id': bearer_messages_list[0]['active'].client_id,
