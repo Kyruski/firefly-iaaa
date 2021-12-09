@@ -73,16 +73,19 @@ class OAuthLogin(ff.DomainService):
         raise Exception()
 
     def _get_tokens(self, kwargs: dict):
-        print('we got them kwargs in tokens', kwargs)
-        print('we got them kwargs in tokens', kwargs['headers'])
-        print('we got them kwargs in tokens', kwargs['headers']['http_request'])
-        print('we got them kwargs in tokens', kwargs['headers']['http_request']['headers'])
-        if not kwargs['headers']['http_request']['headers'].get('Referer'):
-            kwargs['headers']['http_request']['headers']['Referer'] = 'https://www.pwrlab.com/',
+        kwargs = self._set_referer(kwargs)
         resp = self._create_token(kwargs)
         return resp
 
     def _set_client_id(self, found_user, kwargs):
         user_client = self._registry(domain.Client).find(lambda x: x.tenant_id == found_user.tenant_id)
         kwargs['client_id'] = user_client.client_id
+        return kwargs
+
+    def _set_referer(self, kwargs: dict):
+        if not kwargs.get('headers').get('http_request').get('headers').get('Referer'):
+            kwargs['headers'] = kwargs.get('headers') or {}
+            kwargs['headers']['http_request'] = kwargs['headers'].get('http_request') or {}
+            kwargs['headers']['http_request']['headers'] = kwargs['headers']['http_request'].get('headers') or {}
+            kwargs['headers']['http_request']['headers']['Referer'] = kwargs['headers']['http_request']['headers'].get('Referer') or 'https://www.pwrlab.com/',
         return kwargs
