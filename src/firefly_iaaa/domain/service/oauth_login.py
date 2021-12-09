@@ -80,7 +80,7 @@ class OAuthLogin(ff.DomainService):
         return resp
 
     def _set_client_id(self, found_user, kwargs):
-        if not kwargs['client_id']:
+        if not kwargs.get('client_id'):
             user_client = self._registry(domain.Client).find(lambda x: x.tenant_id == found_user.tenant_id)
             kwargs['client_id'] = user_client.client_id
         return kwargs
