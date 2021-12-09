@@ -53,4 +53,4 @@ class OAuthRegister(GenericOauthEndpoint):
         print('6', os.environ.__dict__)
         print('6', dir(self))
         context = os.environ['CONTEXT']
-        return self.invoke(f'${context}.OAuthLogin', kwargs, async_=False)
+        return self.invoke(f'{context}.OAuthLogin', kwargs, async_=False)
