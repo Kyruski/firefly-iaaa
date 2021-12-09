@@ -27,8 +27,8 @@ class OAuthAuthenticator(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
     _request_validator: domain.OauthRequestValidators = None
 
     def handle(self, message: ff.Message, *args, **kwargs):
-        self.debug('Authenticating with Cognito')
-        self.debug(self._kernel)
+        self.info('Authenticating')
+        self.info(self._kernel)
         if self._kernel.http_request and self._kernel.secured:
             token = None
             for k, v in self._kernel.http_request['headers'].items():

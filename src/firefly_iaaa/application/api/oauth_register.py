@@ -21,7 +21,7 @@ from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndp
 import firefly_iaaa.domain as domain
 
 
-@ff.rest('/iaaa/register', method='POST', tags=['public'])
+@ff.rest('/iaaa/register', method='POST', tags=['public'], secured=False)
 class OAuthRegister(GenericOauthEndpoint):
 
     def __call__(self, **kwargs):
