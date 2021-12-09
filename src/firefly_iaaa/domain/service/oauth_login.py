@@ -37,7 +37,7 @@ class OAuthLogin(ff.DomainService):
 
         if found_user:
             if found_user.correct_password(password):
-                # passed_in_kwargs = self._set_client_id(found_user, passed_in_kwargs)
+                passed_in_kwargs = self._set_client_id(found_user, passed_in_kwargs)
                 tokens = self._get_tokens(passed_in_kwargs)
         else:
             tokens = self._try_cognito(username, password)
