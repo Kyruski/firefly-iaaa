@@ -46,7 +46,7 @@ class OAuthAuthenticator(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
 
             self.debug('Decoding token')
             try:
-                resp = self.request('firefly_iaaa.GetClientUserAndToken', data={'token': token, 'user_id': self._kernel.user.id})
+                resp = self.request(f'{self._context}.GetClientUserAndToken', data={'token': token, 'user_id': self._kernel.user.id})
                 decoded= resp['decoded']
                 user = resp['user']
                 client_id = resp['client_id']

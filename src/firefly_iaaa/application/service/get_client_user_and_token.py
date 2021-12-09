@@ -17,7 +17,7 @@ from __future__ import annotations
 import firefly as ff
 import firefly_iaaa.domain as domain
 
-@ff.query_handler('firefly_iaaa.GetClientUserAndToken')
+@ff.query_handler()
 class GetClientUserAndToken(ff.ApplicationService):
     _registry: ff.Registry = None
     _oauth_provider: domain.OauthProvider = None

@@ -20,6 +20,7 @@ from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndp
 import firefly_iaaa.domain as domain
 
 
+@ff.command_handler('firefly_iaaa.OauthLogin')
 @ff.rest('/iaaa/login', method='POST', tags=['public'])
 class OAuthLogin(GenericOauthEndpoint):
     _cognito_login: domain.CognitoLogin = None
@@ -87,7 +88,7 @@ class OAuthLogin(GenericOauthEndpoint):
         data['email'] = username
         data['username'] = username
         data['password'] = password
-        resp = self.invoke('firefly_iaaa.OAuthRegister', data)
+        resp = self.invoke(f'{self._context}.OAuthRegister', data)
         if resp.get('success'):
             return resp
         elif 'error' in resp:
@@ -96,7 +97,7 @@ class OAuthLogin(GenericOauthEndpoint):
     def _get_tokens(self, kwargs: dict):
         if not kwargs['headers']['http_request']['headers'].get('Referer'):
             kwargs['headers']['http_request']['headers']['Referer'] = 'https://www.pwrlab.com/',
-        resp = self.invoke('firefly_iaaa.OauthTokenCreationService', kwargs, async_=False)
+        resp = self.invoke(f'{self._context}.OauthTokenCreationService', kwargs, async_=False)
         return resp
 
     def _make_local_response(self, tokens):

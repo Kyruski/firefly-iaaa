@@ -1,6 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import List, Union
+import os
 
 import firefly as ff
 from firefly.domain.entity.messaging.envelope import Envelope
@@ -12,6 +13,7 @@ class GenericOauthEndpoint(ff.ApplicationService, ABC):
     _kernel: ff.Kernel = None
     _registry: ff.Registry = None
     _message_factory: ff.MessageFactory = None
+    _context: str = os.environ['CONTEXT']
 
     @abstractmethod
     def __call__(self, **kwargs):

@@ -20,7 +20,7 @@ import uuid
 import firefly_iaaa.domain as domain
 
 
-@ff.command_handler('firefly_iaaa.MakeUserEntities')
+@ff.command_handler()
 class MakeUserEntities(ff.ApplicationService):
     _registry: ff.Registry = None
 
