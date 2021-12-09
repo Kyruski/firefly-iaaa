@@ -18,7 +18,7 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
         return self._make_response(forwarding_address=self._make_local_response(*resp))
 
     def _make_message(self, incoming_kwargs: dict):
-        headers = self._add_method_to_headers(incoming_kwargs)
+        headers = self._add_method_to_headers(incoming_kwargs, 'GET')
         message_body = {
             'headers': headers,
             'client_id': self._get_client_id(incoming_kwargs.get('client_id')),

@@ -23,8 +23,6 @@ class GenericOauthIamEndpoint(GenericOauthEndpoint):
         pass
 
     def _make_local_response(self, tokens, headers):
-        # body = tokens.body['data'] if isinstance(tokens, ff.Envelope) else tokens
-
         cookies = []
         access_cookie = {
             'name': 'accessToken',

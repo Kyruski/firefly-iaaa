@@ -46,11 +46,14 @@ class CreateToken(ff.DomainService):
             data=message_body
         )
 
-    def _add_method_to_headers(self, incoming_kwargs: dict):
-        try:
-            headers = incoming_kwargs['headers']['http_request'].get('headers')
-        except KeyError:
-            headers = incoming_kwargs['headers']
-        headers['method'] = incoming_kwargs['headers']['http_request'].get('method')
+    def _add_method_to_headers(self, incoming_kwargs: dict, http_method: str = 'POST'):
+        if incoming_kwargs.get('headers'):
+            try:
+                headers = incoming_kwargs['headers']['http_request'].get('headers')
+            except KeyError:
+                headers = incoming_kwargs['headers']
+            headers['method'] = incoming_kwargs['headers']['http_request'].get('method')
+        else:
+            headers = {'method': http_method}
 
         return headers
