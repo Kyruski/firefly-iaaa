@@ -39,4 +39,5 @@ class OAuthRegister(ff.DomainService):
             'scopes': ['full_access']
         })
         self._make_user(**passed_in_kwargs)
+        print('SENDING KWARGS TO OAUTHLOGIN', passed_in_kwargs)
         return self._oauth_login(passed_in_kwargs)

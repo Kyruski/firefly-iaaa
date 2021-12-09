@@ -20,6 +20,8 @@ class CreateToken(ff.DomainService):
         return [headers, json.loads(body)]
 
     def _make_message(self, incoming_kwargs: dict):
+        print('INCOMING KWARGS TO CREATE TOKEN', incoming_kwargs)
+        print('INCOMING KWARGS TO CREATE TOKEN', incoming_kwargs.get('client_id'))
         headers = self._add_method_to_headers(incoming_kwargs)
         message_body = {
             'headers': headers,

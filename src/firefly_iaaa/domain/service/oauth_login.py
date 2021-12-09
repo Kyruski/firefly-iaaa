@@ -37,6 +37,7 @@ class OAuthLogin(ff.DomainService):
 
         if found_user:
             if found_user.correct_password(password):
+                # passed_in_kwargs = self._set_client_id(found_user, passed_in_kwargs)
                 tokens = self._get_tokens(passed_in_kwargs)
         else:
             tokens = self._try_cognito(username, password)
@@ -74,12 +75,14 @@ class OAuthLogin(ff.DomainService):
 
     def _get_tokens(self, kwargs: dict):
         kwargs = self._set_referer(kwargs)
+        print('SENDING KWARGS TO TOKEN', kwargs)
         resp = self._create_token(kwargs)
         return resp
 
     def _set_client_id(self, found_user, kwargs):
-        user_client = self._registry(domain.Client).find(lambda x: x.tenant_id == found_user.tenant_id)
-        kwargs['client_id'] = user_client.client_id
+        if not kwargs['client_id']:
+            user_client = self._registry(domain.Client).find(lambda x: x.tenant_id == found_user.tenant_id)
+            kwargs['client_id'] = user_client.client_id
         return kwargs
 
     def _set_referer(self, kwargs: dict):
