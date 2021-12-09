@@ -25,15 +25,18 @@ class MakeUserEntities(ff.ApplicationService):
     _registry: ff.Registry = None
 
     def __call__(self, username: str, password: str, tenant_name: str, grant_type: str, scopes: List = [], **kwargs):
+        print('a')
         tenant = domain.Tenant(
             name=tenant_name
         )
+        print('b', tenant)
         user = domain.User.create(
             email=username,
             password=password,
             tenant=tenant,
             **kwargs
         )
+        print('c', user)
         client = domain.Client.create(
             tenant=tenant,
             name=username,
@@ -43,7 +46,11 @@ class MakeUserEntities(ff.ApplicationService):
             **kwargs
         )
 
+        print('d', client)
         # Append at end to avoid appending before an error during entity creation
         self._registry(domain.Tenant).append(tenant)
+        print('e')
         self._registry(domain.User).append(user)
+        print('f')
         self._registry(domain.Client).append(client)
+        print('g')

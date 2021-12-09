@@ -26,20 +26,28 @@ class OAuthLogin(GenericOauthEndpoint):
 
     def __call__(self, **kwargs):
         self.debug('Logging in with In-House')
+        print('x1')
         try:
             username = kwargs['username']
             password = kwargs['password']
         except KeyError:
             raise Exception('Missing email/password')
+        print('x2')
         tokens = None
+        print('x3', username)
 
         found_user = self._registry(domain.User).find(lambda x: x.email == username)
+        print('x4', found_user)
 
-        if found_user.correct_password(password):
-            tokens = self._get_tokens(kwargs)
+        if found_user:
+            if found_user.correct_password(password):
+                print('x5')
+                tokens = self._get_tokens(kwargs)
         else:
+            print('x6')
             tokens = self._try_cognito(username, password)
 
+        print('x7')
         # access_cookie = f"accessToken={tokens['access_token']}; HttpOnly; Max-Age={tokens['expires_in']}"
         # refresh_cookie = f"refreshToken={tokens['refresh_token']}; HttpOnly"
 
@@ -52,18 +60,23 @@ class OAuthLogin(GenericOauthEndpoint):
 
     def _try_cognito(self, username: str, password: str):
         self.debug('Switching to Cognito Log in')
+        print('We got into here', username)
         if self._registry(domain.User).find(lambda x: x.email == username) is None:
             try:
                 message, error, success, data = self._cognito_login(username, password) #data has tokens and idToken
+                print('xyz1', message, error, success, data)
                 if error:
                     if message:
+                        print('aaaa1')
                         ff.UnauthenticatedError(message)
                     else:
+                        print('aaaa2')
                         ff.UnauthenticatedError()
                 if success:
                     user = self._transfer_cognito_user_to_native_user(username, password, data['decoded_id_token'])
                     return user
             except:
+                print('aaaa3')
                 raise ff.UnauthenticatedError()
         else:
             raise ff.UnauthenticatedError('Incorrect Password')

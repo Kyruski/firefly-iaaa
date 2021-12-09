@@ -26,21 +26,27 @@ class OAuthRegister(GenericOauthEndpoint):
 
     def __call__(self, **kwargs):
         self.debug('Registering User')
+        print('1')
         try:
+            print('2')
             username = kwargs['username']
             password = kwargs['password']
         except KeyError:
             raise Exception('Missing username/password')
 
+        print('3')
         found_user = self._registry(domain.User).find(lambda x: x.email == username)
 
         if found_user:
             return {'error': 'User already exists'}
+        print('4')
 
         kwargs.update({
             'tenant_name': f'user_tenant_{username}',
             'grant_type': 'password',
             'scopes': ['full_access']
         })
+        print('5')
         self.invoke('firefly_iaaa.MakeUserEntities', kwargs)
+        print('6')
         return self.invoke('firefly_iaaa.OAuthLogin', kwargs, async_=False)
