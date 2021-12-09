@@ -12,12 +12,20 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from .authorization_code import AuthorizationCode
-from .bearer_token import BearerToken
-from .client import Client
-from .cohort import Cohort
-from .grant import Grant
-from .role import Role
-from .scope import Scope
-from .tenant import *
-from .user import User
+from __future__ import annotations
+
+from typing import List
+from datetime import datetime
+
+import firefly as ff
+
+class Cohort(ff.AggregateRoot):
+    id: str = ff.id_()
+    tenant: str = ff.required(index=True)
+    name: str = ff.required(length=256, index=True)
+    status: str = ff.required(str)
+    available_permissions: List[str] = ff.list_()
+    active: bool = ff.required(default=True)
+    start_date: datetime = ff.optional(default=None)
+    end_date: datetime = ff.optional(default=None)
+

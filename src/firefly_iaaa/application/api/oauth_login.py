@@ -30,7 +30,7 @@ class OAuthLogin(GenericOauthEndpoint):
             username = kwargs['username']
             password = kwargs['password']
         except KeyError:
-            raise Exception('Missing username/password')
+            raise Exception('Missing email/password')
         tokens = None
 
         found_user = self._registry(domain.User).find(lambda x: x.email == username)

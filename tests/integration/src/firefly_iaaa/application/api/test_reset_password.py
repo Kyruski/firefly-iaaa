@@ -8,8 +8,6 @@ import boto3
 async def test_reset_password(client, transport, cache, registry, context_map):
     # def abc(a):
     #     client = boto3.client('ses')
-    #     print('aaaaaaaaaaaaaaaaaaaaa')
-    #     print(a.__dict__['subject'], '\n', a.__dict__['text_body'], '\n', a.__dict__['html_body'], '\n', a.__dict__['from_address'], '\n', a.__dict__['to_address'], '\n', a.__dict__['cc_addresses'], '\n', a.__dict__['bcc_addresses'])
     #     response = client.send_email(
     #         Source=a.__dict__['from_address'],
     #         Destination={
@@ -37,11 +35,11 @@ async def test_reset_password(client, transport, cache, registry, context_map):
 
     username = 'jamey.boyett@pwrlab.com'
 
-    first_response = await client.post('/firefly-iaaa/iaaa/reset-password', data=json.dumps({}))
+    first_response = await client.post('/firefly-iaaa/iaaa/reset', data=json.dumps({}))
     assert first_response.status == 500
     assert not cache.list()
 
-    second_response = await client.post('/firefly-iaaa/iaaa/reset-password', data=json.dumps({'username': username}))
+    second_response = await client.post('/firefly-iaaa/iaaa/reset', data=json.dumps({'username': username}))
     assert second_response.status == 200
     cache_list = cache.list()
     assert len(cache_list) == 0
@@ -53,7 +51,7 @@ async def test_reset_password(client, transport, cache, registry, context_map):
     registry(domain.User).commit()
     registry(domain.Tenant).commit()
 
-    third_response = await client.post('/firefly-iaaa/iaaa/reset-password', data=json.dumps({'username': username}))
+    third_response = await client.post('/firefly-iaaa/iaaa/reset', data=json.dumps({'username': username}))
     assert third_response.status == 200
     cache_list = cache.list()
     assert len(cache_list) == 1

@@ -123,4 +123,5 @@ class Client(ff.AggregateRoot):
             'allowed_response_types': self.allowed_response_types,
             'is_active': self.is_active,
             'tenant_id': self.tenant_id,
+            'tenant_name': self.tenant.name,
         }
