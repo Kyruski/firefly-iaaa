@@ -84,8 +84,8 @@ class OAuthLogin(ff.DomainService):
 
     def _set_referer(self, kwargs: dict):
         if not kwargs.get('headers').get('http_request').get('headers').get('Referer'):
-            kwargs['headers'] = kwargs.get('headers') or {}
-            kwargs['headers']['http_request'] = kwargs['headers'].get('http_request') or {}
-            kwargs['headers']['http_request']['headers'] = kwargs['headers']['http_request'].get('headers') or {}
-            kwargs['headers']['http_request']['headers']['Referer'] = kwargs['headers']['http_request']['headers'].get('Referer') or 'https://www.pwrlab.com/',
+            kwargs['headers'] = kwargs.get('headers', {})
+            kwargs['headers']['http_request'] = kwargs['headers'].get('http_request', {})
+            kwargs['headers']['http_request']['headers'] = kwargs['headers']['http_request'].get('headers', {})
+            kwargs['headers']['http_request']['headers']['Referer'] = kwargs['headers']['http_request']['headers'].get('Referer', 'https://www.pwrlab.com/')
         return kwargs
