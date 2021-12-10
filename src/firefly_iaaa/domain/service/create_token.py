@@ -11,6 +11,7 @@ class CreateToken(ff.DomainService):
     _oauth_provider: domain.OauthProvider = None
     _message_factory: ff.MessageFactory = None
     _get_client_id: domain.GetClientId = None
+    _add_haders_from_kernel: domain.AddHeadersFromKernel = None
 
     def __call__(self, passed_in_kwargs:dict, **kwargs):
         message = self._make_message(passed_in_kwargs)
@@ -49,14 +50,15 @@ class CreateToken(ff.DomainService):
         )
 
     def _add_method_to_headers(self, incoming_kwargs: dict, http_method: str = 'POST'):
-        print('HEADERS Before SETTING METHODxx', http_method, incoming_kwargs)
+        print('HEADERS Before SETTING METHOD', http_method, incoming_kwargs)
+        incoming_kwargs = self._add_headers_from_kernel(incoming_kwargs)
         if incoming_kwargs.get('headers'):
             try:
                 headers = incoming_kwargs['headers']['http_request'].get('headers')
             except KeyError:
                 headers = incoming_kwargs['headers']
-            headers['method'] = incoming_kwargs['headers']['http_request'].get('method', http_method)
+            headers['method'] = incoming_kwargs['headers']['http_request'].get('method')
         else:
             headers = {'method': http_method}
-        print('HEADERS AFTER SETTING METHODxx', headers)
+        print('HEADERS AFTER SETTING METHOD', headers)
         return headers

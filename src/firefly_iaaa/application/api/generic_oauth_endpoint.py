@@ -12,13 +12,14 @@ class GenericOauthEndpoint(ff.ApplicationService):
     _registry: ff.Registry = None
     _message_factory: ff.MessageFactory = None
     _get_client_id: domain.GetClientId = None
+    _add_haders_from_kernel: domain.AddHeadersFromKernel = None
 
     def __call__(self, **kwargs):
         pass
 
     def _add_method_to_headers(self, incoming_kwargs: dict, http_method: str = 'POST'):
         print('HEADERS Before SETTING METHOD', http_method, incoming_kwargs)
-        incoming_kwargs = self._add_headers_from_kernal(incoming_kwargs)
+        incoming_kwargs = self._add_headers_from_kernel(incoming_kwargs)
         if incoming_kwargs.get('headers'):
             try:
                 headers = incoming_kwargs['headers']['http_request'].get('headers')
@@ -49,16 +50,3 @@ class GenericOauthEndpoint(ff.ApplicationService):
         if cookies:
             message = message.set_cookies(cookies)
         return message
-    
-    def _add_headers_from_kernal(self, kwargs):
-        http_request = self._kernel.http_request
-        print('HTTP_REQUEST', http_request)
-        headers = http_request['headers']
-        print('WE GOT KERNEL STUFF', self._kernel)
-        print('WE GOT KERNEL STUFF', dir(self._kernel))
-        print('WE GOT KERNEL STUFF', self._kernel.__dict__)
-        print('WE GOT HEADERS STUFF', headers)
-        print('WE GOT HEADERS STUFF', dir(headers))
-        kwargs['headers'] = kwargs.get('headers', {})
-        kwargs['headers'].update(headers)
-        return kwargs
