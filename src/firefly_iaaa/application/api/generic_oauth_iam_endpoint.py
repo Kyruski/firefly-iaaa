@@ -38,5 +38,8 @@ class GenericOauthIamEndpoint(GenericOauthEndpoint):
                 'httponly': True,
             }
             cookies.append(refresh_cookie)
+        print('WE HAVE', tokens)
+        print('WE HAVE', headers)
+        print('WE HAVE', cookies)
         envelope = self._make_response(tokens, headers=headers, cookies=cookies)
         return envelope
