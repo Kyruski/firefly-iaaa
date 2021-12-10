@@ -43,6 +43,9 @@ class MakeUser(ff.DomainService):
             **kwargs
         )
 
+        role = self._registry(domain.Role).find('fad2cf43-01df-44a1-bef4-0446d066e0bc')
+        user.add_role(role)
+
         # Append at end to avoid appending before an error during entity creation
         self._registry(domain.Tenant).append(tenant)
         self._registry(domain.User).append(user)

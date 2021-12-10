@@ -87,6 +87,16 @@ class User(ff.AggregateRoot):
     def change_email(self, new_email: str):
         self.email = new_email
 
+    def add_role(self, role: Role):
+        if isinstance(role, Role):
+            self.roles.append(role)
+    
+    def remove_role(self, role: Role):
+        if isinstance(role, Role):
+            self.roles.remove(role)
+
+
+
     def correct_password(self, password: str):
         if not password:
             return False
