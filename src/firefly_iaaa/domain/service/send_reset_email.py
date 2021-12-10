@@ -35,7 +35,7 @@ class SendResetEmail(ff.DomainService):
             'bcc_addresses': []
         }
         try:
-            x = self.invoke('firefly_messaging.SendSESEmail', data)
+            x = self.invoke('messaging.SendSESEmail', data)
             print('WE HAVE RESPONSE FROM EMAIL', x)
             print('WE HAVE RESPONSE FROM EMAIL', dir(x))
             print('WE HAVE RESPONSE FROM EMAIL', x.__dict__)
