@@ -58,6 +58,10 @@ class OAuthLogin(ff.DomainService):
         if self._registry(domain.User).find(lambda x: x.email == username) is None:
             try:
                 message, error, success, data = self._cognito_login(username, password) #data has tokens and idToken
+                print('AFTER COGNITO', message)
+                print('AFTER COGNITO', error)
+                print('AFTER COGNITO', success)
+                print('AFTER COGNITO', data)
                 if error:
                     if message:
                         ff.UnauthenticatedError(message)
@@ -66,7 +70,10 @@ class OAuthLogin(ff.DomainService):
                 if success:
                     user = self._transfer_cognito_user_to_native_user(username, password, data['decoded_id_token'])
                     return user
-            except:
+            except Exception as e:
+                print('TRYING COGNITO FAILED', e)
+                print('TRYING COGNITO FAILED', e.__dict__)
+                print('TRYING COGNITO FAILED', str(e))
                 raise ff.UnauthenticatedError()
         else:
             raise ff.UnauthenticatedError('Incorrect Password')
