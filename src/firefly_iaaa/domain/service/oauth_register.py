@@ -29,7 +29,7 @@ class OAuthRegister(ff.DomainService):
         username = passed_in_kwargs['username']
 
         found_user = self._registry(domain.User).find(lambda x: x.email == username)
-
+        print('DEBUGGING', found_user)
         if found_user:
             print('WE FOUND USER, ENDING REQUEST')
             return {'error': 'User already exists'}
