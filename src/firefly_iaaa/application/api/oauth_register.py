@@ -30,6 +30,6 @@ class OAuthRegister(GenericOauthIamEndpoint):
             raise Exception('Missing username/password')
         resp = self._oauth_register(kwargs)
         print('WE HAVE RESP from register', resp)
-        if 'error' in resp[1]:
+        if 'error' in resp:
             return resp
         return self._make_local_response(*resp)

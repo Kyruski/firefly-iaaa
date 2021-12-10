@@ -35,7 +35,7 @@ class OAuthLogin(GenericOauthIamEndpoint):
         # if not body.get('tokens'):
         #     raise ff.UnauthenticatedError()
         
-        if 'error' in resp[1]:
+        if 'error' in resp:
             return resp
 
         return self._make_local_response(*resp)
