@@ -48,3 +48,13 @@ class GenericOauthEndpoint(ff.ApplicationService):
         if cookies:
             message = message.set_cookies(cookies)
         return message
+    
+    def _add_headers_from_kernal(self):
+        http_request = self._kernel.http_request
+        headers = http_request['headers']
+        print('WE GOT KERNEL STUFF', self._kernel)
+        print('WE GOT KERNEL STUFF', dir(self._kernel))
+        print('WE GOT KERNEL STUFF', self._kernel.__dict__)
+        print('WE GOT HEADERS STUFF', headers)
+        print('WE GOT HEADERS STUFF', dir(headers))
+        print('WE GOT HEADERS STUFF', headers)
