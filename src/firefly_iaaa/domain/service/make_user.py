@@ -34,6 +34,7 @@ class MakeUser(ff.DomainService):
             **kwargs
         )
         client = domain.Client.create(
+            client_id=user.sub,
             tenant=tenant,
             name=username,
             grant_type=grant_type,

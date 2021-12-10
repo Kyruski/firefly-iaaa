@@ -75,7 +75,7 @@ class Client(ff.AggregateRoot):
         try:
             kwargs['grant_type'] = kwargs['grant_type']
         except KeyError:
-            raise ff.MissingArgument('enant is a required field for Client::create()')
+            raise ff.MissingArgument('Grant Type is a required field for Client::create()')
         return cls(**ff.build_argument_list(kwargs, cls))
 
     def validate_redirect_uri(self, redirect_uri: str):
