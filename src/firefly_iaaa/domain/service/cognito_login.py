@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+import os
 
 import firefly as ff
 from firefly import domain as ffd
@@ -70,8 +70,8 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
     def _initiate_auth(self, client, username, password):
         try:
             resp = client.admin_initiate_auth(
-                        UserPoolId=self._user_pool,
-                        ClientId=self._client_id,
+                        UserPoolId=os.environ['USER_POOL_ID'],
+                        ClientId=os.environ['CLIENT_ID'],
                         AuthFlow='ADMIN_USER_PASSWORD_AUTH',
                         AuthParameters={
                             'USERNAME': username,
