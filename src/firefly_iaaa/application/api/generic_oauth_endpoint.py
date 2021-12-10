@@ -20,14 +20,11 @@ class GenericOauthEndpoint(ff.ApplicationService):
     def _add_method_to_headers(self, incoming_kwargs: dict, http_method: str = 'POST'):
         print('HEADERS Before SETTING METHOD', http_method, incoming_kwargs)
         incoming_kwargs = self._add_headers_from_kernel(incoming_kwargs)
-        if incoming_kwargs.get('headers'):
-            try:
-                headers = incoming_kwargs['headers']['http_request'].get('headers')
-            except KeyError:
-                headers = incoming_kwargs['headers']
-            headers['method'] = incoming_kwargs['headers']['http_request'].get('method')
-        else:
-            headers = {'method': http_method}
+        try:
+            headers = incoming_kwargs['headers']['http_request'].get('headers')
+        except KeyError:
+            headers = incoming_kwargs['headers']
+        headers['method'] = incoming_kwargs['headers']['http_request'].get('method', http_method)
         print('HEADERS AFTER SETTING METHOD', headers)
         return headers
 
