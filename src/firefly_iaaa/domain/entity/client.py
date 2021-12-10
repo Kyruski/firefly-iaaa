@@ -27,6 +27,7 @@
 from __future__ import annotations
 
 from typing import List
+import uuid
 
 import firefly as ff
 from .tenant import Tenant
@@ -48,7 +49,8 @@ def response_type_choices(client_dto: dict):
 
 
 class Client(ff.AggregateRoot):
-    client_id: str = ff.id_() # Needs to be 'client_id'
+    id: str = ff.id_() 
+    client_id: str = ff.optional(validators=[ff.HasLength(36)], index=True) # Needs to have 'client_id', should eb same as sub if user/cleint combo
     external_id: str = ff.optional(index=True)
     # user: User = ff.required(index=True)
     name: str = ff.required()
@@ -76,6 +78,9 @@ class Client(ff.AggregateRoot):
             kwargs['grant_type'] = kwargs['grant_type']
         except KeyError:
             raise ff.MissingArgument('Grant Type is a required field for Client::create()')
+        if not kwargs.get('client_id'):
+            kwargs['client_id'] = str(uuid.uuid4())
+        kwargs['id'] = kwargs['client_id']
         return cls(**ff.build_argument_list(kwargs, cls))
 
     def validate_redirect_uri(self, redirect_uri: str):
