@@ -84,10 +84,11 @@ class OAuthLogin(ff.DomainService):
         data['email'] = username
         data['username'] = username
         data['password'] = password
-        resp = self._oauth_register(data)
-        if resp[1]:
-            return resp
-        raise Exception()
+        raise Exception('YOU DID IT, YOU WIN', data)
+        # resp = self._oauth_register(data)
+        # if resp[1]:
+        #     return resp
+        # raise Exception()
 
     def _get_tokens(self, kwargs: dict):
         kwargs = self._set_referer(kwargs)
