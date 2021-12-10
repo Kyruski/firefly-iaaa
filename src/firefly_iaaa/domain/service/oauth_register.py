@@ -13,6 +13,7 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+from botocore.exceptions import ClientError
 
 import firefly as ff
 import firefly_iaaa.domain as domain
@@ -27,8 +28,14 @@ class OAuthRegister(ff.DomainService):
         self.info('Registering User')
         print('KWARGS coming into OauthRegister domain', passed_in_kwargs)
         username = passed_in_kwargs['username']
-
-        found_user = self._registry(domain.User).find(lambda x: x.email == username)
+        try:
+            found_user = self._registry(domain.User).find(lambda x: x.email == username)
+        except ClientError as e:
+            print('WE GOT E', e.__dict__)
+            if e.response['Error']['Code'] == 'BadRequestException':
+                if 'syntax error at or near ")"' in str(e):
+                    return {'error': 'User already exists'}
+            raise e
         print('DEBUGGING', found_user)
         if found_user:
             print('WE FOUND USER, ENDING REQUEST')
