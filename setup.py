@@ -31,7 +31,7 @@ setuptools.setup(
         'bcrypt>=3.1.7',
         'firefly-framework @ git+https://github.com/Kyruski/firefly-framework.git@adding-cookies',
         'firefly-messaging @ git+https://github.com/Kyruski/firefly-messaging.git@adding-aws-ses',
-        'firefly-aws>=1.2.0',
+        'firefly-aws @ git+https://github.com/Kyruski/firefly-aws.git@debugging',
         'PyJWT[crypto]>=2.1.0',
         'oauthlib>=3.1.1',
     ],
