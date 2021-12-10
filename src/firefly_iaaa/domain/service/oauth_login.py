@@ -36,6 +36,7 @@ class OAuthLogin(ff.DomainService):
         found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
 
         if found_user:
+            passed_in_kwargs['grant_type'] = 'password'
             print('We found a user, trying to login with password', found_user)
             if found_user.correct_password(password):
                 print('password correct')
