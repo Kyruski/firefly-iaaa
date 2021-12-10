@@ -134,7 +134,7 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
         print('MAKING PARAMS', request)
         print('MAKING PARAMS', request.__dict__)
         print('MAKING PARAMS', request.headers)
-        uri = request.headers.get('Referer') or request.headers.get('Origin') or request.headers.get('uri')
+        uri = request.headers.get('Origin') or request.headers.get('origin') or request.headers.get('Referer') or request.headers.get('uri')
         http_method = request.headers.get('method') or request.headers.get('http_method')
         body = request.to_dict()
         headers = request.headers

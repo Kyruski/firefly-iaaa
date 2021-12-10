@@ -24,7 +24,7 @@ class GenericOauthEndpoint(ff.ApplicationService):
             headers = incoming_kwargs['headers']['http_request'].get('headers')
         except KeyError:
             headers = incoming_kwargs['headers']
-        headers['method'] = incoming_kwargs['headers']['http_request'].get('method', http_method)
+        headers['method'] = http_method
         print('HEADERS AFTER SETTING METHOD', headers)
         return headers
 
