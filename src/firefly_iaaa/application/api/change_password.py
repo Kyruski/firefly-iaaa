@@ -18,7 +18,7 @@ import firefly as ff
 import firefly_iaaa.domain as domain
 
 
-@ff.rest('/iaaa/change-password', method='POST', tags=['public'])
+@ff.rest('/iaaa/change-password', method='POST', tags=['public'], secured=False)
 class ChangePassword(ff.ApplicationService):
     _cache: ff.Cache = None
     _registry: ff.Registry = None

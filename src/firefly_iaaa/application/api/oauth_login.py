@@ -19,7 +19,7 @@ from firefly_iaaa.application.api.generic_oauth_iam_endpoint import GenericOauth
 import firefly_iaaa.domain as domain
 
 
-@ff.rest('/iaaa/login', method='POST', tags=['public'], secure=False)
+@ff.rest('/iaaa/login', method='POST', tags=['public'], secured=False)
 class OAuthLogin(GenericOauthIamEndpoint):
     _oauth_login: domain.OAuthLogin = None
 

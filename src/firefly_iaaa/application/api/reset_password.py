@@ -19,7 +19,7 @@ import firefly as ff
 from firefly_iaaa import domain
 
 
-@ff.rest('/iaaa/reset', method='POST', tags=['public'])
+@ff.rest('/iaaa/reset', method='POST', tags=['public'], secured=False)
 class ResetPassword(ff.ApplicationService):
     _registry: ff.Registry = None
     _cache: ff.Cache = None
