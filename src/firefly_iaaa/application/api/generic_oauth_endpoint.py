@@ -13,20 +13,10 @@ class GenericOauthEndpoint(ff.ApplicationService):
     _message_factory: ff.MessageFactory = None
     _get_client_id: domain.GetClientId = None
     _add_headers_from_kernel: domain.AddHeadersFromKernel = None
+    _add_method_to_headers: domain.AddMethodToHeaders = None
 
     def __call__(self, **kwargs):
         pass
-
-    def _add_method_to_headers(self, incoming_kwargs: dict, http_method: str = 'POST'):
-        print('HEADERS Before SETTING METHOD', http_method, incoming_kwargs)
-        incoming_kwargs = self._add_headers_from_kernel(incoming_kwargs)
-        try:
-            headers = incoming_kwargs['headers']['http_request'].get('headers')
-        except KeyError:
-            headers = incoming_kwargs['headers']
-        headers['method'] = http_method
-        print('HEADERS AFTER SETTING METHOD', headers)
-        return headers
 
     def _make_message(self, incoming_kwargs: dict):
         pass
