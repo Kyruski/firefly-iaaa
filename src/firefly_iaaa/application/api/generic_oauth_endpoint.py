@@ -18,6 +18,7 @@ class GenericOauthEndpoint(ff.ApplicationService):
 
     def _add_method_to_headers(self, incoming_kwargs: dict, http_method: str = 'POST'):
         print('HEADERS Before SETTING METHOD', http_method, incoming_kwargs)
+        incoming_kwargs = self._add_headers_from_kernal(incoming_kwargs)
         if incoming_kwargs.get('headers'):
             try:
                 headers = incoming_kwargs['headers']['http_request'].get('headers')
@@ -49,12 +50,15 @@ class GenericOauthEndpoint(ff.ApplicationService):
             message = message.set_cookies(cookies)
         return message
     
-    def _add_headers_from_kernal(self):
+    def _add_headers_from_kernal(self, kwargs):
         http_request = self._kernel.http_request
+        print('HTTP_REQUEST', http_request)
         headers = http_request['headers']
         print('WE GOT KERNEL STUFF', self._kernel)
         print('WE GOT KERNEL STUFF', dir(self._kernel))
         print('WE GOT KERNEL STUFF', self._kernel.__dict__)
         print('WE GOT HEADERS STUFF', headers)
         print('WE GOT HEADERS STUFF', dir(headers))
-        print('WE GOT HEADERS STUFF', headers)
+        kwargs['headers'] = kwargs.get('headers', {})
+        kwargs['headers'].update(headers)
+        return kwargs
