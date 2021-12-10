@@ -55,7 +55,7 @@ class CreateToken(ff.DomainService):
                 headers = incoming_kwargs['headers']['http_request'].get('headers')
             except KeyError:
                 headers = incoming_kwargs['headers']
-            headers['method'] = incoming_kwargs['headers']['http_request'].get('method')
+            headers['method'] = incoming_kwargs['headers']['http_request'].get('method', http_method)
         else:
             headers = {'method': http_method}
         print('HEADERS AFTER SETTING METHODxx', headers)
