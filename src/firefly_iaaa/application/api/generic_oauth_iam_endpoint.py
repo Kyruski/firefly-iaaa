@@ -22,7 +22,8 @@ class GenericOauthIamEndpoint(GenericOauthEndpoint):
     def __call__(self, **kwargs):
         pass
 
-    def _make_local_response(self, tokens, headers):
+    def _make_local_response(self, headers, body):
+        tokens = body.get('tokens')
         cookies = []
         access_cookie = {
             'name': 'accessToken',

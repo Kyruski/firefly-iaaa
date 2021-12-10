@@ -33,7 +33,7 @@ class OAuthLogin(ff.DomainService):
         password = passed_in_kwargs['password']
         tokens = [None, None]
 
-        found_user = self._registry(domain.User).find(lambda x: x.email == username)
+        found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
 
         if found_user:
             print('We found a user, trying to login with password', found_user)
@@ -44,7 +44,10 @@ class OAuthLogin(ff.DomainService):
         else:
             print('No user exists, trying Cognito')
             tokens = self._try_cognito(username, password)
-        return tokens
+        print('RETURNING FROM LOGIN')
+        found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
+        resp = {'tokens': tokens, 'user': found_user.generate_scrubbed_user()}
+        return resp
 
 
     def _try_cognito(self, username: str, password: str):
