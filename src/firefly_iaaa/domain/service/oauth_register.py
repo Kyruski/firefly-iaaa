@@ -34,12 +34,12 @@ class OAuthRegister(ff.DomainService):
             print('WE GOT E', e.__dict__)
             if e.response['Error']['Code'] == 'BadRequestException':
                 if 'syntax error at or near ")"' in str(e):
-                    return {'error': 'User already exists'}
+                    return {'message': 'error','error': 'User already exists'}
             raise e
         print('DEBUGGING', found_user)
         if found_user:
             print('WE FOUND USER, ENDING REQUEST')
-            return {'error': 'User already exists'}
+            return {'message': 'error','error': 'User already exists'}
 
         passed_in_kwargs.update({
             'tenant_name': f'user_tenant_{username}',
