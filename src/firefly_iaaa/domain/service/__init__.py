@@ -24,7 +24,6 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from firefly_iaaa.domain.service.add_headers_from_kernel import AddHeadersFromKernel
 from firefly_iaaa.domain.service.add_method_to_headers import AddMethodToHeaders
 from firefly_iaaa.domain.service.create_token import CreateToken
 from firefly_iaaa.domain.service.cognito_login import CognitoLogin

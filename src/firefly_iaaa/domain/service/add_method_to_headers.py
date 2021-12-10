@@ -20,3 +20,17 @@ class AddMethodToHeaders(ff.DomainService):
         print('WE HAVE methof', http_method)
         print('HEADERS AFTER SETTING METHOD', headers)
         return headers
+
+    def _add_headers_from_kernel(self, item: dict):
+        if self._kernel.http_request:
+            
+            print('HTTP_REQUEST', self._kernel.http_request)
+            headers = self._kernel.http_request.get('headers', {})
+            print('WE GOT KERNEL STUFF', self._kernel)
+            print('WE GOT KERNEL STUFF', dir(self._kernel))
+            print('WE GOT KERNEL STUFF', self._kernel.__dict__)
+            print('WE GOT HEADERS STUFF', headers)
+            print('WE GOT HEADERS STUFF', dir(headers))
+            item['headers'] = item.get('headers', {})
+            item['headers'].update(headers)
+        return item

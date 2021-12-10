@@ -12,7 +12,6 @@ class GenericOauthEndpoint(ff.ApplicationService):
     _registry: ff.Registry = None
     _message_factory: ff.MessageFactory = None
     _get_client_id: domain.GetClientId = None
-    _add_headers_from_kernel: domain.AddHeadersFromKernel = None
     _add_method_to_headers: domain.AddMethodToHeaders = None
 
     def __call__(self, **kwargs):

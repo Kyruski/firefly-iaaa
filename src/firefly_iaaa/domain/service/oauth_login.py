@@ -41,6 +41,8 @@ class OAuthLogin(ff.DomainService):
                 print('password correct')
                 passed_in_kwargs = self._set_client_id(found_user, passed_in_kwargs)
                 tokens = self._get_tokens(passed_in_kwargs)
+            else:
+                raise ff.UnauthenticatedError()
         else:
             print('No user exists, trying Cognito')
             tokens = self._try_cognito(username, password)
