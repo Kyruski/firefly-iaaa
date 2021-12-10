@@ -46,7 +46,7 @@ class OAuthLogin(ff.DomainService):
             tokens = self._try_cognito(username, password)
         print('RETURNING FROM LOGIN')
         found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
-        resp = {'tokens': tokens, 'user': found_user.generate_scrubbed_user()}
+        resp = [tokens[0], {'tokens': tokens[1], 'user': found_user.generate_scrubbed_user()}]
         return resp
 
 
