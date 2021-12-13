@@ -25,6 +25,12 @@ from firefly_aws import infrastructure as aws_infra
 from firefly_iaaa.domain.mock.mock_cache import MockCache
 from dotenv import load_dotenv
 
+def secret_key_setter():
+    pem = os.environ.get('PEM')
+    if os.environ.get('FF_ENVIRONMENT') == 'test':
+        pem = os.environ.get('TEST_PEM')
+    return str(base64.b64decode(pem), "utf-8")
+    
 
 load_dotenv()
 class Container(di.Container):
@@ -33,6 +39,5 @@ class Container(di.Container):
     oauthlib_request_validator: domain.OauthRequestValidators = domain.OauthRequestValidators
     request_validator: domain.OauthProvider = domain.OauthProvider
     message_factory: ff.MessageFactory = ff.MessageFactory
-    secret_key: str = lambda x: str(base64.b64decode(os.environ.get('PEM')), "utf-8") if \
-        os.environ.get('FF_ENVIRONMENT') == 'test' else str(base64.b64decode(os.environ.get('TEST_PEM')), "utf-8")
+    secret_key: str = lambda x: secret_key_setter()
     subdomain: str = lambda x: 'staging-connected-sports' #!! CHANGE AT FINISH
