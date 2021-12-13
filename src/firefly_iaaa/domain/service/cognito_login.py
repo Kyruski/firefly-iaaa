@@ -41,6 +41,8 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
         #             'data': None
         #         }
         resp, msg = self._initiate_auth(client, username, password)
+        print('aaaa', resp)
+        print('aaaa', msg)
         if msg != None:
             return {'message': msg, 
                     'error': True, 'success': False, 'data': None}
@@ -68,7 +70,9 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
 
 
     def _initiate_auth(self, client, username, password):
+        print('a')
         try:
+            print('b')
             resp = client.admin_initiate_auth(
                         UserPoolId=os.environ['USER_POOL_ID'],
                         ClientId=os.environ['CLIENT_ID'],
@@ -81,10 +85,16 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
                         'username': username,
                         'password': password,
                     })
+            print('c')
         except client.exceptions.NotAuthorizedException:
+            print('d')
             return None, 'The username or password is incorrect'
         except client.exceptions.UserNotConfirmedException:
+            print('e')
             return None, 'User is not confirmed'
         except Exception as e:
+            print('f', e.__str__())
+            print('f', e)
             return None, e.__str__()
+        print('g')
         return resp, None
