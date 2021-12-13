@@ -20,6 +20,10 @@ import uuid
 import firefly_iaaa.domain as domain
 
 
+END_USER_CLIENT = {
+
+}
+
 class MakeUser(ff.DomainService):
     _registry: ff.Registry = None
 
@@ -33,12 +37,56 @@ class MakeUser(ff.DomainService):
             tenant=tenant,
             **kwargs
         )
+
+        # if authorization:
+        #     if pkce:
+            
+        #     else:
+        
+        # if implicit:
+
+        # if resource_owner:
+
+        # if client_credentials:
+
+        # generic_client_data = { #same as end user
+        #     'client_id': user.sub,
+        #     'name': username,
+        #     'tenant': tenant,
+        #     'grant_type': grant_type,
+        #     'scopes': scopes,
+        # }
+
+        # auth_code_client_data = {
+        #     'default_redirect_uri': kwargs['default_redirect_uri'],
+        #     'redirect_uris': kwargs['redirect_uris'],
+        #     'allowed_response_types': 'code',
+        # }
+
+        # auth_code_w_pkce_client_data = {
+        #     'uses_pkce': True,
+        # }
+
+        # client_secret_client_data =  {
+        #     'client_secret': str(uuid.uuid4()),
+        # }
+
+        # implicit_client_data = {
+        #     'default_redirect_uri': kwargs['default_redirect_uri'],
+        #     'redirect_uris': kwargs['redirect_uris'],
+        #     'allowed_response_types': 'token',
+        # }
+
+
+
+
         client = domain.Client.create(
             client_id=user.sub,
             tenant=tenant,
             name=username,
             grant_type=grant_type,
             scopes=scopes,
+            client_secret=uuid.uuid4(),
             **kwargs
         )
 
@@ -49,3 +97,16 @@ class MakeUser(ff.DomainService):
         self._registry(domain.Tenant).append(tenant)
         self._registry(domain.User).append(user)
         self._registry(domain.Client).append(client)
+
+
+    def make_auth(self, x):
+        pass
+
+    def make_auth_with_pkce(self, x):
+        pass
+
+    def make_auth_with_pkce(self, x):
+        pass
+
+    def make_auth_with_pkce(self, x):
+        pass

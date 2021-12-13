@@ -20,8 +20,8 @@ import firefly_iaaa.domain as domain
 
 
 @ff.command_handler()
-class MakeUserEntities(ff.ApplicationService):
-    _make_user: domain.MakeUser = None
+class MakeClientEntities(ff.ApplicationService):
+    _make_client: domain.MakeClient = None
 
     def __call__(self, **kwargs):
-        self._make_user(**kwargs)
+        self._make_client(**kwargs)

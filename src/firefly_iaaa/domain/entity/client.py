@@ -92,6 +92,9 @@ class Client(ff.AggregateRoot):
     def validate_grant_type(self, grant_type: str):
         return self.grant_type == grant_type or ((self.grant_type in (resource_owner_password_credentials, client_credentials) or (self.grant_type == authorization_code and not self.requires_pkce())) and grant_type == 'refresh_token')
 
+    # def valid_refresh_types(self, grant_type: str):
+    #     return self.grant_type in (authorization_code, resource_owner_password_credentials) and (self.grant_type == grant_type or grant_type == refresh)
+
     def validate_scopes(self, scopes: List[str]):
         if not scopes:
             return False
