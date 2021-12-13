@@ -28,6 +28,8 @@ class ChangePassword(ff.ApplicationService):
         try:
             request_id = kwargs['request_id']
             payload = self._cache.get(request_id)
+            if not payload:
+                raise Exception('Password request is invalid')
             if payload['message'] == 'reset':
                 username = payload['username']
             new_password = kwargs['new_password']
