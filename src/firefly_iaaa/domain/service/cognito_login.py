@@ -76,7 +76,8 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
             resp = client.admin_initiate_auth(
                         UserPoolId=os.environ['USER_POOL_ID'],
                         ClientId=os.environ['CLIENT_ID'],
-                        AuthFlow='ADMIN_USER_PASSWORD_AUTH',
+                        AuthFlow='USER_PASSWORD_AUTH',
+                        # AuthFlow='ADMIN_USER_PASSWORD_AUTH',
                         AuthParameters={
                             'USERNAME': username,
                             'PASSWORD': password,
