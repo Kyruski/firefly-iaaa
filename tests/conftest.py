@@ -90,7 +90,7 @@ def auth_service(container, cache, secret, issuer):
 
 @pytest.fixture()
 def secret():
-    return str(base64.b64decode(os.environ['PEM']), "utf-8")
+    return str(base64.b64decode(os.environ['TEST_PEM']), "utf-8")
 
 @pytest.fixture()
 def issuer():
