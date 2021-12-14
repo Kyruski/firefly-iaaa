@@ -74,7 +74,8 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
         try:
             print('b')
             print('RIGHT BEFORE INITIATE AUTH')
-            resp = client.initiate_auth(
+            resp = client.admin_initiate_auth(
+                        UserPool=os.environ['USER_POOL'],
                         ClientId=os.environ['CLIENT_ID'],
                         AuthFlow='USER_PASSWORD_AUTH',
                         AuthParameters={
