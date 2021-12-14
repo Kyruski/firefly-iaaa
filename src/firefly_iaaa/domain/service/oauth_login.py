@@ -20,7 +20,7 @@ import firefly as ff
 import firefly_iaaa.domain as domain
 
 
-class OAuthLogin(ff.DomainService):
+class OAuthLogin(ff.DomainService, ff.LoggerAware):
     _cognito_login: domain.CognitoLogin = None
     _registry: ff.Registry = None
     _oauth_register: domain.OAuthRegister = None
@@ -37,16 +37,15 @@ class OAuthLogin(ff.DomainService):
 
         if found_user:
             passed_in_kwargs['grant_type'] = 'password'
-            print('We found a user, trying to login with password', found_user)
+            self.info('We found a user, trying to login with password')
             if found_user.correct_password(password):
-                print('password correct')
                 passed_in_kwargs = self._set_client_id(found_user, passed_in_kwargs)
                 tokens = self._get_tokens(passed_in_kwargs)
                 resp = [tokens[0], {'tokens': tokens[1], 'user': found_user.generate_scrubbed_user()}]
             else:
                 raise ff.UnauthenticatedError()
         else:
-            print('No user exists, trying Cognito')
+            self.info('No user exists, trying Cognito')
             resp = self._try_cognito(username, password)
         print('RETURNING FROM LOGIN')
         return resp
@@ -58,10 +57,6 @@ class OAuthLogin(ff.DomainService):
             try:
                 resp = self._cognito_login(username, password) #data has tokens and idToken
                 message, error, success, data = resp.values()
-                print('AFTER COGNITO', message)
-                print('AFTER COGNITO', error)
-                print('AFTER COGNITO', success)
-                print('AFTER COGNITO', data)
                 if error:
                     if message:
                         ff.UnauthenticatedError(message)
@@ -71,9 +66,6 @@ class OAuthLogin(ff.DomainService):
                     resp = self._transfer_cognito_user_to_native_user(username, password, data['decoded_id_token'])
                     return resp
             except Exception as e:
-                print('TRYING COGNITO FAILED', e)
-                print('TRYING COGNITO FAILED', e.__dict__)
-                print('TRYING COGNITO FAILED', str(e))
                 raise ff.UnauthenticatedError()
         else:
             raise ff.UnauthenticatedError('Incorrect Password')
@@ -84,7 +76,6 @@ class OAuthLogin(ff.DomainService):
         data['email'] = username
         data['username'] = username
         data['password'] = password
-        print('WE GOT DATA BEFORE ADD', data)
         resp = self._oauth_register(data)
         if resp[1]['tokens']:
             return resp
@@ -92,7 +83,6 @@ class OAuthLogin(ff.DomainService):
 
     def _get_tokens(self, kwargs: dict):
         kwargs = self._set_referer(kwargs)
-        print('SENDING KWARGS TO TOKEN', kwargs)
         resp = self._create_token(kwargs)
         return resp
 
