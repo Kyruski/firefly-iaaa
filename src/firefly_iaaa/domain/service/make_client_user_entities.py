@@ -31,7 +31,6 @@ class MakeClientUserEntities(ff.DomainService):
         user = domain.User.create(
             username=username,
             password=password,
-            tenant=tenant,
             **kwargs
         )
 
