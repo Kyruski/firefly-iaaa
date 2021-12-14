@@ -34,13 +34,11 @@ class MakeClientUserEntities(ff.DomainService):
             **kwargs
         )
 
-        params = self._make_params(user, tenant, username, kwargs)
-
+        kwargs['client_id'] = user.sub
         kwargs['name'] = kwargs.get('name', tenant_name)
-        client = domain.Client.create(
-            **params,
-            **kwargs
-        )
+        kwargs = self._make_params(user, username, kwargs)
+
+        client = domain.Client.create(**kwargs)
 
         role = self._registry(domain.Role).find('fad2cf43-01df-44a1-bef4-0446d066e0bc')
         user.add_role(role)
@@ -50,41 +48,37 @@ class MakeClientUserEntities(ff.DomainService):
         self._registry(domain.User).append(user)
         self._registry(domain.Client).append(client)
 
-    def _make_params(self, user: domain.User, tenant: domain.Tenant, username: str, kwargs: dict):
-        params = { 
-            'client_id': user.sub,
-            'name': username,
-            'tenant': tenant,
-        }
+    def _make_params(self, kwargs: dict):
+
         self._validate_base_params(kwargs)
         grant_type = kwargs['grant_type']
         if grant_type == 'authorization_code':
-            params = self._add_auth_code_params(params, kwargs, False)
+            kwargs = self._add_auth_code_params(kwargs, False)
         elif grant_type == 'authorization_code_w_pkce':
-            params = self._add_auth_code_params(params, kwargs)
+            kwargs = self._add_auth_code_params(kwargs)
             kwargs['grant_type'] = 'authorization_code'
         elif grant_type == 'implicit':
-            params = self._add_auth_code_params(params, kwargs)
-            params['allowed_response_types'] = 'token'
+            kwargs = self._add_auth_code_params(kwargs)
+            kwargs['allowed_response_types'] = 'token'
         elif grant_type == 'client_secret':
-            params['client_secret'] = str(uuid.uuid4())
+            kwargs['client_secret'] = str(uuid.uuid4())
         elif grant_type != 'password':
             raise Exception('Invalid grant type')
 
-        return params
+        return kwargs
 
     def _validate_base_params(self, kwargs: dict):
         fields = ['scopes', 'grant_type']
         self._check_kwargs_for_fields(fields, kwargs)
 
-    def _add_auth_code_params(self, params: dict, kwargs: dict, uses_pkce: bool = True):
+    def _add_auth_code_params(self, kwargs: dict, uses_pkce: bool = True):
         fields = ['default_redirect_uri', 'redirect_uri']
         self._check_kwargs_for_fields(fields, kwargs)
-        params.update({
+        kwargs.update({
             'allowed_response_types': 'code',
             'uses_pkce': uses_pkce,
         })
-        return params
+        return kwargs
 
     def _check_kwargs_for_fields(self, fields, kwargs):
         for field in fields:
