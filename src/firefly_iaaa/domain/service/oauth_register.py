@@ -22,11 +22,12 @@ import firefly_iaaa.domain as domain
 class OAuthRegister(ff.DomainService):
     _oauth_login: domain.OAuthLogin = None
     _registry: ff.Registry = None
-    _make_user: domain.MakeUser = None
+    _make_user: domain.MakeClientUserEntities = None
 
     def __call__(self, passed_in_kwargs: dict):
         self.info('Registering User')
         username = passed_in_kwargs['username']
+        print('aaaaaaaaaaaaaaaa', self._registry)
         try:
             found_user = self._registry(domain.User).find(lambda x: x.email == username)
         except ClientError as e:

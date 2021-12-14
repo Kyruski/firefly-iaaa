@@ -39,15 +39,6 @@ client_credentials = 'client_credentials'
 refresh = 'refresh_token'
 
 
-def response_type_choices(client_dto: dict):
-    if client_dto['grant_type'] == authorization_code:
-        return 'code token', 'code id_token', 'code token id_token'
-    if client_dto['grant_type'] == implicit:
-        return 'id_token token', 'id_token'
-
-    return ()
-
-
 class Client(ff.AggregateRoot):
     id: str = ff.id_() 
     client_id: str = ff.optional(validators=[ff.HasLength(36)], index=True) # Needs to have 'client_id', should eb same as sub if user/cleint combo

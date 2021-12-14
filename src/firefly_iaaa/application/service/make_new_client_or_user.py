@@ -13,15 +13,14 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import List
 
 import firefly as ff
 import firefly_iaaa.domain as domain
 
 
 @ff.command_handler()
-class MakeUserEntities(ff.ApplicationService):
-    _make_user: domain.MakeUser = None
+class MakeNewClientOrUser(ff.ApplicationService):
+    _make_entities: domain.MakeClientUserEntities = None
 
     def __call__(self, **kwargs):
-        self._make_user(**kwargs)
+        self._make_entities(**kwargs)

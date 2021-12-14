@@ -12,7 +12,7 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from .make_user_entities import MakeUserEntities
 from .add_role_to_user import AddRoleToUser
 from .get_token_access_rights import *
+from .make_new_client_or_user import MakeNewClientOrUser
 from .remove_role_from_user import RemoveRoleFromUser
