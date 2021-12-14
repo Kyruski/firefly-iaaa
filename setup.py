@@ -34,6 +34,7 @@ setuptools.setup(
         'botocore @ git+https://github.com/Kyruski/botocore.git@debugging',
         'PyJWT[crypto]>=2.1.0',
         'oauthlib>=3.1.1',
+        'cognitojwt>=1.2.2',
     ],
     extras_require={
         'AWS Cognito Support': ['firefly-aws>=1.1.0'],
