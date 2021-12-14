@@ -73,11 +73,9 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
         print('a')
         try:
             print('b')
-            resp = client.admin_initiate_auth(
-                        UserPoolId=os.environ['USER_POOL_ID'],
+            resp = client.initiate_auth(
                         ClientId=os.environ['CLIENT_ID'],
                         AuthFlow='USER_PASSWORD_AUTH',
-                        # AuthFlow='ADMIN_USER_PASSWORD_AUTH',
                         AuthParameters={
                             'USERNAME': username,
                             'PASSWORD': password,
@@ -86,6 +84,18 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
                         'username': username,
                         'password': password,
                     })
+            # resp = client.admin_initiate_auth(
+            #             UserPoolId=os.environ['USER_POOL_ID'],
+            #             ClientId=os.environ['CLIENT_ID'],
+            #             AuthFlow='ADMIN_USER_PASSWORD_AUTH',
+            #             AuthParameters={
+            #                 'USERNAME': username,
+            #                 'PASSWORD': password,
+            #             },
+            #             ClientMetadata={
+            #             'username': username,
+            #             'password': password,
+            #         })
             print('c')
         except client.exceptions.NotAuthorizedException:
             print('d')
