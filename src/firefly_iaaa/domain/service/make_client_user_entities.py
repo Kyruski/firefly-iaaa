@@ -62,7 +62,13 @@ class MakeClientUserEntities(ff.DomainService):
             kwargs['allowed_response_types'] = 'token'
         elif grant_type == 'client_secret':
             kwargs['client_secret'] = str(uuid.uuid4())
-        elif grant_type != 'password':
+        elif grant_type == 'password':
+            name = kwargs['name']
+            if name.startswith('user_tenant'):
+                name = name[11:]
+            kwargs['name'] = f'user_client_{name}'
+
+        else:
             raise Exception('Invalid grant type')
 
         return kwargs
