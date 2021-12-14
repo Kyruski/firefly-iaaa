@@ -41,3 +41,5 @@ class Container(di.Container):
     message_factory: ff.MessageFactory = ff.MessageFactory
     secret_key: str = lambda x: secret_key_setter()
     subdomain: str = lambda x: 'staging-connected-sports' #!! CHANGE AT FINISH
+    region: str = lambda x: os.environ.get('REGION')
+    user_pool_id: str = lambda x: os.environ.get('USER_POOL_ID')

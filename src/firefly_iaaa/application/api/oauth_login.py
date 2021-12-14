@@ -36,6 +36,7 @@ class OAuthLogin(GenericOauthIamEndpoint):
             raise Exception('Missing username/password')
 
         resp = self._oauth_login(kwargs)
+        print(resp)
         print('WE GOT HEADERS', resp[0])
         print('WE GOT BODY', resp[1])
         # if not body.get('tokens'):

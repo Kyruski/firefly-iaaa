@@ -20,15 +20,16 @@ import firefly as ff
 from firefly import domain as ffd
 import boto3
 
-import firefly_aws.domain as domain
+import firefly_aws.infrastructure as infra
 
 
 class CognitoLogin(ff.DomainService, ff.LoggerAware):
-    _jwt_decoder: domain.JwtDecoder = None
+    _jwt_decoder: infra.CognitoJwtDecoder = None
     _kernel: ffd.Kernel = None
     _user_pool: str = None
     _client_id: str = None
     _client_secret: str = None
+
 
     def __call__(self, username: str, password: str):
         client = boto3.client('cognito-idp')
@@ -45,11 +46,11 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
         print('aaaa', msg)
         if msg != None:
             return {'message': msg, 
-                    'error': True, 'success': False, 'data': None}
+                    'error': 'No user exists', 'success': False, 'data': None}
         if resp.get('AuthenticationResult'):
             return {
                 'message': 'success', 
-                'error': False, 
+                'error': '',
                 'success': True, 
                 'data': {
                     'id_token': resp['AuthenticationResult']['IdToken'],
@@ -62,10 +63,10 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
             }
         else:
             return {
-                'error': True, 
+                'error': 'Something went wrong, no authentication results', 
                 'success': False, 
                 'data': None,
-                'message': None
+                'message': 'error'
             }
 
 

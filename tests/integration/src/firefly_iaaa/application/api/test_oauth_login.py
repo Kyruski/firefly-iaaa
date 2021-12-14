@@ -30,7 +30,7 @@ async def test_oauth_login_endpoint(client, registry, bearer_messages: List[ff.M
     resp = json.loads(await fourth_response.text())
     assert resp['message'] == 'success'
 
-    
+
     data['password'] = 'wrong password'
     fifth_response = await client.post('/firefly-iaaa/iaaa/login', data=json.dumps(data), headers={'Referer': 'abc'})
     assert fifth_response.status == 403
