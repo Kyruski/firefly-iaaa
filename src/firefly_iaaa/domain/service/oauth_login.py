@@ -84,6 +84,7 @@ class OAuthLogin(ff.DomainService):
         data['email'] = username
         data['username'] = username
         data['password'] = password
+        print('WE GOT DATA BEFORE ADD', data)
         resp = self._oauth_register(data)
         if resp[1]['tokens']:
             return resp

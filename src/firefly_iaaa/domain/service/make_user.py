@@ -24,11 +24,12 @@ class MakeUser(ff.DomainService):
     _registry: ff.Registry = None
 
     def __call__(self, username: str, password: str, tenant_name: str, grant_type: str, scopes: List = [], **kwargs):
+        print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', kwargs)
+        kwargs['email'] = kwargs.get('email', username)
         tenant = domain.Tenant(
             name=tenant_name
         )
         user = domain.User.create(
-            email=username,
             password=password,
             tenant=tenant,
             **kwargs

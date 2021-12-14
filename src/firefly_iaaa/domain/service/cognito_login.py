@@ -25,8 +25,6 @@ import jwt
 
 class CognitoLogin(ff.DomainService, ff.LoggerAware):
     _kernel: ffd.Kernel = None
-    _client_id: str = None
-    _client_secret: str = None
 
 
     def __call__(self, username: str, password: str):
