@@ -20,11 +20,10 @@ import firefly as ff
 from firefly import domain as ffd
 import boto3
 
-import firefly_aws.infrastructure as infra
+import jwt
 
 
 class CognitoLogin(ff.DomainService, ff.LoggerAware):
-    _jwt_decoder: infra.CognitoJwtDecoder = None
     _kernel: ffd.Kernel = None
     _user_pool: str = None
     _client_id: str = None
@@ -58,7 +57,7 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
                     'access_token': resp['AuthenticationResult']['AccessToken'],
                     'expires_in': resp['AuthenticationResult']['ExpiresIn'],
                     'token_type': resp['AuthenticationResult']['TokenType'],
-                    'decoded_id_token': self._jwt_decoder.decode(resp['AuthenticationResult']['IdToken'])
+                    'decoded_id_token': self._decode_token(resp['AuthenticationResult']['IdToken'])
                 }
             }
         else:
@@ -101,3 +100,7 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
             return None, e.__str__()
         print('g')
         return resp, None
+
+    def _decode_token(self, token: str):
+        # data = token.split('.')[1]
+        return jwt.decode(token, options={"verify_signature": False})
