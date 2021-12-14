@@ -73,7 +73,7 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
         print('a')
         try:
             print('b')
-            print('RIGHT BEFORE INITIATE AUTH')
+            print('RIGHT BEFORE INITIATE AUTH', os.environ)
             resp = client.admin_initiate_auth(
                         UserPool=os.environ['USER_POOL'],
                         ClientId=os.environ['CLIENT_ID'],
@@ -95,7 +95,7 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
             return None, 'User is not confirmed'
         except Exception as e:
             print('f', e.__str__())
-            print('f', e)
+            print('f', e.__dict__)
             return None, e.__str__()
         print('g')
         return resp, None
