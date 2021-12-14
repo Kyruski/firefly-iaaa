@@ -36,7 +36,7 @@ class MakeClientUserEntities(ff.DomainService):
 
         kwargs['client_id'] = user.sub
         kwargs['name'] = kwargs.get('name', tenant_name)
-        kwargs = self._make_params(user, username, kwargs)
+        kwargs = self._make_params(kwargs)
 
         client = domain.Client.create(**kwargs)
 
