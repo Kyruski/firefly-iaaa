@@ -83,10 +83,9 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
         return headers, body, status
 
     def create_token_response(self, request: ff.Message):
-        print('WE HAVE REQUEST', request)
-        print('WE HAVE REQUEST', request.__dict__)
+
         uri, http_method, body, headers = self._get_request_params(request)
-        print('WE HAVE ITEMS', uri, http_method, body, headers)
+
         headers, body, status = self._server.create_token_response(uri, http_method, body, headers)
         return headers, body, status
 
@@ -131,9 +130,6 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
 
     @staticmethod
     def _get_request_params(request: ff.Message):
-        print('MAKING PARAMS', request)
-        print('MAKING PARAMS', request.__dict__)
-        print('MAKING PARAMS', request.headers)
         uri = request.headers.get('Origin') or request.headers.get('origin') or request.headers.get('Referer') or request.headers.get('uri')
         http_method = request.headers.get('method') or request.headers.get('http_method')
         body = request.to_dict()

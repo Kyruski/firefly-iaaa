@@ -26,19 +26,15 @@ class OAuthRegister(ff.DomainService):
 
     def __call__(self, passed_in_kwargs: dict):
         self.info('Registering User')
-        print('KWARGS coming into OauthRegister domain', passed_in_kwargs)
         username = passed_in_kwargs['username']
         try:
             found_user = self._registry(domain.User).find(lambda x: x.email == username)
         except ClientError as e:
-            print('WE GOT E', e.__dict__)
             if e.response['Error']['Code'] == 'BadRequestException':
                 if 'syntax error at or near ")"' in str(e):
                     return {'message': 'error','error': 'User already exists'}
             raise e
-        print('DEBUGGING', found_user)
         if found_user:
-            print('WE FOUND USER, ENDING REQUEST')
             return {'message': 'error','error': 'User already exists'}
 
         passed_in_kwargs.update({
@@ -47,5 +43,5 @@ class OAuthRegister(ff.DomainService):
             'scopes': ['full_access']
         })
         self._make_user(**passed_in_kwargs)
-        print('SENDING KWARGS TO OAUTHLOGIN', passed_in_kwargs)
+
         return self._oauth_login(passed_in_kwargs)
