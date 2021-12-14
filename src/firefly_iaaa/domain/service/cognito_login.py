@@ -77,7 +77,7 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
             resp = client.admin_initiate_auth(
                         UserPoolId=os.environ['USER_POOL_ID'],
                         ClientId=os.environ['CLIENT_ID'],
-                        AuthFlow='USER_PASSWORD_AUTH',
+                        AuthFlow='ADMIN_NO_SRP_AUTH',
                         AuthParameters={
                             'USERNAME': username,
                             'PASSWORD': password,
@@ -93,6 +93,8 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
         except client.exceptions.UserNotConfirmedException:
             print('e')
             return None, 'User is not confirmed'
+        except KeyError as e:
+            return None, f'Key Error: {e.__str__()}'
         except Exception as e:
             print('f', e.__str__())
             print('f', e.__dict__)
