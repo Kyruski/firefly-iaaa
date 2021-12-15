@@ -28,13 +28,20 @@ class GenericOauthEndpoint(ff.ApplicationService):
             if data:
                 message['data'] = data
             message = ff.Envelope.wrap(message)
-
+        print('AFDGMDFSMGSDMF', message)
         if headers:
+            print('headers', headers)
             message = message.set_raw_request(headers)
+            print('WE GOT headers', message)
         if forwarding_address:
+            print('forwarding_address', forwarding_address)
             message = message.add_forwarding_address(forwarding_address)
+            print('WE GOT forwarding', message)
         if cookies:
+            print('cookies', cookies)
             message = message.set_cookies(cookies)
+            print('WE GOT cookies', message)
+        print('WE GOT MESSAGE', message)
         return message
 
     def _fix_email(self, kwargs):
