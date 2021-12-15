@@ -62,7 +62,7 @@ class OauthProvider(ff.DomainService):
         scopes, credentials = self._server.validate_authorization_request(uri, http_method, body, headers)
 
         credentials_key = str(uuid.uuid4())
-        credentials['request'] = self.scrub_sensitive_data(credentials['request'])
+        credentials = self._break_down_credentials(credentials)
         
         print('BEFORE SET CACHE', credentials)
         print('BEFORE SET CACHE', credentials_key)
@@ -80,7 +80,7 @@ class OauthProvider(ff.DomainService):
         if not credentials:
             return None, None, None
 
-        credentials['request'] = self._add_entities_to_credentials(credentials['request'])
+        credentials = self._build_up_credentials(credentials)
         
         if not request.scopes:
             return None, None, None
@@ -168,6 +168,21 @@ class OauthProvider(ff.DomainService):
             except (KeyError, TypeError):
                 pass
         return request
+
+    def _break_down_credentials(self, credentials):
+        credentials['request'] = self.scrub_sensitive_data(credentials['request']).__dict__
+        return credentials
+
+    def _build_up_credentials(self, credentials):
+        values = ('uri', 'http_method', 'body', 'headers')
+        uri, http_method, body, headers, = credentials['request'].values()
+        request = Request(uri, http_method, body, headers)
+        for k, v in credentials['request']:
+            if k not in values:
+                setattr(request, k, v)
+        credentials['request'] = self._add_entities_to_credentials(request)
+
+        return credentials
 
     def _add_entities_to_credentials(self, request: Request):
         try:
