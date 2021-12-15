@@ -20,7 +20,7 @@ import firefly_iaaa.domain as domain
 
 
 @ff.rest('/iaaa/make-clients', method='POST', tags=['public'], secured=False)
-class HiddenMakeClients(GenericOauthIamEndpoint):
+class MakeBaseClients(GenericOauthIamEndpoint):
     _make_user: domain.MakeClientUserEntities = None
 
     def __call__(self, **kwargs):
