@@ -5,8 +5,8 @@ import urllib
 import firefly_iaaa.domain as domain
 from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
 
-
-@ff.rest('/iaaa/authorize', method='GET', tags=['public'])
+#! Secured?
+@ff.rest('/iaaa/authorize', method='GET', tags=['public'], secured=False)
 class OauthAuthorizationRequestService(GenericOauthEndpoint):
     _registry: ff.Registry = None
     _subdomain: str = None
@@ -73,8 +73,10 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
             redirect_url += f'{k}={val}&'
         return redirect_url[0:-1]
 
+
+#! Secured?
 @ff.rest(
-    '/iaaa/authorize', method='POST', tags=['public']
+    '/iaaa/authorize', method='POST', tags=['public'], secured=False
 )
 class OauthCreateAuthorizationService(GenericOauthEndpoint):
 
