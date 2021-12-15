@@ -45,13 +45,16 @@ async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: 
     scopes = params['scopes'][0].strip('][').split(', ')
     assert 'credentials_key' in params
     credentials_key = params['credentials_key'][0]
+    assert 'redirect_uri' in params
+    redirect_uri = params['redirect_uri'][0]
 
 
-
+    print('aaaaaaaaaaaaaaaaaaaa', redirect_uri)
     # missing credentials key
     data = {
         'client_id': client_id,
         'scopes': [scopes[0]],
+        'redirect_uri': redirect_uri,
     }
 
 

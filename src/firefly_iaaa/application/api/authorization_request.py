@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import firefly as ff
 import urllib
+import ast
+import base64
 import firefly_iaaa.domain as domain
 from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndpoint
 
@@ -51,7 +53,6 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
 
 
     def _make_local_response(self, scopes, credentials, credentials_key):
-        print('aaaaaaaaa', credentials)
         cohort_name = self._get_cohort_name(credentials['request']['body'].get('cohort_id'))
         resp = {
             'redirect_uri': credentials.get('redirect_uri'),
@@ -72,6 +73,8 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
         for k, v in resp.items():
             if not v:
                 continue
+            if k == 'redirect_uri':
+                v = base64.b64encode(v.encode('utf-8'))
             val = urllib.parse.quote(str(v), safe='')
             redirect_url += f'{k}={val}&'
         return redirect_url[0:-1]
@@ -96,10 +99,11 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
 
     def _make_message(self, incoming_kwargs: dict):
         headers = self._add_method_to_headers(incoming_kwargs)
+        redirect_uri = self._get_redirect_uri(incoming_kwargs)
         message_body = {
             'headers': headers,
             'state': incoming_kwargs.get('state'),
-            'redirect_uri': incoming_kwargs.get('redirect_uri'),
+            'redirect_uri': redirect_uri,
             'client_id': incoming_kwargs.get('client_id'),
             'scopes': incoming_kwargs.get('scopes'),
             'credentials_key': incoming_kwargs.get('credentials_key'),
@@ -111,3 +115,12 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
             name='OauthCreateAuthorizationMessage',
             data=message_body
         )
+
+    @staticmethod
+    def _get_redirect_uri(incoming_kwargs: dict):
+        redirect_uri = incoming_kwargs.get('redirect_uri')
+        if not redirect_uri:
+            raise ff.UnauthorizedError('Missing redirect_uri')
+        redirect_uri = urllib.parse.unquote(redirect_uri)
+        redirect_uri = base64.b64decode(ast.literal_eval(redirect_uri))
+        return redirect_uri.decode('utf-8')
