@@ -82,9 +82,6 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
 
     def __call__(self, **kwargs):
         kwargs = self._fix_email(kwargs)
-        if kwargs.get('username'):
-            kwargs['username'] = kwargs['username'].lower()
-        kwargs['email'] = kwargs.get('email', kwargs.get('username')).lower()
         message = self._make_message(kwargs) #! check more
         headers, body, status = self._oauth_provider.validate_post_auth_request(message)
 

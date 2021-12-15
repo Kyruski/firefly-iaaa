@@ -11,7 +11,7 @@ from .conftest import set_kernel_user
 async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: List[ff.Message]):
     data = {
             'client_id': bearer_messages[0]['active'].client_id,
-            'username': bearer_messages[0]['active'].username,
+            # 'username': bearer_messages[0]['active'].username,
             'state': bearer_messages[0]['active'].state,
     }
     set_kernel_user(registry, kernel, bearer_messages[0]['active'])
@@ -23,7 +23,7 @@ async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: 
     second_response = await client.get('/firefly-iaaa/iaaa/authorize', params=data, headers={'Referer': 'abc'})
     assert second_response.status == 500
 
-    data['password'] = bearer_messages[0]['active'].password
+    # data['password'] = bearer_messages[0]['active'].password
     third_response = await client.get('/firefly-iaaa/iaaa/authorize', params=data, headers={'Referer': 'abc'})
     assert third_response.status == 500
 
