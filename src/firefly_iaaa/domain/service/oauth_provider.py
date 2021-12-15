@@ -62,11 +62,11 @@ class OauthProvider(ff.DomainService):
         scopes, credentials = self._server.validate_authorization_request(uri, http_method, body, headers)
 
         credentials_key = str(uuid.uuid4())
+        credentials['request'] = self.scrub_sensitive_data(credentials['request'])
+        
         print('BEFORE SET CACHE', credentials)
         print('BEFORE SET CACHE', credentials_key)
         print('BEFORE SET CACHE', credentials['request'].__dict__)
-        
-        credentials['request'] = self.scrub_sensitive_data(credentials['request'])
         self._cache.set(credentials_key, value=credentials, ttl=180)
         return scopes, credentials, credentials_key
 
