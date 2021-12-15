@@ -18,6 +18,7 @@ from typing import KeysView
 import uuid
 
 import firefly as ff
+from firefly_iaaa import domain
 import jwt
 from oauthlib.oauth2 import Server
 from oauthlib.common import Request
@@ -25,10 +26,11 @@ from oauthlib.common import Request
 from .request_validator import OauthRequestValidators
 
 
-class OauthProvider(ff.DomainService): #does this need to inherit?
+class OauthProvider(ff.DomainService):
     _cache: ff.Cache = None
     _secret_key: str = None
     _issuer: str = None
+    _registry: ff.Registry = None
 
     def __init__(self, validator: OauthRequestValidators):
         # with open(os.environ['PEM'], 'rb') as privatefile:
@@ -63,8 +65,9 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
         print('BEFORE SET CACHE', credentials)
         print('BEFORE SET CACHE', credentials_key)
         print('BEFORE SET CACHE', credentials['request'].__dict__)
-        self._cache.set(credentials_key, value=credentials, ttl=180)
+        
         credentials['request'] = self.scrub_sensitive_data(credentials['request'])
+        self._cache.set(credentials_key, value=credentials, ttl=180)
         return scopes, credentials, credentials_key
 
     def validate_post_auth_request(self, request: ff.Message):
@@ -76,6 +79,8 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
         credentials = self._cache.get(credentials_key)
         if not credentials:
             return None, None, None
+
+        credentials['request'] = self._add_entities_to_credentials(credentials['request'])
         
         if not request.scopes:
             return None, None, None
@@ -153,6 +158,43 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
         except AttributeError:
             try:
                 request['user'] = request['user'].generate_scrubbed_user()
+            except (KeyError, TypeError):
+                pass
+        try:
+            request.tenant = request.tenant.id
+        except AttributeError:
+            try:
+                request['tenant'] = request['tenant'].id
+            except (KeyError, TypeError):
+                pass
+        return request
+
+    def _add_entities_to_credentials(self, request: Request):
+        try:
+            client = self._registry(domain.Client).find(lambda x: x.client_id == request.client['client_id'])
+            request.client = client
+        except AttributeError:
+            try:
+                client = self._registry(domain.Client).find(lambda x: x.client_id == request['client']['client_id'])
+                request['client'] = client
+            except (KeyError, TypeError):
+                pass
+        try:
+            user = self._registry(domain.User).find(lambda x: x.sub == request.user['sub'])
+            request.user = user
+        except AttributeError:
+            try:
+                user = self._registry(domain.User).find(lambda x: x.sub == request['user']['sub'])
+                request['user'] = user
+            except (KeyError, TypeError):
+                pass
+        try:
+            tenant = self._registry(domain.Tenant).find(lambda x: x.id == request.tenant)
+            request.tenant = tenant
+        except AttributeError:
+            try:
+                tenant = self._registry(domain.Tenant).find(lambda x: x.id == request['tenant'])
+                request['tenant'] = tenant
             except (KeyError, TypeError):
                 pass
         return request
