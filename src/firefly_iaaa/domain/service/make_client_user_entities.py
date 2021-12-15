@@ -60,7 +60,7 @@ class MakeClientUserEntities(ff.DomainService):
         elif grant_type == 'implicit':
             kwargs = self._add_auth_code_params(kwargs)
             kwargs['allowed_response_types'] = 'token'
-        elif grant_type == 'client_secret':
+        elif grant_type == 'client_credentials':
             kwargs['client_secret'] = str(uuid.uuid4())
         elif grant_type == 'password':
             name = kwargs['name']
@@ -78,7 +78,7 @@ class MakeClientUserEntities(ff.DomainService):
         self._check_kwargs_for_fields(fields, kwargs)
 
     def _add_auth_code_params(self, kwargs: dict, uses_pkce: bool = True):
-        fields = ['default_redirect_uri', 'redirect_uri']
+        fields = ['default_redirect_uri', 'redirect_uris']
         self._check_kwargs_for_fields(fields, kwargs)
         kwargs.update({
             'allowed_response_types': 'code',
