@@ -139,7 +139,8 @@ class OauthProvider(ff.DomainService):
     def _get_request_params(request: ff.Message):
         uri = request.headers.get('Origin') or request.headers.get('origin') or request.headers.get('Referer') or request.headers.get('uri') or 'ABC'
         if not uri:
-            raise Exception('No Origin detected on request')
+            uri = 'ABC'
+            # raise Exception('No Origin detected on request')
         http_method = request.headers.get('method') or request.headers.get('http_method')
         body = request.to_dict()
         headers = request.headers
