@@ -60,7 +60,7 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
             'scopes': scopes,
             'credentials_key': credentials_key,
             'response_type': credentials.get('response_type'),
-            'client_info': {'tenant': credentials['request']['client']['tenant_name'], 'cohort': cohort_name or ''}
+            'client': {'tenant': credentials['request']['client']['tenant_name'], 'cohort': cohort_name or ''}
         }
         if 'code_challenge' in credentials:
             resp['code_challenge'] = credentials['code_challenge']
@@ -75,7 +75,6 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
                 continue
             if k == 'redirect_uri':
                 v = base64.b64encode(v.encode('utf-8'))
-                k = 'redirect_url'
             val = urllib.parse.quote(str(v), safe='')
             redirect_url += f'{k}={val}&'
         return redirect_url[0:-1]
@@ -119,7 +118,7 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
 
     @staticmethod
     def _get_redirect_uri(incoming_kwargs: dict):
-        redirect_uri = incoming_kwargs.get('redirect_url')
+        redirect_uri = incoming_kwargs.get('redirect_uri')
         if not redirect_uri:
             raise ff.UnauthorizedError('Missing redirect_uri')
         redirect_uri = urllib.parse.unquote(redirect_uri)
