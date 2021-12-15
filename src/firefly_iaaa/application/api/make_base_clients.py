@@ -52,7 +52,7 @@ class MakeBaseClients(GenericOauthIamEndpoint):
             'grant_type': 'client_credentials',
             'scopes': ['full-access', 'limited_access', 'anonymous'],
         }
-        self._make_user(auth_no_pkce)
-        self._make_user(pkce)
-        self._make_user(client_cred)
+        self._make_user(**auth_no_pkce)
+        self._make_user(**pkce)
+        self._make_user(**client_cred)
         return True
