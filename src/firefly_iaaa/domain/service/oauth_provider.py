@@ -151,8 +151,13 @@ class OauthProvider(ff.DomainService):
         return credentials
 
     def _build_up_credentials(self, credentials):
+        print('WE GOT CREDENTIALS', credentials)
         values = ('uri', 'http_method', 'body', 'headers')
         uri, http_method, body, headers, *_ = credentials['request'].values()
+        print('uri', type(uri), uri)
+        print('http_method', type(http_method), http_method)
+        print('body', type(body), body)
+        print('headers', type(headers), headers)
         request = Request(uri, http_method, body, headers)
         print(type(credentials['request']))
         print(credentials['request'])
