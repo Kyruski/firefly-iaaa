@@ -60,6 +60,8 @@ class OauthProvider(ff.DomainService): #does this need to inherit?
         scopes, credentials = self._server.validate_authorization_request(uri, http_method, body, headers)
 
         credentials_key = str(uuid.uuid4())
+        print('BEFORE SET CACHE', credentials)
+        print('BEFORE SET CACHE', credentials_key)
         self._cache.set(credentials_key, value=credentials, ttl=180)
         credentials['request'] = self.scrub_sensitive_data(credentials['request'])
         return scopes, credentials, credentials_key
