@@ -70,7 +70,7 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
         redirect_url = f'https://{self._subdomain}.pwrlab.com/authorize?' #!!!!
 
         for k, v in resp.items():
-            if v is None:
+            if not v:
                 continue
             val = urllib.parse.quote(str(v), safe='')
             redirect_url += f'{k}={val}&'
