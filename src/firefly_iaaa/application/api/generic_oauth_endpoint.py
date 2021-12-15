@@ -40,5 +40,7 @@ class GenericOauthEndpoint(ff.ApplicationService):
     def _fix_email(self, kwargs):
         if kwargs.get('username'):
             kwargs['username'] = kwargs['username'].lower()
-        kwargs['email'] = kwargs.get('email', kwargs.get('username')).lower()
+        email = kwargs.get('email', kwargs.get('username'))
+        if email:
+            kwargs['email'] = email.lower()
         return kwargs
