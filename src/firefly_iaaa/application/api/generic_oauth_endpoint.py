@@ -29,6 +29,10 @@ class GenericOauthEndpoint(ff.ApplicationService):
                 message['data'] = data
             message = ff.Envelope.wrap(message)
         print('AFDGMDFSMGSDMF', message)
+        print('AFDGMDFSMGSDMF', data)
+        print('AFDGMDFSMGSDMF', headers)
+        print('AFDGMDFSMGSDMF', forwarding_address)
+        print('AFDGMDFSMGSDMF', cookies)
         if headers:
             print('headers', headers)
             message = message.set_raw_request(headers)

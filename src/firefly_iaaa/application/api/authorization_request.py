@@ -90,7 +90,7 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         kwargs = self._fix_email(kwargs)
         message = self._make_message(kwargs) #! check more
         headers, body, status = self._oauth_provider.validate_post_auth_request(message)
-
+        print('BODY', body)
         if not headers and not body and not status:
             raise ff.UnauthorizedError()
 
