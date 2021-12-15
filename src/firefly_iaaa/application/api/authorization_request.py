@@ -51,14 +51,15 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
 
 
     def _make_local_response(self, scopes, credentials, credentials_key):
-        cohort_name = self._get_cohort_name(credentials['request'].body.get('cohort_id'))
+        print('aaaaaaaaa', credentials)
+        cohort_name = self._get_cohort_name(credentials['request']['body'].get('cohort_id'))
         resp = {
             'redirect_uri': credentials.get('redirect_uri'),
             'client_id': credentials.get('client_id'),
             'scopes': scopes,
             'credentials_key': credentials_key,
             'response_type': credentials.get('response_type'),
-            'client': {'tenant': credentials['request'].client['tenant_name'], 'cohort': cohort_name or ''}
+            'client': {'tenant': credentials['request']['client']['tenant_name'], 'cohort': cohort_name or ''}
         }
         if 'code_challenge' in credentials:
             resp['code_challenge'] = credentials['code_challenge']

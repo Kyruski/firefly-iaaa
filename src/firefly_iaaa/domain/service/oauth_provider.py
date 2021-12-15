@@ -66,7 +66,6 @@ class OauthProvider(ff.DomainService):
         
         print('BEFORE SET CACHE', credentials)
         print('BEFORE SET CACHE', credentials_key)
-        print('BEFORE SET CACHE', credentials['request'].__dict__)
         self._cache.set(credentials_key, value=credentials, ttl=180)
         return scopes, credentials, credentials_key
 
@@ -144,6 +143,23 @@ class OauthProvider(ff.DomainService):
         headers = request.headers
         return uri, http_method, body, headers
 
+    def _break_down_credentials(self, credentials):
+        credentials['request'] = self.scrub_sensitive_data(credentials['request']).__dict__
+        return credentials
+
+    def _build_up_credentials(self, credentials):
+        values = ('uri', 'http_method', 'body', 'headers')
+        uri, http_method, body, headers, *_ = credentials['request'].values()
+        request = Request(uri, http_method, body, headers)
+        print(type(credentials['request']))
+        print(credentials['request'])
+        for k, v in credentials['request'].items():
+            if k not in values:
+                setattr(request, k, v)
+        credentials['request'] = self._add_entities_to_credentials(request)
+
+        return credentials
+
     @staticmethod
     def scrub_sensitive_data(request: Request):
         try:
@@ -169,21 +185,6 @@ class OauthProvider(ff.DomainService):
                 pass
         return request
 
-    def _break_down_credentials(self, credentials):
-        credentials['request'] = self.scrub_sensitive_data(credentials['request']).__dict__
-        return credentials
-
-    def _build_up_credentials(self, credentials):
-        values = ('uri', 'http_method', 'body', 'headers')
-        uri, http_method, body, headers, = credentials['request'].values()
-        request = Request(uri, http_method, body, headers)
-        for k, v in credentials['request']:
-            if k not in values:
-                setattr(request, k, v)
-        credentials['request'] = self._add_entities_to_credentials(request)
-
-        return credentials
-
     def _add_entities_to_credentials(self, request: Request):
         try:
             client = self._registry(domain.Client).find(lambda x: x.client_id == request.client['client_id'])
@@ -197,7 +198,7 @@ class OauthProvider(ff.DomainService):
         try:
             user = self._registry(domain.User).find(lambda x: x.sub == request.user['sub'])
             request.user = user
-        except AttributeError:
+        except (AttributeError, TypeError):
             try:
                 user = self._registry(domain.User).find(lambda x: x.sub == request['user']['sub'])
                 request['user'] = user
@@ -206,7 +207,7 @@ class OauthProvider(ff.DomainService):
         try:
             tenant = self._registry(domain.Tenant).find(lambda x: x.id == request.tenant)
             request.tenant = tenant
-        except AttributeError:
+        except (AttributeError, TypeError):
             try:
                 tenant = self._registry(domain.Tenant).find(lambda x: x.id == request['tenant'])
                 request['tenant'] = tenant
