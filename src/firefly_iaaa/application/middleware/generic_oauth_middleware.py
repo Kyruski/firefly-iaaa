@@ -35,7 +35,9 @@ class GenericOauthMiddleware(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
         return None
 
     def _fix_email(self, message):
-        if message.username:
+        if hasattr(message, 'email'):
+            message.email = message.email.lower()
+        if hasattr(message, 'username'):
             message.username = message.username.lower()
-        message.email = (message.email or message.username).lower()
+            message.email = message.email if hasattr(message, 'email') else message.username
         return message
