@@ -24,6 +24,7 @@ class AuthorizeRequest(GenericOauthMiddleware):
 
     def handle(self, message: ff.Message):
         token = None
+        message = self._fix_email(message)
         try:
             if not message.access_token:
                 token = self._get_token()

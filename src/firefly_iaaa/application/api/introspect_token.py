@@ -11,6 +11,7 @@ from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndp
 class OauthTokenIntrospectionService(GenericOauthEndpoint):
 
     def __call__(self, **kwargs):
+        kwargs = self._fix_email(kwargs)
         message = self._make_message(kwargs)
 
         headers, body, status =  self._oauth_provider.create_introspect_response(message)

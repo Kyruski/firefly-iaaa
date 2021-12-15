@@ -32,3 +32,10 @@ class GenericOauthMiddleware(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
                 if not v.lower().startswith('bearer'):
                     raise ff.UnauthorizedError()
                 return v
+        return None
+
+    def _fix_email(self, message):
+        if message.username:
+            message.username = message.username.lower()
+        message.email = (message.email or message.username).lower()
+        return message

@@ -31,10 +31,10 @@ class ChangePassword(ff.ApplicationService):
             if not payload:
                 raise Exception('Password request is invalid')
             if payload['message'] == 'reset':
-                username = payload['username']
+                username = payload['username'].lower()
             new_password = kwargs['new_password']
         except KeyError as e:
-            raise Exception('Missing username/password')
+            raise Exception('Missing password')
 
         found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
 

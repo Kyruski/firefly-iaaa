@@ -28,7 +28,7 @@ class ResetPassword(ff.ApplicationService):
 
     def __call__(self, **kwargs):
         try:
-            username = kwargs['username']
+            username = kwargs['username'].lower()
         except KeyError:
             raise Exception('Missing username/password')
 

@@ -25,6 +25,7 @@ class OAuthAuthenticator(GenericOauthMiddleware):
 
     def handle(self, message: ff.Message, *args, **kwargs):
         self.info('Authenticating')
+        message = self._fix_email(message)
         self.info(self._kernel)
         if self._kernel.http_request and self._kernel.secured:
             token = self._retrieve_token_from_http_request()

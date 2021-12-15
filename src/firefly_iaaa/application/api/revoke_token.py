@@ -15,6 +15,7 @@ class OauthTokenRevocationService(GenericOauthEndpoint):
     _message_factory: ff.MessageFactory = None
 
     def __call__(self, **kwargs):
+        kwargs = self._fix_email(kwargs)
         message = self._make_message(kwargs)
 
         headers, body, status =  self._oauth_provider.create_revocation_response(message)

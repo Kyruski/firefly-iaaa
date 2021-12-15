@@ -26,6 +26,7 @@ class OAuthLogin(GenericOauthIamEndpoint):
 
     def __call__(self, **kwargs):
         self.debug('Logging in with In-House')
+        kwargs = self._fix_email(kwargs)
         if 'testing_cookies' in kwargs:
             print('we got kwargs', kwargs)
             print('we gotheaders', self._kernel.http_request)

@@ -36,3 +36,9 @@ class GenericOauthEndpoint(ff.ApplicationService):
         if cookies:
             message = message.set_cookies(cookies)
         return message
+
+    def _fix_email(self, kwargs):
+        if kwargs.get('username'):
+            kwargs['username'] = kwargs['username'].lower()
+        kwargs['email'] = kwargs.get('email', kwargs.get('username')).lower()
+        return kwargs
