@@ -772,7 +772,7 @@ class OauthRequestValidators(RequestValidator):
     def _get_client(self, client_id: str):
         if client_id is None:
             return None
-        return self._registry(domain.Client).find(client_id)
+        return self._registry(domain.Client).find(lambda x: x.client_id == client_id)
 
     def _get_user(self, username: str):
         return self._registry(domain.User).find(
