@@ -7,7 +7,7 @@ from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndp
 
 
 @ff.rest(
-    '/iaaa/revoke', method='POST', tags=['public']
+    '/iaaa/revoke', method='POST', tags=['public'], secured=False
 )
 class OauthTokenRevocationService(GenericOauthEndpoint):
     _oauth_provider: domain.OauthProvider = None
