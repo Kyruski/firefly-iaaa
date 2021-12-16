@@ -100,8 +100,10 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         print('status', status)
         if not headers and not body and not status:
             raise ff.UnauthorizedError()
-
-        return self._make_response(headers=headers, forwarding_address=headers['Location'])
+        if status == 302 and 'Location' in headers:
+            body = body or {}
+            body['redirect'] = headers['Location']
+        return self._make_response(body)
 
 
     def _make_message(self, incoming_kwargs: dict):
