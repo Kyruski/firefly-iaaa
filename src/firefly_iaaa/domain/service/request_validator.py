@@ -849,6 +849,9 @@ class OauthRequestValidators(RequestValidator):
         )
 
     def _generate_authorization_code(self, code: dict, request: Request, claims: dict):
+        print('WE HAVE KERNEL', self._kernel.__dict__)
+        print('WE HAVE KERNEL', self._kernel.user.__dict__)
+        print('WE HAVE request', request.__dict__)
         user = request.user or self._registry(domain.User).find(lambda x: x.sub == self._kernel.user.id)
         return domain.AuthorizationCode(
             client=request.client,
