@@ -147,9 +147,12 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         bearer_token = self._registry(domain.BearerToken).find(lambda x: x.access_token == access_token)
         print('WE HAVE bearer', bearer_token)
         client = self._registry(domain.Client).find(lambda x: x.client_id == client_id)
-        print('WE HAVE client', bearer_token)
+        print('WE HAVE bearer', bearer_token)
+        print('WE HAVE client', client)
         if not client or not bearer_token:
             ff.UnauthorizedError()
+        print('WE HAVE bearer', bearer_token)
+        print('WE HAVE client', client)
         if not bearer_token.validate_access_token(access_token, client):
             ff.UnauthorizedError()
         user = bearer_token.user
