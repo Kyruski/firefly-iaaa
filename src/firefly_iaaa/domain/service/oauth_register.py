@@ -33,7 +33,7 @@ class OAuthRegister(ff.DomainService):
         except ClientError as e:
             if e.response['Error']['Code'] == 'BadRequestException':
                 if 'syntax error at or near ")"' in str(e):
-                    return {'message': 'error','error': 'User already exists'}
+                    return {'message': 'error', 'error': 'User already exists'}
             raise e
         if found_user:
             return {'message': 'error','error': 'User already exists'}

@@ -44,7 +44,5 @@ class GenericEndpoint(ff.ApplicationService):
     @staticmethod
     def _make_error_response(error: Union[str, dict]):
         resp = {'message': 'error'}
-        print('dsagfac', error)
         resp['error'] = error if isinstance(error, str) else error['error']
-        print('dsagfac', resp)
         return ff.Envelope.wrap(resp)

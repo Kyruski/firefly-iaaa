@@ -95,8 +95,6 @@ class User(ff.AggregateRoot):
         if isinstance(role, Role):
             self.roles.remove(role)
 
-
-
     def correct_password(self, password: str):
         if not password:
             return False
