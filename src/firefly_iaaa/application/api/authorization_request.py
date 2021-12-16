@@ -89,6 +89,11 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
     def __call__(self, **kwargs):
         kwargs = self._fix_email(kwargs)
         message = self._make_message(kwargs) #! check more
+        
+        access_token = self._grab_token_from_headers()
+
+        self._set_user_from_token(access_token, message.client_id)
+
         headers, body, status = self._oauth_provider.validate_post_auth_request(message)
         print('BODY', body)
         if not headers and not body and not status:
@@ -118,9 +123,29 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
 
     @staticmethod
     def _get_redirect_uri(incoming_kwargs: dict):
+
         redirect_uri = incoming_kwargs.get('redirect_uri')
         if not redirect_uri:
             raise ff.UnauthorizedError('Missing redirect_uri')
         redirect_uri = urllib.parse.unquote(redirect_uri)
         redirect_uri = base64.b64decode(ast.literal_eval(redirect_uri))
         return redirect_uri.decode('utf-8')
+
+    def _grab_token_from_headers(self):
+        for k, v in self._kernel.http_request['headers'].items():
+            if k.lower() == 'authorization':
+                if not v.lower().startswith('bearer'):
+                    raise ff.UnauthorizedError()
+                return v
+        raise ff.UnauthorizedError()
+
+    def _set_user_from_token(self, access_token: str, client_id: str):
+        bearer_token = self._registry(domain.BearerToken).find(lambda x: x.access_token == access_token)
+        client = self._registry(domain.Client).find(lambda x: x.client_id == client_id)
+        if not client or not bearer_token:
+            ff.UnauthorizedError()
+        if not bearer_token.validate_access_token(access_token, client):
+            ff.UnauthorizedError()
+        user = bearer_token.user
+        decoded_token = self._oauth_provider.decode_token(access_token)
+        self._kernel.user = ff.User(id=user.sub, scopes=bearer_token.scopes, tenant=user.tenant_id, token=decoded_token)
