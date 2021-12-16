@@ -71,16 +71,21 @@ class OauthProvider(ff.DomainService):
     def validate_post_auth_request(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
         credentials_key = body.get('credentials_key')
+        print('111111111111111111cred_key', credentials_key)
         if not credentials_key:
+            print('dead1')
             return None, None, None
 
         credentials = self._cache.get(credentials_key)
+        print('111111111111111111creds', credentials)
         if not credentials:
+            print('dead2')
             return None, None, None
 
         credentials = self._build_up_credentials(credentials)
-        
+
         if not request.scopes:
+            print('dead3')
             return None, None, None
         headers, body, status = self._server.create_authorization_response(uri, http_method, body, headers, scopes=request.scopes, credentials=credentials)
 

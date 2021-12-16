@@ -66,3 +66,4 @@ async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: 
     data['credentials_key'] = credentials_key
     with pytest.raises(ClientConnectionError) as e:
         creation_response_2 = await client.post('/firefly-iaaa/iaaa/authorize', data = json.dumps(data), headers={'Referer': 'abc'})
+    assert False
