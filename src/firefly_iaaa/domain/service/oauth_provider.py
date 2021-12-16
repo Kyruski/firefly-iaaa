@@ -74,19 +74,19 @@ class OauthProvider(ff.DomainService):
         print('111111111111111111cred_key', credentials_key)
         if not credentials_key:
             print('dead1')
-            return None, None, None
+            raise ff.UnauthorizedError('Missing credentials key')
 
         credentials = self._cache.get(credentials_key)
         print('111111111111111111creds', credentials)
         if not credentials:
             print('dead2')
-            return None, None, None
+            raise ff.UnauthorizedError('Credentials expired or invalid')
 
         credentials = self._build_up_credentials(credentials)
 
         if not request.scopes:
             print('dead3')
-            return None, None, None
+            raise ff.UnauthorizedError('Missing scopes')
         headers, body, status = self._server.create_authorization_response(uri, http_method, body, headers, scopes=request.scopes, credentials=credentials)
 
         if headers.get('Location'):
@@ -134,17 +134,13 @@ class OauthProvider(ff.DomainService):
     def decode_token(self, token, audience):
         if token.lower().startswith('bearer'):
             token = token.split(' ')[-1]
-        try:
-            return jwt.decode(token, self._secret_key, 'HS256', audience=audience)
-        except (jwt.DecodeError, ValueError, jwt.exceptions.InvalidAudienceError) as e:
-            return None
+        return jwt.decode(token, self._secret_key, 'HS256', audience=audience)
 
     @staticmethod
     def _get_request_params(request: ff.Message):
-        uri = request.headers.get('Origin') or request.headers.get('origin') or request.headers.get('Referer') or request.headers.get('uri') or 'ABC'
+        uri = request.headers.get('Origin') or request.headers.get('origin') or request.headers.get('Referer') or request.headers.get('uri')
         if not uri:
-            uri = 'ABC'
-            # raise Exception('No Origin detected on request')
+            raise Exception('No Origin detected on request')
         http_method = request.headers.get('method') or request.headers.get('http_method')
         body = request.to_dict()
         headers = request.headers

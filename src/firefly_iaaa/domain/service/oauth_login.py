@@ -43,7 +43,7 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
                 tokens = self._get_tokens(passed_in_kwargs)
                 resp = [tokens[0], {'tokens': tokens[1], 'user': found_user.generate_scrubbed_user()}]
             else:
-                raise ff.UnauthenticatedError()
+                raise ff.UnauthenticatedError('Incorrect username/password combination')
         else:
             self.info('No user exists, trying Cognito')
             resp = self._try_cognito(username, password)
@@ -61,7 +61,7 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
                     if message:
                         ff.UnauthenticatedError(message)
                     else:
-                        ff.UnauthenticatedError()
+                        ff.UnauthenticatedError(error)
                 if success:
                     resp = self._transfer_cognito_user_to_native_user(username, password, data['decoded_id_token'])
                     return resp
@@ -79,10 +79,10 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
         resp = self._oauth_register(data)
         if resp[1]['tokens']:
             return resp
-        raise Exception()
+        raise Exception('Somethign went wrong')
 
     def _get_tokens(self, kwargs: dict):
-        kwargs = self._set_referer(kwargs)
+        # kwargs = self._set_referer(kwargs)
         resp = self._create_token(kwargs)
         return resp
 

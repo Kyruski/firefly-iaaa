@@ -16,12 +16,12 @@ from __future__ import annotations
 
 import firefly as ff
 import firefly_iaaa.domain as domain
+from firefly_iaaa.application.api.generic_endpoint import GenericEndpoint
 
 
 @ff.rest('/iaaa/change-password', method='POST', tags=['public'], secured=False)
-class ChangePassword(ff.ApplicationService):
+class ChangePassword(GenericEndpoint):
     _cache: ff.Cache = None
-    _registry: ff.Registry = None
 
     def __call__(self, **kwargs):
         self.debug('Changing password for User')
@@ -29,12 +29,12 @@ class ChangePassword(ff.ApplicationService):
             request_id = kwargs['request_id']
             payload = self._cache.get(request_id)
             if not payload:
-                raise Exception('Password request is invalid')
+                return self._make_error_response('Password request is invalid')
             if payload['message'] == 'reset':
                 username = payload['username'].lower()
             new_password = kwargs['new_password']
         except KeyError as e:
-            raise Exception('Missing password')
+            return self._make_error_response('Missing password')
 
         found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
 
@@ -42,5 +42,5 @@ class ChangePassword(ff.ApplicationService):
             found_user.change_password(new_password)
             self.debug('Password Successfully Changed')
             self._cache.delete(request_id)
-            return {'message': 'success'}
-        raise Exception('No User found')
+            return self._make_response()
+        return self._make_error_response('No User found')

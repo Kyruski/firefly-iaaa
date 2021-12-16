@@ -31,10 +31,10 @@ class OAuthLogin(GenericOauthIamEndpoint):
             print('we got kwargs', kwargs)
             print('we gotheaders', self._kernel.http_request)
             print('we gotheaders', self._kernel.__dict__)
-            return {'message': 'success'}
+            return self._make_response()
         print('KWARGS coming into OauthLogin API', kwargs)
         if 'username' not in kwargs or 'password' not in kwargs:
-            raise Exception('Missing username/password')
+            return self._make_error_response('Missing username/password')
 
         resp = self._oauth_login(kwargs)
         print(resp)
@@ -44,6 +44,6 @@ class OAuthLogin(GenericOauthIamEndpoint):
         #     raise ff.UnauthenticatedError()
         
         if 'error' in resp:
-            return resp
+            return self._make_error_response(resp)
 
         return self._make_local_response(*resp)

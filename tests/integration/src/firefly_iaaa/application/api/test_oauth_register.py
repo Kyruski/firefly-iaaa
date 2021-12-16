@@ -12,9 +12,12 @@ async def test_oauth_register_endpoint(client, registry, bearer_messages: List[f
     }
 
     first_response = await client.post('/firefly-iaaa/iaaa/register', data=json.dumps(data), headers={'Referer': 'abc'})
-    assert first_response.status == 500
+    assert first_response.status == 200
+    assert first_response
     user = registry(domain.User).find(lambda x: x.email == data['username'])
     assert not user
+    resp = json.loads(await first_response.text())
+    assert 'error' in resp
 
     data['password'] = bearer_messages[2]['active'].password
     second_response = await client.post('/firefly-iaaa/iaaa/register', data=json.dumps(data), headers={'Referer': 'abc'})

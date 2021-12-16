@@ -28,9 +28,9 @@ class OAuthRegister(GenericOauthIamEndpoint):
         kwargs = self._fix_email(kwargs)
         print('KWARGS coming into OauthRegister API', kwargs)
         if 'username' not in kwargs or 'password' not in kwargs:
-            raise Exception('Missing username/password')
+            return self._make_error_response('Missing username/password')
         resp = self._oauth_register(kwargs)
         print('WE HAVE RESP from register', resp)
         if 'error' in resp:
-            return resp
+            return self._make_error_response(resp)
         return self._make_local_response(*resp)

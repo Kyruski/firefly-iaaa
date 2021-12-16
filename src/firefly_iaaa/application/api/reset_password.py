@@ -17,11 +17,11 @@ import uuid
 
 import firefly as ff
 from firefly_iaaa import domain
+from firefly_iaaa.application.api.generic_endpoint import GenericEndpoint
 
 
 @ff.rest('/iaaa/reset', method='POST', tags=['public'], secured=False)
-class ResetPassword(ff.ApplicationService):
-    _registry: ff.Registry = None
+class ResetPassword(GenericEndpoint):
     _cache: ff.Cache = None
     _subdomain: str = None
     _send_reset_email: domain.SendResetEmail = None

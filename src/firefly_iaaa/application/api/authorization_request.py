@@ -160,9 +160,9 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         print('WE HAVE bearer', bearer_token)
         print('WE HAVE client', client)
         if not bearer_token.validate_access_token(access_token, client):
-            ff.UnauthorizedError()
+            ff.UnauthorizedError('Invalid access token')
         user = bearer_token.user
         decoded_token = self._oauth_provider.decode_token(access_token, client_id)
         if not decoded_token:
-            ff.UnauthorizedError()
+            ff.UnauthorizedError('Invalid access_token/client combination')
         self._kernel.user = ff.User(id=user.sub, scopes=bearer_token.scopes, tenant=user.tenant_id, token=decoded_token)

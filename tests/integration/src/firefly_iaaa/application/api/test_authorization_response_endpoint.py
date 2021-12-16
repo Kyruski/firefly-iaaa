@@ -48,8 +48,6 @@ async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: 
     assert 'redirect_uri' in params
     redirect_uri = params['redirect_uri'][0]
 
-
-    print('aaaaaaaaaaaaaaaaaaaa', redirect_uri)
     # missing credentials key
     data = {
         'client_id': client_id,

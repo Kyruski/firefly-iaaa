@@ -44,17 +44,18 @@ def test_auth_request_missing_data(auth_service: OauthProvider, bearer_messages_
     scopes, credentials, credentials_key = auth_service.validate_pre_auth_request(message)
     assert credentials['client_id'] == message.client_id
     setattr(message, 'credentials_key', 'abc')
-    headers, body, status = auth_service.validate_post_auth_request(message)
-    assert_is_none(headers, body, status)
+    with pytest.raises(ff.UnauthorizedError):
+        headers, body, status = auth_service.validate_post_auth_request(message)
 
     message = bearer_messages_second_list[-2]
     scopes, credentials, credentials_key = auth_service.validate_pre_auth_request(message)
     assert credentials['client_id'] == message.client_id
-    headers, body, status = auth_service.validate_post_auth_request(message)
-    assert_is_none(headers, body, status)
+    with pytest.raises(ff.UnauthorizedError):
+        headers, body, status = auth_service.validate_post_auth_request(message)
 
     # Check for various missing attributes from message
     for i in range(16):
+        print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, i', i)
         message = bearer_messages_second_list[i]
         message.headers['http_method'] = 'POST'
         if i == 0:
@@ -106,13 +107,12 @@ def test_auth_request_missing_data(auth_service: OauthProvider, bearer_messages_
         scopes, credentials, credentials_key = auth_service.validate_pre_auth_request(message)
         assert credentials['client_id'] == message.client_id
         setattr(message, 'credentials_key', credentials_key)
-        headers, body, status = auth_service.validate_post_auth_request(message)
-
         if i == 13:
-            assert headers is None
-            assert body is None
-            assert status is None
+            with pytest.raises(ff.UnauthorizedError):
+                headers, body, status = auth_service.validate_post_auth_request(message)
             continue
+        else: 
+            headers, body, status = auth_service.validate_post_auth_request(message)
 
         uri = headers['Location']
         assert status == 302
@@ -126,9 +126,3 @@ def test_auth_request_missing_data(auth_service: OauthProvider, bearer_messages_
             assert 'code=' in uri
         else:
             assert 'access_token=' in uri
-
-
-def assert_is_none(headers, body, status):
-    assert headers is None
-    assert body is None
-    assert status is None
