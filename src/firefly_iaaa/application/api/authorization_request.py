@@ -140,7 +140,7 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
 
                 if not v.lower().startswith('bearer'):
                     raise ff.UnauthorizedError()
-                return v
+                return v.split(' ')[-1]
         raise ff.UnauthorizedError()
 
     def _set_user_from_token(self, access_token: str, client_id: str):
@@ -158,5 +158,7 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         if not bearer_token.validate_access_token(access_token, client):
             ff.UnauthorizedError()
         user = bearer_token.user
-        decoded_token = self._oauth_provider.decode_token(access_token)
+        decoded_token = self._oauth_provider.decode_token(access_token, client_id)
+        if not decoded_token:
+            ff.UnauthorizedError()
         self._kernel.user = ff.User(id=user.sub, scopes=bearer_token.scopes, tenant=user.tenant_id, token=decoded_token)

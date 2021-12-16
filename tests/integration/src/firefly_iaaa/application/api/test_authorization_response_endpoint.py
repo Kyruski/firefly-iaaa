@@ -56,8 +56,10 @@ async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: 
         'scopes': [scopes[0]],
         'redirect_uri': redirect_uri,
     }
+    token = bearer_messages[0]['active'].access_token
+    kernel.http_request = kernel.http_request or { 'headers': {}}
 
-
+    kernel.http_request['headers'].update({'Authorization': f'Bearer {token}'})
     creation_response_1 = await client.post('/firefly-iaaa/iaaa/authorize', data = json.dumps(data), headers={'Referer': 'abc'})
     assert creation_response_1.status == 401
 

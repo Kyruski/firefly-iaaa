@@ -131,7 +131,7 @@ class OauthProvider(ff.DomainService):
             token = token.split(' ')[-1]
         try:
             return jwt.decode(token, self._secret_key, 'HS256', audience=audience)
-        except (jwt.DecodeError, ValueError) as e:
+        except (jwt.DecodeError, ValueError, jwt.exceptions.InvalidAudienceError) as e:
             return None
 
     @staticmethod
@@ -152,7 +152,7 @@ class OauthProvider(ff.DomainService):
     def _build_up_credentials(self, credentials):
         print('WE GOT CREDENTIALS', credentials)
         values = ('uri', 'http_method', 'body', 'headers')
-        uri, http_method, body, headers= itemgetter('uri', 'http_method', 'body', 'headers')(credentials['request'])
+        uri, http_method, body, headers = itemgetter('uri', 'http_method', 'body', 'headers')(credentials['request'])
         print('uri', type(uri), uri)
         print('http_method', type(http_method), http_method)
         print('body', type(body), body)
