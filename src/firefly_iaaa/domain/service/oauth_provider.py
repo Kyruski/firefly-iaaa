@@ -13,8 +13,7 @@
 #  <http://www.gnu.org/licenses/>.
 from __future__ import annotations
 from datetime import datetime, timedelta
-import os
-from typing import KeysView
+from operator import itemgetter
 import uuid
 
 import firefly as ff
@@ -153,7 +152,7 @@ class OauthProvider(ff.DomainService):
     def _build_up_credentials(self, credentials):
         print('WE GOT CREDENTIALS', credentials)
         values = ('uri', 'http_method', 'body', 'headers')
-        uri, http_method, body, headers, *_ = credentials['request'].values()
+        uri, http_method, body, headers= itemgetter('uri', 'http_method', 'body', 'headers')(credentials['request'])
         print('uri', type(uri), uri)
         print('http_method', type(http_method), http_method)
         print('body', type(body), body)
