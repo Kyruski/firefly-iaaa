@@ -134,8 +134,10 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
     def _grab_token_from_headers(self):
         print(self._kernel.http_request)
         for k, v in self._kernel.http_request['headers'].items():
-            print(k, v)
+            print('keys:', k, v)
             if k.lower() == 'authorization':
+                print('AUTH KEYS:', k, v)
+
                 if not v.lower().startswith('bearer'):
                     raise ff.UnauthorizedError()
                 return v
