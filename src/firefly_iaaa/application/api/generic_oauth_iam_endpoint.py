@@ -28,7 +28,7 @@ class GenericOauthIamEndpoint(GenericOauthEndpoint):
         access_cookie = {
             'name': 'accessToken',
             'value': tokens['access_token'],
-            'httponly': True,
+            'http_only': True,
             'max_age': tokens['expires_in'],
         }
         cookies.append(access_cookie)
@@ -36,7 +36,7 @@ class GenericOauthIamEndpoint(GenericOauthEndpoint):
             refresh_cookie = {
                 'name': 'refreshToken',
                 'value': tokens['refresh_token'],
-                'httponly': True,
+                'http_only': True,
             }
             cookies.append(refresh_cookie)
         envelope = self._make_response(tokens, headers=headers, cookies=cookies)
