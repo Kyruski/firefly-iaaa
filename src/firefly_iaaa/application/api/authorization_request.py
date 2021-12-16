@@ -132,7 +132,9 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         return redirect_uri.decode('utf-8')
 
     def _grab_token_from_headers(self):
+        print(self._kernel.http_request)
         for k, v in self._kernel.http_request['headers'].items():
+            print(k, v)
             if k.lower() == 'authorization':
                 if not v.lower().startswith('bearer'):
                     raise ff.UnauthorizedError()
@@ -140,8 +142,12 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         raise ff.UnauthorizedError()
 
     def _set_user_from_token(self, access_token: str, client_id: str):
+        print('WE HAVE TOKEN', access_token)
+        print('WE HAVE client_id', client_id)
         bearer_token = self._registry(domain.BearerToken).find(lambda x: x.access_token == access_token)
+        print('WE HAVE bearer', bearer_token)
         client = self._registry(domain.Client).find(lambda x: x.client_id == client_id)
+        print('WE HAVE client', bearer_token)
         if not client or not bearer_token:
             ff.UnauthorizedError()
         if not bearer_token.validate_access_token(access_token, client):
