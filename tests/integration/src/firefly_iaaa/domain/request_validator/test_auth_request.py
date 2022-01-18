@@ -55,7 +55,6 @@ def test_auth_request_missing_data(auth_service: OauthProvider, bearer_messages_
 
     # Check for various missing attributes from message
     for i in range(16):
-        print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, i', i)
         message = bearer_messages_second_list[i]
         message.headers['http_method'] = 'POST'
         if i == 0:

@@ -56,7 +56,7 @@ class Client(ff.AggregateRoot):
     uses_pkce: bool = ff.optional(default=True)
     client_secret: str = ff.optional(str, length=36)
     is_active: bool = True
-    tenant: Tenant = ff.optional() #in place of user?
+    tenant: Tenant = ff.optional(index=True)
     tenant_id: str = ff.optional(index=True)
 
     @classmethod
