@@ -27,38 +27,52 @@
 from __future__ import annotations
 
 from typing import List
+import uuid
 
 import firefly as ff
 from .tenant import Tenant
 
-authorization_code = 'Authorization Code'
-implicit = 'Implicit'
-resource_owner_password_credentials = 'Resource Owner Password Credentials'
-client_credentials = 'Client Credentials'
-
-
-def response_type_choices(client_dto: dict):
-    if client_dto['grant_type'] == authorization_code:
-        return 'code token', 'code id_token', 'code token id_token'
-    if client_dto['grant_type'] == implicit:
-        return 'id_token token', 'id_token'
-
-    return ()
+authorization_code = 'authorization_code'
+implicit = 'implicit'
+resource_owner_password_credentials = 'password'
+client_credentials = 'client_credentials'
+refresh = 'refresh_token'
 
 
 class Client(ff.AggregateRoot):
-    id: str = ff.id_()
+    id: str = ff.id_() 
+    client_id: str = ff.optional(validators=[ff.HasLength(36)], index=True) # Needs to have 'client_id', should eb same as sub if user/cleint combo
     external_id: str = ff.optional(index=True)
+    # user: User = ff.required(index=True)
     name: str = ff.required()
     grant_type: str = ff.required(validators=[ff.IsOneOf((
-        authorization_code, implicit, resource_owner_password_credentials, client_credentials
+        authorization_code, implicit, resource_owner_password_credentials, client_credentials, refresh
     ))])
-    response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)])
-    scopes: str = ff.required()
+    # response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)]) #??
     default_redirect_uri: str = ff.optional()
     redirect_uris: List[str] = ff.list_()
+    scopes: List[str] = ff.required()
     allowed_response_types: List[str] = ff.list_(validators=[ff.IsOneOf(('code', 'token'))])
+    uses_pkce: bool = ff.optional(default=True)
+    client_secret: str = ff.optional(str, length=36)
+    is_active: bool = True
     tenant: Tenant = ff.optional(index=True)
+    tenant_id: str = ff.optional(index=True)
+
+    @classmethod
+    def create(cls, **kwargs):
+        try:
+            kwargs['tenant_id'] = kwargs['tenant'].id
+        except KeyError:
+            raise ff.MissingArgument('Tenant is a required field for Client::create()')
+        try:
+            kwargs['grant_type'] = kwargs['grant_type']
+        except KeyError:
+            raise ff.MissingArgument('Grant Type is a required field for Client::create()')
+        if not kwargs.get('client_id'):
+            kwargs['client_id'] = str(uuid.uuid4())
+        kwargs['id'] = kwargs['client_id']
+        return cls(**ff.build_argument_list(kwargs, cls))
 
     def validate_redirect_uri(self, redirect_uri: str):
         return redirect_uri in self.redirect_uris
@@ -66,8 +80,47 @@ class Client(ff.AggregateRoot):
     def validate_response_type(self, response_type: str):
         return response_type in self.allowed_response_types
 
+    def validate_grant_type(self, grant_type: str):
+        return self.grant_type == grant_type or ((self.grant_type in (resource_owner_password_credentials, client_credentials) or (self.grant_type == authorization_code and not self.requires_pkce())) and grant_type == 'refresh_token')
+
+    # def valid_refresh_types(self, grant_type: str):
+    #     return self.grant_type in (authorization_code, resource_owner_password_credentials) and (self.grant_type == grant_type or grant_type == refresh)
+
     def validate_scopes(self, scopes: List[str]):
+        if not scopes:
+            return False
         for scope in scopes:
             if scope not in self.scopes:
                 return False
         return True
+
+    def validate(self):
+        return self.is_active
+
+    def requires_pkce(self):
+        return self.uses_pkce
+
+    def is_confidential(self): #might not be best
+        return self.grant_type in (client_credentials, resource_owner_password_credentials) or \
+            (self.grant_type == authorization_code and not self.requires_pkce())
+
+    def validate_client_secret(self, secret):
+        return self.client_secret == secret
+
+    def inactivate(self):
+        self.is_active = False
+
+    def generate_scrubbed_client(self):
+        return {
+            'client_id': self.client_id,
+            'external_id': self.external_id,
+            'name': self.name,
+            'grant_type': self.grant_type,
+            'default_redirect_uri': self.default_redirect_uri,
+            'redirect_uris': self.redirect_uris,
+            'scopes': self.scopes,
+            'allowed_response_types': self.allowed_response_types,
+            'is_active': self.is_active,
+            'tenant_id': self.tenant_id,
+            'tenant_name': self.tenant.name,
+        }

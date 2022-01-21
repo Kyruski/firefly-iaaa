@@ -15,6 +15,7 @@
 from .authorization_code import AuthorizationCode
 from .bearer_token import BearerToken
 from .client import Client
+from .cohort import Cohort
 from .grant import Grant
 from .role import Role
 from .scope import Scope

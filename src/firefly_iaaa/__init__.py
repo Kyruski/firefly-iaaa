@@ -12,4 +12,6 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
+from firefly_iaaa.application import *
 from firefly_iaaa.domain import *
+from firefly_iaaa.infrastructure import *

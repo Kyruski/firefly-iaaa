@@ -29,7 +29,11 @@ setuptools.setup(
     package_dir={'': 'src'},
     install_requires=[
         'bcrypt>=3.1.7',
-        'firefly-framework>=1.1.15',
+        'firefly-framework @ git+https://github.com/Kyruski/firefly-framework.git@adding-cookies',
+        'firefly-aws @ git+https://github.com/Kyruski/firefly-aws.git@adding-cookies',
+        # 'botocore @ git+https://github.com/Kyruski/botocore.git@debugging',
+        'PyJWT[crypto]>=2.1.0',
+        'oauthlib>=3.1.1',
     ],
     extras_require={
         'AWS Cognito Support': ['firefly-aws>=1.1.0'],

@@ -17,6 +17,8 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List
 
+from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
+
 import firefly as ff
 
 
@@ -24,9 +26,9 @@ class Grant(ff.AggregateRoot):
     id: str = ff.id_()
     client_id: str = ff.required(str)
     user_id: str = ff.required(str)
-    code: str = ff.required(str)
+    code: AuthorizationCode = ff.required()
     redirect_uri: str = ff.required(str)
-    scopes: List[str] = ff.list_()
+    scopes: List[str] = ff.required()
     expires: datetime = ff.required(datetime)
 
     def validate_redirect_uri(self, redirect_uri: str):

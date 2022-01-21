@@ -1,3 +1,11 @@
 bcrypt==3.1.7
-firefly-framework==1.1.15
+# firefly-framework==1.2.5
+firefly-framework @ git+https://github.com/Kyruski/firefly-framework.git@adding-cookies
+firefly-aws @ git+https://github.com/Kyruski/firefly-aws.git@adding-cookies
+# botocore @ git+https://github.com/Kyruski/botocore.git@debugging
+# firefly-aws==1.2.5
 .
+oauthlib==3.1.1
+PyJWT[crypto]==2.1.0
+pytest==6.2.5
+pytest-aiohttp==0.3.0

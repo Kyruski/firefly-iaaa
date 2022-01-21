@@ -13,11 +13,31 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+import os
+import base64
+
+import firefly as ff
 
 import firefly_di as di
+import firefly_iaaa.domain as domain
 
+from firefly_aws import infrastructure as aws_infra
+from firefly_iaaa.domain.mock.mock_cache import MockCache
+from dotenv import load_dotenv
 
+def secret_key_setter():
+    pem = os.environ.get('PEM')
+    if os.environ.get('FF_ENVIRONMENT') == 'test':
+        pem = os.environ.get('TEST_PEM')
+    return str(base64.b64decode(pem), "utf-8")
+    
+
+load_dotenv()
 class Container(di.Container):
-    pass
-    # oauthlib_request_validator: infra.OauthlibRequestValidator = infra.OauthlibRequestValidator
-    # request_validator: IamRequestValidator = IamRequestValidator
+    cache: ff.Cache = MockCache if \
+        os.environ.get('FF_ENVIRONMENT') == 'test' else aws_infra.DdbCache
+    oauthlib_request_validator: domain.OauthRequestValidators = domain.OauthRequestValidators
+    request_validator: domain.OauthProvider = domain.OauthProvider
+    message_factory: ff.MessageFactory = ff.MessageFactory
+    secret_key: str = lambda x: secret_key_setter()
+    subdomain: str = lambda x: 'staging-connected-sports' #!! CHANGE AT FINISH

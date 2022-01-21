@@ -131,3 +131,5 @@ __target__/
 
 # Misc
 requirements-local.txt
+*.pem
+*.pem.pub

@@ -30,17 +30,34 @@ from datetime import datetime
 from typing import List
 
 import firefly as ff
-
-from firefly_iaaa.domain.entity.user import User
 from firefly_iaaa.domain.entity.client import Client
+from firefly_iaaa.domain.entity.user import User
 
 
-class AuthorizationCode(ff.Entity):
-    client: Client = ff.required()
+class AuthorizationCode(ff.AggregateRoot):
+    id_: str = ff.id_()
+    client: Client = ff.required(index=True)
     user: User = ff.required()
     scopes: List[str] = ff.required()
     redirect_uri: str = ff.optional()
-    code: str = ff.required(str, length=36)
+    claims: dict = ff.optional()
+    code: str = ff.required(str, length=36, index=True)
     expires_at: datetime = ff.required()
+    state: str = ff.required()
     challenge: str = ff.optional(str, length=128)
-    challenge_method: str = ff.optional(str, length=6)
+    challenge_method: str = ff.optional(validators=[ff.IsOneOf(('S256', 'plain'))])
+    claims: dict = ff.optional()
+    verifier: str = ff.optional()
+    is_valid: bool = True
+
+    def validate_redirect_uri(self, redirect_uri: str):
+        return self.redirect_uri == redirect_uri
+
+    def invalidate(self):
+        self.is_valid = False
+
+    def is_expired(self):
+        return self.expires_at < datetime.utcnow()
+
+    def validate(self, client_id: str):
+        return self.is_valid and client_id == self.client.client_id and not self.is_expired()

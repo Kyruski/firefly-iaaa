@@ -19,9 +19,9 @@ from datetime import datetime, date
 from typing import List
 
 import firefly as ff
-
+from firefly_iaaa.domain.entity.role import Role
+from firefly_iaaa.domain.entity.tenant import Tenant
 from firefly_iaaa.domain.value_object.address import Address
-from .role import Role
 
 # __pragma__('skip')
 import bcrypt
@@ -37,11 +37,11 @@ class User(ff.AggregateRoot):
     family_name: str = ff.optional()
     middle_name: str = ff.optional()
     nickname: str = ff.optional()
-    preferred_username: str = ff.optional()
+    preferred_username: str = ff.optional(index=True)
     profile: str = ff.optional()
     picture: str = ff.optional()
     website: str = ff.optional()
-    email: str = ff.optional(validators=[ff.IsValidEmail()])
+    email: str = ff.optional(validators=[ff.IsValidEmail()], index=True, unique=True)
     email_verified: bool = ff.optional(default=False)
     gender: str = ff.optional(validators=[ff.IsOneOf(('Male', 'Female'))])
     birthdate: date = ff.optional()
@@ -58,25 +58,72 @@ class User(ff.AggregateRoot):
     password_hash: str = ff.optional(length=32)
     salt: str = ff.optional()
     roles: List[Role] = ff.list_()
-    tenant: str = ff.optional()
+    tenant: Tenant = ff.optional(index=True)
+    tenant_id: str = ff.optional(index=True)
 
-    # __pragma__('skip')
+    # __pragma__('skip')    @classmethod
     @classmethod
     def create(cls, **kwargs):
         if 'email' in kwargs:
             kwargs['email'] = str(kwargs['email']).lower()
-
         try:
-            kwargs['salt'] = bcrypt.gensalt()
+            kwargs['salt'] = bcrypt.gensalt().decode()
             kwargs['password_hash'] = User._hash_password(kwargs['password'], kwargs['salt'])
         except KeyError:
             raise ff.MissingArgument('password is a required field for User::create()')
+        try:
+            kwargs['tenant_id'] = kwargs['tenant'].id
+        except KeyError:
+            raise ff.MissingArgument('tenant is a required field for User::create()')
         return cls(**ff.build_argument_list(kwargs, cls))
 
     @classmethod
     def _hash_password(cls, password: str, salt: str):
-        return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
+        return bcrypt.hashpw(password.encode('utf-8'), salt.encode()).decode('utf-8')
+
+    def change_password(self, new_password: str):
+        self.password_hash = self._hash_password(new_password, self.salt)
+
+    def change_email(self, new_email: str):
+        self.email = new_email
+
+    def add_role(self, role: Role):
+        if isinstance(role, Role):
+            self.roles.append(role)
+    
+    def remove_role(self, role: Role):
+        if isinstance(role, Role):
+            self.roles.remove(role)
 
     def correct_password(self, password: str):
+        if not password:
+            return False
         return self.password_hash == User._hash_password(password, self.salt)
     # __pragma__('noskip')
+
+    def generate_scrubbed_user(self):
+        resp = {
+            'sub': self.sub,
+            'name': self.name,
+            'given_name': self.given_name,
+            'family_name': self.family_name,
+            'middle_name': self.middle_name,
+            'nickname': self.nickname,
+            'preferred_username': self.preferred_username,
+            'profile': self.profile,
+            'picture': self.picture,
+            'website': self.website,
+            'email': self.email,
+            'email_verified': self.email_verified,
+            'gender': self.gender,
+            'birthdate': self.birthdate,
+            'zoneinfo': self.zoneinfo,
+            'locale': self.locale,
+            'phone_number': self.phone_number,
+            'phone_number_verified': self.phone_number_verified,
+            'updated_at': self.updated_at,
+            'created_at': self.created_at,
+        }
+        if self.tenant is not None:
+            resp['tenant_id'] = self.tenant.id,
+        return resp
