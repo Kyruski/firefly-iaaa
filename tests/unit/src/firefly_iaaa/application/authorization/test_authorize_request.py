@@ -13,9 +13,6 @@ async def test_authorize_request(bearer_messages_list: List[ff.Message], message
 
     data = {
             'headers': bearer_messages_list[0]['active'].headers,
-            'state': bearer_messages_list[0]['active'].state,
-            'username': bearer_messages_list[0]['active'].username,
-            'password': bearer_messages_list[0]['active'].password,
     }
 
     message = message_factory.query(

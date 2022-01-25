@@ -8,5 +8,9 @@ from firefly_iaaa import domain
 class AuthorizeRequest(ff.ApplicationService):
     _authorize_request: domain.AuthorizeRequest = None
 
-    def __call__(self, **kwargs):
+    def __call__(self, token: str, **kwargs):
+        kwargs['access_token'] = token
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+        kwargs['headers']['uri'] = ''
         return self._authorize_request(**kwargs)

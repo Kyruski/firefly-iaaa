@@ -131,7 +131,7 @@ class OauthProvider(ff.DomainService):
     @staticmethod
     def _get_request_params(request: ff.Message):
         uri = request.headers.get('Origin') or request.headers.get('origin') or request.headers.get('Referer') or request.headers.get('uri')
-        if not uri:
+        if uri is None:
             raise Exception('No Origin detected on request')
         http_method = request.headers.get('method') or request.headers.get('http_method')
         body = request.to_dict()
