@@ -21,66 +21,38 @@ from .generic_oauth_middleware import GenericOauthDomainMiddleware
 class OAuthAuthorizeRequest(GenericOauthDomainMiddleware):
 
     def __call__(self, message: ff.Message, **kwargs):
-        print('aaafff', self._kernel)
-        print('aaaaaaaaaaaaaaaaaaaattt', message.__dict__)
-        print('a')
         token = None
-        print('b')
         message = self._fix_email(message)
-        print('c')
         try:
-            print('d')
             if not message.access_token:
-                print('e')
                 token = self._get_token()
-                print('f')
                 if not token:
                     return False
-                print('g')
                 message.access_token = token
             else:
-                print('h')
                 token = message.access_token
         except AttributeError:
-            print('i')
             token = self._get_token()
-            print('j')
             if not token:
-                print('k')
                 return False
-            print('l')
             message.access_token = token
-        print('m')
         if not message.access_token and not token:
-            print('n')
             return False
-        print('o')
         if message.access_token.lower().startswith('bearer'):
-            print('p')
             message.access_token = message.access_token.split(' ')[-1]
-        print('q')
 
-        print('r')
         try:
-            print('s')
             decoded = self._decode_token(token, self._kernel.user.id)
         except:
-            print('t')
             raise ff.UnauthorizedError()
         try:
-            print('u')
             if not message.scopes:
-                print('v')
                 message.scopes = decoded.get('scope').split(' ') if decoded else self._kernel.user.scopes
         except AttributeError:
-            print('w')
             message.scopes = decoded.get('scope').split(' ') if decoded else self._kernel.user.scopes
 
-        print('x')
         message.token = message.access_token
-        print('y', message.__dict__)
         validated, resp = self._oauth_provider.verify_request(message, message.scopes)
-        print('z', validated)
 
         return validated
 

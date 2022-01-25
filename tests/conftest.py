@@ -194,7 +194,6 @@ def user_list(tenants_list):
     array = [ User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}', tenant=tenants_list[i]) for i in range(6) ]
     for i in range(6, 9):
         array.append(User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}', tenant=tenants_list[i]))
-    print('uuii', array)
     return array
 
 def hash_password(password: str, salt: str):
@@ -247,7 +246,7 @@ def auth_codes_list(registry, client_list, user_list):
                 scopes=client_list[i % 6]._get_entity_scopes(),
                 redirect_uri=client_list[i % 6].default_redirect_uri,
                 code=f'{gen_random_string(34)}{i % 6}{x}',
-                expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=1),
+                expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=5),
                 state='abc',
                 challenge=code_challenge['code_challenge'],
                 challenge_method=code_challenge['code_challenge_method'],
@@ -302,7 +301,6 @@ def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
                 'expires_in': 3600,
                 'scopes': client_list[i]._get_entity_scopes(),
             }
-            print('999999', user_list[-2])
             bearer_token = BearerToken(
                 client=client_list[i],
                 user=user_list[-2],
@@ -329,7 +327,6 @@ def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
             'expires_in': 3600,
             'scopes': client_list[-1]._get_entity_scopes(),
         }
-        print('999999', user_list[-2])
         bearer_token = BearerToken(
             client=client_list[-1],
             user=user_list[-2],

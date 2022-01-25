@@ -27,5 +27,4 @@ from firefly_iaaa.domain.mock.mock_cache import MockCache
 def set_kernel_user(registry, kernel, message):
     found_client = registry(domain.Client).find(lambda x: x.client_id == message.client_id)
     found_user = registry(domain.User).find(lambda x: x.tenant_id == found_client.tenant_id)
-    print('ffffffff', found_user)
     kernel.user.id = found_user.sub

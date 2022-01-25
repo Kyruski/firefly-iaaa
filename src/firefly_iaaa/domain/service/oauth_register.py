@@ -27,7 +27,7 @@ class OAuthRegister(ff.DomainService):
     def __call__(self, passed_in_kwargs: dict):
         self.info('Registering User')
         username = passed_in_kwargs['username']
-        print('aaaaaaaaaaaaaaaa', username)
+
         try:
             found_user = self._registry(domain.User).find(lambda x: x.email == username)
         except ClientError as e:
@@ -45,10 +45,6 @@ class OAuthRegister(ff.DomainService):
         })
 
         user_client = self._make_user(**passed_in_kwargs)
-        print('xxx', user_client)
-        passed_in_kwargs['scopes'] = ' '.join(user_client.get_scopes())
         passed_in_kwargs['scope'] = ' '.join(user_client.get_scopes())
-        print(passed_in_kwargs['scopes'])
-        print('jjjjjjjjjjjjjjjjjjjjj')
-        print(passed_in_kwargs)
+
         return self._oauth_login(passed_in_kwargs)

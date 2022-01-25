@@ -87,7 +87,4 @@ class BearerToken(ff.AggregateRoot):
         return self._has_activated() and not self._has_expired()
 
     def get_scopes(self):
-        print('aaaaaaaaaaaaaaaa', type(self.scopes[0]), self)
-        print('11111')
-        print(self.scopes)
         return [scope.id for scope in self.scopes]

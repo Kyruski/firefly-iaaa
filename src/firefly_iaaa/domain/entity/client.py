@@ -90,10 +90,7 @@ class Client(ff.AggregateRoot):
     #     return self.grant_type in (authorization_code, resource_owner_password_credentials) and (self.grant_type == grant_type or grant_type == refresh)
 
     def validate_scopes(self, scopes: List[str]):
-        print('aaaa1', self, self,scopes, self.roles, self.get_scopes())
         client_scopes = self.get_scopes()
-        print(client_scopes)
-        print(scopes)
 
         #  Include ANY scopes
         # if not scopes:
@@ -150,9 +147,6 @@ class Client(ff.AggregateRoot):
     def _get_entity_scopes(self):
         roles = [scope for role in self.roles for scope in role.scopes]
         roles += self.scopes
-        print('ytytytytytytyty', roles)
-        for r in roles:
-            print(type(r))
         return roles
 
     def get_scopes(self):

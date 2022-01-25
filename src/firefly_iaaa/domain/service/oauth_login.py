@@ -28,13 +28,11 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
 
     def __call__(self, passed_in_kwargs: dict):
         self.debug('Logging in with In-House')
-        print('KWARGS coming into OauthLogin domain', passed_in_kwargs)
         username = passed_in_kwargs['username']
         password = passed_in_kwargs['password']
         tokens = [None, None]
 
         found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
-        print('kwttt', found_user)
         if found_user:
             passed_in_kwargs['grant_type'] = 'password'
             self.info('We found a user, trying to login with password')
@@ -81,8 +79,7 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
             return resp
         raise Exception('Somethign went wrong')
 
-    def _get_tokens(self, kwargs: dict):
-        print('kwargs xxxxxxxxgg', kwargs)
+    def _get_tokens(self, kwargs: dict):s
         # kwargs = self._set_referer(kwargs)
         resp = self._create_token(kwargs)
         return resp

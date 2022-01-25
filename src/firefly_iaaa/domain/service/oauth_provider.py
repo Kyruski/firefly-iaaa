@@ -46,7 +46,7 @@ class OauthProvider(ff.DomainService):
 
     def generate_token(self, request, token_type):
         scopes = request['scopes'] if isinstance(request, dict) else request.scopes
-        print('xxxxxyyyxxx')
+
         token = {
             'jti': str(uuid.uuid4()),
             'aud': request.client_id,
@@ -146,13 +146,9 @@ class OauthProvider(ff.DomainService):
         print('WE GOT CREDENTIALS', credentials)
         values = ('uri', 'http_method', 'body', 'headers')
         uri, http_method, body, headers = itemgetter('uri', 'http_method', 'body', 'headers')(credentials['request'])
-        print('uri', type(uri), uri)
-        print('http_method', type(http_method), http_method)
-        print('body', type(body), body)
-        print('headers', type(headers), headers)
+
         request = Request(uri, http_method, body, headers)
-        print(type(credentials['request']))
-        print(credentials['request'])
+
         for k, v in credentials['request'].items():
             if k not in values:
                 setattr(request, k, v)
@@ -217,7 +213,6 @@ class OauthProvider(ff.DomainService):
 
     @staticmethod
     def _convert_from_scopes_to_string(scopes):
-        print('xxxxxy', scopes)
         converted = []
         for scope in scopes:
             if isinstance(scope, str):
@@ -226,7 +221,6 @@ class OauthProvider(ff.DomainService):
                 converted.append(scope['id'])
             else:
                 converted.append(scope.id)
-        print('wwwwwwwwwwwwwwwwwwwwwwww', converted)
             
         return converted
 

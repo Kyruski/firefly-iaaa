@@ -31,13 +31,10 @@ class CreateToken(ff.DomainService):
             'state': incoming_kwargs.get('state')
         }
 
-
         for field in ('username', 'password', 'client_secret', 'code', 'code_verifier', 'refresh_token', 'scopes', 'scope'):
             if incoming_kwargs.get(field):
                 message_body[field] = incoming_kwargs.get(field)
 
-
-        print('yyyyyyyyyy')
         return self._message_factory.query(
             name='OauthCreateTokenMessage',
             data=message_body

@@ -815,7 +815,7 @@ class OauthRequestValidators(RequestValidator):
             if user:
                 if user.correct_password(request.body['password']):
                     client = self._registry(domain.Client).find(
-                        lambda x: ((x.tenant_id == user.tenant_id) | (x.client_id == user.sub)) 
+                        lambda x: ((x.tenant_id == user.tenant_id) | (x.client_id == user.sub))
                     )
 
                     if client:

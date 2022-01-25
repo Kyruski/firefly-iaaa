@@ -11,30 +11,22 @@ class AuthorizeRequest(ff.DomainService):
     _add_method_to_headers: domain.AddMethodToHeaders = None
 
     def __call__(self, **kwargs):
-        print('a', kwargs)
         if 'access_token' not in kwargs:
-            print('b')
             return False
-        print('c')
-        print(self._authorize_request)
         return self._authorize_request(self._make_message(kwargs), **kwargs)
 
     def _make_message(self, incoming_kwargs: dict):
-        print('d')
         headers = self._add_method_to_headers(incoming_kwargs)
-        print('e')
         message_body = {
             'headers': headers,
             'access_token': incoming_kwargs.get('access_token'),
             
         }
-        print('f')
 
         for field in ('username', 'password', 'scopes'):
             if incoming_kwargs.get(field):
                 message_body[field] = incoming_kwargs.get(field)
 
-        print('g')
         return self._message_factory.query(
             name='OauthAuthorizationRequestMessage',
             data=message_body

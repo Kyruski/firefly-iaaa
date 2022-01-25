@@ -27,11 +27,6 @@ class OAuthLogin(GenericOauthIamEndpoint):
     def __call__(self, **kwargs):
         self.debug('Logging in with In-House')
         kwargs = self._fix_email(kwargs)
-        if 'testing_cookies' in kwargs:
-            print('we got kwargs', kwargs)
-            print('we gotheaders', self._kernel.http_request)
-            print('we gotheaders', self._kernel.__dict__)
-            return self._make_response()
         print('KWARGS coming into OauthLogin API', kwargs)
         if 'username' not in kwargs or 'password' not in kwargs:
             return self._make_error_response('Missing username/password')
