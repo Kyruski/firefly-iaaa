@@ -44,6 +44,7 @@ class CreateToken(ff.DomainService):
         if incoming_kwargs.get('refresh_token'):
             message_body['refresh_token'] = incoming_kwargs.get('refresh_token')
 
+        print('yyyyyyyyyy')
         return self._message_factory.query(
             name='OauthCreateTokenMessage',
             data=message_body

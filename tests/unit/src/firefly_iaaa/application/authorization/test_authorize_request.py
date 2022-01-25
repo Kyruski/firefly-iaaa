@@ -5,10 +5,14 @@ import os
 import pytest
 import firefly as ff
 import firefly_iaaa.application as application
+import firefly_iaaa.domain as domain
 
 async def test_authorize_request(bearer_messages_list: List[ff.Message], message_factory, sut, kernel, registry):
 
+    print(kernel.user.id)
     kernel.user.id = bearer_messages_list[0]['active'].client_id
+    # set_kernel_user(registry, kernel, bearer_messages_list[0]['active'])
+    print(kernel.user.id)
     data = {
             'headers': bearer_messages_list[0]['active'].headers,
             'state': bearer_messages_list[0]['active'].state,

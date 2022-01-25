@@ -13,13 +13,16 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import Union
+from typing import List, Union
 
 import firefly as ff
+
+from firefly_iaaa.domain.service.decode_token import DecodeToken
 
 
 class GenericEndpoint(ff.ApplicationService):
     _registry: ff.Registry = None
+    _decode_token: DecodeToken = None
 
     def __call__(self, **kwargs):
         pass

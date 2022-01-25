@@ -18,12 +18,12 @@ import os
 
 import firefly as ff
 from firefly import domain as ffd
+from firefly_iaaa.domain.service.decode_token import DecodeToken
 import boto3
-
-import jwt
 
 
 class CognitoLogin(ff.DomainService, ff.LoggerAware):
+    _decode_token: DecodeToken = None
     _kernel: ffd.Kernel = None
 
 
@@ -97,7 +97,3 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
             return None, e.__str__()
         print('g')
         return resp, None
-
-    def _decode_token(self, token: str):
-        # data = token.split('.')[1]
-        return jwt.decode(token, options={"verify_signature": False})

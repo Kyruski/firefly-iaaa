@@ -27,6 +27,7 @@ class GenericOauthMiddleware(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
         pass
 
     def _retrieve_token_from_http_request(self):
+        print('prprprprprprp', self._kernel)
         for k, v in self._kernel.http_request['headers'].items():
             if k.lower() == 'authorization':
                 if not v.lower().startswith('bearer'):

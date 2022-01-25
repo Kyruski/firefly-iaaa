@@ -32,6 +32,7 @@ from typing import List
 import firefly as ff
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
+from firefly_iaaa.domain.entity.scope import Scope
 
 
 
@@ -39,7 +40,7 @@ class BearerToken(ff.AggregateRoot):
     id_: str = ff.id_()
     client: Client = ff.required(index=True)
     user: User = ff.required(index=True)
-    scopes: List[str] = ff.required()
+    scopes: List[Scope] = ff.required()
     access_token: str = ff.required(str, length=36, index=True)
     refresh_token: str = ff.required(str, length=36, index=True)
     expires_at: datetime = ff.required()
@@ -55,7 +56,7 @@ class BearerToken(ff.AggregateRoot):
         if not scopes:
             return False
         for scope in scopes:
-            if scope not in self.scopes:
+            if scope not in self.get_scopes():
                 return False
         return True
 
@@ -84,3 +85,9 @@ class BearerToken(ff.AggregateRoot):
 
     def _check_active(self):
         return self._has_activated() and not self._has_expired()
+
+    def get_scopes(self):
+        print('aaaaaaaaaaaaaaaa', type(self.scopes[0]), self)
+        print('11111')
+        print(self.scopes)
+        return [scope.id for scope in self.scopes]

@@ -55,7 +55,7 @@ def test_create_token_response(auth_service: OauthProvider, bearer_messages_list
 
             assert (body.get('scope') is None) != is_true
             if is_true:
-                assert body.get('scope') == ' '.join(bearer_tokens_list[i][token_status[x]].scopes)
+                assert body.get('scope') == ' '.join(s.id for s in bearer_tokens_list[i][token_status[x]].scopes)
 
     # Check all http_methods except for POST fail
     for method in VALID_METHOD_TYPES:

@@ -40,13 +40,14 @@ class MakeClientUserEntities(ff.DomainService):
 
         client = domain.Client.create(**kwargs)
 
-        role = self._registry(domain.Role).find('fad2cf43-01df-44a1-bef4-0446d066e0bc')
+        role = self._registry(domain.Role).find('user_role')
         user.add_role(role)
 
         # Append at end to avoid appending before an error during entity creation
         self._registry(domain.Tenant).append(tenant)
         self._registry(domain.User).append(user)
         self._registry(domain.Client).append(client)
+        return user
 
     def _make_params(self, kwargs: dict):
 

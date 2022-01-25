@@ -23,6 +23,8 @@ class AuthorizeRequest(GenericOauthMiddleware):
     _registry: ff.Registry = None
 
     def handle(self, message: ff.Message):
+        print('aaafff', self._kernel)
+        print('aaaaaaaaaaaaaaaaaaaattt', message.__dict__)
         token = None
         message = self._fix_email(message)
         try:

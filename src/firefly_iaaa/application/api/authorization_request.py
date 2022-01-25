@@ -162,7 +162,7 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         if not bearer_token.validate_access_token(access_token, client):
             ff.UnauthorizedError('Invalid access token')
         user = bearer_token.user
-        decoded_token = self._oauth_provider.decode_token(access_token, client_id)
+        decoded_token = self._decode_token(access_token, client_id)
         if not decoded_token:
             ff.UnauthorizedError('Invalid access_token/client combination')
-        self._kernel.user = ff.User(id=user.sub, scopes=bearer_token.scopes, tenant=user.tenant_id, token=decoded_token)
+        self._kernel.user = ff.User(id=user.sub, scopes=bearer_token.get_scopes(), tenant=user.tenant_id, token=decoded_token)

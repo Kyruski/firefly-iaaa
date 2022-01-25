@@ -25,6 +25,8 @@ class OAuthRegister(GenericOauthIamEndpoint):
 
     def __call__(self, **kwargs):
         self.info('Registering User')
+        print('222222222', self._kernel.__dict__)
+        print('22222222222')
         kwargs = self._fix_email(kwargs)
         print('KWARGS coming into OauthRegister API', kwargs)
         if 'username' not in kwargs or 'password' not in kwargs:

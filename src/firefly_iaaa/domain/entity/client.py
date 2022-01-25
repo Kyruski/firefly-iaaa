@@ -31,6 +31,8 @@ import uuid
 
 import firefly as ff
 from .tenant import Tenant
+from .role import Role
+from .scope import Scope
 
 authorization_code = 'authorization_code'
 implicit = 'implicit'
@@ -51,7 +53,8 @@ class Client(ff.AggregateRoot):
     # response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)]) #??
     default_redirect_uri: str = ff.optional()
     redirect_uris: List[str] = ff.list_()
-    scopes: List[str] = ff.required()
+    scopes: List[Scope] = ff.list_()
+    roles: List[Role] = ff.list_()
     allowed_response_types: List[str] = ff.list_(validators=[ff.IsOneOf(('code', 'token'))])
     uses_pkce: bool = ff.optional(default=True)
     client_secret: str = ff.optional(str, length=36)
@@ -87,10 +90,22 @@ class Client(ff.AggregateRoot):
     #     return self.grant_type in (authorization_code, resource_owner_password_credentials) and (self.grant_type == grant_type or grant_type == refresh)
 
     def validate_scopes(self, scopes: List[str]):
+        print('aaaa1', self, self,scopes, self.roles, self.get_scopes())
+        client_scopes = self.get_scopes()
+
+        #  Include ANY scopes
+        # if not scopes:
+        #     return False
+        # for scope in scopes:
+        #     if scope in client_scopes:
+        #         return True
+        # return False
+
+        #  Include ALL scopes
         if not scopes:
             return False
         for scope in scopes:
-            if scope not in self.scopes:
+            if scope not in client_scopes:
                 return False
         return True
 
@@ -111,16 +126,37 @@ class Client(ff.AggregateRoot):
         self.is_active = False
 
     def generate_scrubbed_client(self):
-        return {
+        x =  {
             'client_id': self.client_id,
             'external_id': self.external_id,
             'name': self.name,
             'grant_type': self.grant_type,
             'default_redirect_uri': self.default_redirect_uri,
             'redirect_uris': self.redirect_uris,
-            'scopes': self.scopes,
+            'scopes': self.get_scopes(),
             'allowed_response_types': self.allowed_response_types,
             'is_active': self.is_active,
             'tenant_id': self.tenant_id,
             'tenant_name': self.tenant.name,
         }
+        return x
+
+    def _get_entity_scopes(self):
+        roles = [scope for role in self.roles for scope in role.scopes]
+        roles += self.scopes
+        print('ytytytytytytyty', roles)
+        for r in roles:
+            print(type(r))
+        return roles
+
+    def get_scopes(self):
+        return [scope.id for scope in self._get_entity_scopes()]
+
+    def _get_scopes_from_roles(self):
+        roles = []
+        for role in self.roles:
+            if isinstance(role, Role):
+                roles.append(*role.scopes)
+            else:
+                roles.append(*role['scopes'])
+        return roles

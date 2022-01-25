@@ -32,13 +32,14 @@ from typing import List
 import firefly as ff
 from firefly_iaaa.domain.entity.client import Client
 from firefly_iaaa.domain.entity.user import User
+from firefly_iaaa.domain.entity.scope import Scope
 
 
 class AuthorizationCode(ff.AggregateRoot):
     id_: str = ff.id_()
     client: Client = ff.required(index=True)
     user: User = ff.required()
-    scopes: List[str] = ff.required()
+    scopes: List[Scope] = ff.required()
     redirect_uri: str = ff.optional()
     claims: dict = ff.optional()
     code: str = ff.required(str, length=36, index=True)
@@ -61,3 +62,6 @@ class AuthorizationCode(ff.AggregateRoot):
 
     def validate(self, client_id: str):
         return self.is_valid and client_id == self.client.client_id and not self.is_expired()
+
+    def get_scopes(self):
+        return [scope.id for scope in self.scopes]

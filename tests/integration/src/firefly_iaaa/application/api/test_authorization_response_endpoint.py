@@ -6,9 +6,13 @@ import json
 import pytest
 import urllib
 from aiohttp import ClientConnectionError
+
+from firefly_iaaa.domain.entity.user import User
 from .conftest import set_kernel_user
 
 async def test_auth_request_endpoint(client, kernel, registry, bearer_messages: List[ff.Message]):
+    for x in registry(User):
+        print('12345', x)
     data = {
             'client_id': bearer_messages[0]['active'].client_id,
             # 'username': bearer_messages[0]['active'].username,

@@ -24,9 +24,11 @@ class OAuthAuthenticator(GenericOauthMiddleware):
     _request_validator: domain.OauthRequestValidators = None
 
     def handle(self, message: ff.Message, *args, **kwargs):
+        print('aaaaaaaaaaaaaaaaaaaatttxxx', message.__dict__)
         self.info('Authenticating')
         message = self._fix_email(message)
         self.info(self._kernel)
+        print(self._kernel)
         if self._kernel.http_request and self._kernel.secured:
             token = self._retrieve_token_from_http_request()
             if token:

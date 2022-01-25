@@ -29,6 +29,7 @@ class OauthRequestValidators(RequestValidator):
     _valid_token_type_hints: List[str] = ['refresh_token', 'access_token']
     _secret_key: str = None
     _kernel: ff.Kernel = None
+    _decode_token: domain.DecodeToken = None
 
     def authenticate_client(self, request: Request, *args, **kwargs):
         """Authenticate client through means outside the OAuth 2 spec.
@@ -239,7 +240,9 @@ class OauthRequestValidators(RequestValidator):
             - Client Credentials grant
         """
 
-        return request.client.scopes
+        print('aaaa3', request.client)
+        print('aaaa3', request.client.get_scopes())
+        return request.client.get_scopes()
 
     def get_original_scopes(self, refresh_token: str, request: Request, *args, **kwargs):
         """Get the list of scopes associated with the refresh token.
@@ -256,7 +259,7 @@ class OauthRequestValidators(RequestValidator):
         bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
         if not bearer_token:
             return None
-        return bearer_token.scopes
+        return bearer_token.get_scopes()
 
     def introspect_token(self, token: str, token_type_hint: str, request: Request, *args, **kwargs):
         """Introspect an access or refresh token.
@@ -562,7 +565,7 @@ class OauthRequestValidators(RequestValidator):
         if bearer_token.validate(scopes):
             request.user = bearer_token.user
             request.client = bearer_token.client
-            request.scopes = bearer_token.scopes
+            request.scopes = bearer_token.get_scopes()
             return True
         return False
 
@@ -629,7 +632,7 @@ class OauthRequestValidators(RequestValidator):
             return False
         if auth_code.validate(client.client_id):
             request.user = auth_code.user
-            request.scopes = auth_code.scopes
+            request.scopes = auth_code.get_scopes()
             if auth_code.claims:
                 request.claims = auth_code.claims 
             if client.requires_pkce():
@@ -814,7 +817,7 @@ class OauthRequestValidators(RequestValidator):
             if user:
                 if user.correct_password(request.body['password']):
                     client = self._registry(domain.Client).find(
-                        lambda x: ((x.tenant_id == user.tenant.id) | (x.client_id == user.sub)) 
+                        lambda x: ((x.tenant_id == user.tenant_id) | (x.client_id == user.sub)) 
                     )
 
                     if client:
@@ -829,10 +832,6 @@ class OauthRequestValidators(RequestValidator):
             request.client = client
             return True
         return False
-
-    def _decode_token(self, token, audience):
-        decoded = jwt.decode(token, self._secret_key, 'HS256', audience=audience)
-        return decoded
 
     def _generate_bearer_token(self, token: dict, request: Request):
         user = request.user or self._registry(domain.User).find(lambda x: (x.tenant_id == request.client.tenant_id) | (x.sub == request.client.client_id))
@@ -871,7 +870,7 @@ class OauthRequestValidators(RequestValidator):
         decoded_token = self._decode_token(token, bearer_token.client.client_id)
         resp = {
             'active': is_active,
-            'scope': bearer_token.scopes,
+            'scope': bearer_token.get_scopes(),
             'client_id': bearer_token.client.client_id,
             'username': bearer_token.user.email or bearer_token.user.preferred_username, #use whichever one isn't None
             'token_type': token_type,

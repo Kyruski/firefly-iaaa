@@ -45,11 +45,13 @@ class OauthProvider(ff.DomainService):
         )
 
     def generate_token(self, request, token_type):
+        scopes = request['scopes'] if isinstance(request, dict) else request.scopes
+        print('xxxxxyyyxxx')
         token = {
             'jti': str(uuid.uuid4()),
             'aud': request.client_id,
             'iss': self._issuer,
-            'scope': ' '.join(request.scopes)
+            'scope':  ' '.join(self._convert_from_scopes_to_string(scopes))
         }
         if token_type == 'access_token':
             token['exp'] = datetime.utcnow() + timedelta(seconds=request.expires_in)
@@ -66,7 +68,8 @@ class OauthProvider(ff.DomainService):
         print('BEFORE SET CACHE', credentials)
         print('BEFORE SET CACHE', credentials_key)
         self._cache.set(credentials_key, value=credentials, ttl=180)
-        return scopes, credentials, credentials_key
+        s = self._convert_from_scopes_to_string(scopes)
+        return s, credentials, credentials_key
 
     def validate_post_auth_request(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
@@ -94,10 +97,13 @@ class OauthProvider(ff.DomainService):
         return headers, body, status
 
     def create_token_response(self, request: ff.Message):
-
+        print('y1111')
         uri, http_method, body, headers = self._get_request_params(request)
+        print('y2222')
 
         headers, body, status = self._server.create_token_response(uri, http_method, body, headers)
+        print('y3333', body)
+        print('y3333', headers)
         return headers, body, status
 
     def create_response(self, request: ff.Message):
@@ -130,11 +136,6 @@ class OauthProvider(ff.DomainService):
         uri, http_method, body, headers = self._get_request_params(request)
         oauth_request = Request(uri, http_method, body, headers)
         return self._server.request_validator.authenticate_client(oauth_request) #!! Check
-
-    def decode_token(self, token, audience):
-        if token.lower().startswith('bearer'):
-            token = token.split(' ')[-1]
-        return jwt.decode(token, self._secret_key, 'HS256', audience=audience)
 
     @staticmethod
     def _get_request_params(request: ff.Message):
@@ -222,3 +223,22 @@ class OauthProvider(ff.DomainService):
             except (KeyError, TypeError):
                 pass
         return request
+
+    @staticmethod
+    def _convert_from_scopes_to_string(scopes):
+        print('xxxxxy', scopes)
+        converted = []
+        for scope in scopes:
+            if isinstance(scope, str):
+                converted.append(scope.split(' ')[-1][1:-2])
+            elif isinstance(scope, dict):
+                converted.append(scope['id'])
+            else:
+                converted.append(scope.id)
+        print('wwwwwwwwwwwwwwwwwwwwwwww', converted)
+            
+        return converted
+
+    @staticmethod
+    def _convert_from_string_to_scopes(scopes):
+        pass
