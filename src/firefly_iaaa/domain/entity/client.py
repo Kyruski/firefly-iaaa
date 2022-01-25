@@ -129,7 +129,7 @@ class Client(ff.AggregateRoot):
             self.roles.append(role)
 
     def generate_scrubbed_client(self):
-        x =  {
+        return {
             'client_id': self.client_id,
             'external_id': self.external_id,
             'name': self.name,
@@ -142,7 +142,6 @@ class Client(ff.AggregateRoot):
             'tenant_id': self.tenant_id,
             'tenant_name': self.tenant.name,
         }
-        return x
 
     def _get_entity_scopes(self):
         roles = [scope for role in self.roles for scope in role.scopes]

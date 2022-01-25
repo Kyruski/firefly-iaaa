@@ -51,7 +51,7 @@ class OauthProvider(ff.DomainService):
             'jti': str(uuid.uuid4()),
             'aud': request.client_id,
             'iss': self._issuer,
-            'scope':  ' '.join(self._convert_from_scopes_to_string(scopes))
+            'scope': ' '.join(self._convert_from_scopes_to_string(scopes))
         }
         if token_type == 'access_token':
             token['exp'] = datetime.utcnow() + timedelta(seconds=request.expires_in)
@@ -68,8 +68,8 @@ class OauthProvider(ff.DomainService):
         print('BEFORE SET CACHE', credentials)
         print('BEFORE SET CACHE', credentials_key)
         self._cache.set(credentials_key, value=credentials, ttl=180)
-        s = self._convert_from_scopes_to_string(scopes)
-        return s, credentials, credentials_key
+
+        return self._convert_from_scopes_to_string(scopes), credentials, credentials_key
 
     def validate_post_auth_request(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
@@ -223,7 +223,3 @@ class OauthProvider(ff.DomainService):
                 converted.append(scope.id)
             
         return converted
-
-    @staticmethod
-    def _convert_from_string_to_scopes(scopes):
-        pass
