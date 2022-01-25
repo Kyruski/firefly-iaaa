@@ -130,4 +130,7 @@ class User(ff.AggregateRoot):
         return resp
 
     def get_scopes(self):
+        for x in self.roles:
+            for scope in x.scopes:
+                print('444444', scope.id)
         return [scope.id for role in self.roles for scope in role.scopes]

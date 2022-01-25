@@ -34,7 +34,7 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
         tokens = [None, None]
 
         found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
-
+        print('kwttt', found_user)
         if found_user:
             passed_in_kwargs['grant_type'] = 'password'
             self.info('We found a user, trying to login with password')
@@ -82,6 +82,7 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
         raise Exception('Somethign went wrong')
 
     def _get_tokens(self, kwargs: dict):
+        print('kwargs xxxxxxxxgg', kwargs)
         # kwargs = self._set_referer(kwargs)
         resp = self._create_token(kwargs)
         return resp

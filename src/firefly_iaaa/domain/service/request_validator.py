@@ -742,7 +742,7 @@ class OauthRequestValidators(RequestValidator):
             - Resource Owner Password Credentials Grant
             - Client Credentials Grant
         """
-
+        print('hhh', scopes, client.validate_scopes(scopes))
         return client.validate_scopes(scopes)
 
     def validate_user(self, username: str, password: str, client: domain.Client, request: Request, *args, **kwargs):

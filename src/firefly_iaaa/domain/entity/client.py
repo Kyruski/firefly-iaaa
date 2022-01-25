@@ -92,6 +92,8 @@ class Client(ff.AggregateRoot):
     def validate_scopes(self, scopes: List[str]):
         print('aaaa1', self, self,scopes, self.roles, self.get_scopes())
         client_scopes = self.get_scopes()
+        print(client_scopes)
+        print(scopes)
 
         #  Include ANY scopes
         # if not scopes:
@@ -124,6 +126,10 @@ class Client(ff.AggregateRoot):
 
     def inactivate(self):
         self.is_active = False
+
+    def add_role(self, role: Role):
+        if isinstance(role, Role):
+            self.roles.append(role)
 
     def generate_scrubbed_client(self):
         x =  {

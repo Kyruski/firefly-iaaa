@@ -97,9 +97,12 @@ class OauthProvider(ff.DomainService):
         return headers, body, status
 
     def create_token_response(self, request: ff.Message):
-        print('y1111')
+        print('y1111', request.__dict__)
+        print('yyy')
+        print(request.scopes)
+        print(type(request.scopes[0]))
         uri, http_method, body, headers = self._get_request_params(request)
-        print('y2222')
+        print('y2222', body)
 
         headers, body, status = self._server.create_token_response(uri, http_method, body, headers)
         print('y3333', body)

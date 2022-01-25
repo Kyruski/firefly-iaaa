@@ -43,8 +43,12 @@ class OAuthRegister(ff.DomainService):
             'grant_type': 'password',
             'scopes': []
         })
-        print('passed_in_kwargs', passed_in_kwargs)
-        user_client = self._make_user(**passed_in_kwargs)
-        passed_in_kwargs['scopes'] = user_client.get_scopes()
 
+        user_client = self._make_user(**passed_in_kwargs)
+        print('xxx', user_client)
+        passed_in_kwargs['scopes'] = ' '.join(user_client.get_scopes())
+        passed_in_kwargs['scope'] = ' '.join(user_client.get_scopes())
+        print(passed_in_kwargs['scopes'])
+        print('jjjjjjjjjjjjjjjjjjjjj')
+        print(passed_in_kwargs)
         return self._oauth_login(passed_in_kwargs)
