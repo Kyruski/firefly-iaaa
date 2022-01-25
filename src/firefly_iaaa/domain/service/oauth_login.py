@@ -79,7 +79,7 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
             return resp
         raise Exception('Somethign went wrong')
 
-    def _get_tokens(self, kwargs: dict):s
+    def _get_tokens(self, kwargs: dict):
         # kwargs = self._set_referer(kwargs)
         resp = self._create_token(kwargs)
         return resp
