@@ -98,8 +98,6 @@ def roles(scopes, registry):
 
 @pytest.fixture()
 def bearer_messages(bearer_messages_list, registry):
-    print('9876', bearer_messages_list)
-    print('666666')
     registry(BearerToken).commit()
     registry(AuthorizationCode).commit()
     return bearer_messages_list

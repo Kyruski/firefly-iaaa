@@ -15,40 +15,12 @@
 from __future__ import annotations
 
 import firefly as ff
-from firefly_iaaa.application.middleware.generic_oauth_middleware import GenericOauthMiddleware
 import firefly_iaaa.domain as domain
 
 
 @ff.authenticator()
-class OAuthAuthenticator(GenericOauthMiddleware):
-    _request_validator: domain.OauthRequestValidators = None
+class OAuthAuthenticator(ff.Handler, ff.LoggerAware):
+    _oauth_authenticator: domain.OAuthAuthenticator = None
 
-    def handle(self, message: ff.Message, *args, **kwargs):
-        print('aaaaaaaaaaaaaaaaaaaatttxxx', message.__dict__)
-        self.info('Authenticating')
-        message = self._fix_email(message)
-        self.info(self._kernel)
-        print(self._kernel)
-        if self._kernel.http_request and self._kernel.secured:
-            token = self._retrieve_token_from_http_request()
-            if token:
-                token = token.split(' ')[-1]
-            if token is None:
-                try:
-                    token = message.access_token
-                except:
-                    raise ff.UnauthenticatedError()
-
-            self.debug('Decoding token')
-            try:
-                resp = self._get_client_user_and_token(token, self._kernel.user.id)
-                decoded= resp['decoded']
-                user = resp['user']
-                client_id = resp['client_id']
-            except:
-                raise ff.UnauthenticatedError()
-    
-            self._kernel.user.token = decoded
-            self._kernel.user.scopes = decoded['scope'].split(' ')
-            return True
-        return self._kernel.secured is not True
+    def handle(self, message: ff.Message, **kwargs):
+        return self._oauth_authenticator(message, **kwargs)

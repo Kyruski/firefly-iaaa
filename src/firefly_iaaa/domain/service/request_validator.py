@@ -240,8 +240,6 @@ class OauthRequestValidators(RequestValidator):
             - Client Credentials grant
         """
 
-        print('aaaa3', request.client)
-        print('aaaa3', request.client.get_scopes())
         return request.client.get_scopes()
 
     def get_original_scopes(self, refresh_token: str, request: Request, *args, **kwargs):
@@ -742,7 +740,7 @@ class OauthRequestValidators(RequestValidator):
             - Resource Owner Password Credentials Grant
             - Client Credentials Grant
         """
-        print('hhh', scopes, client.validate_scopes(scopes))
+
         return client.validate_scopes(scopes)
 
     def validate_user(self, username: str, password: str, client: domain.Client, request: Request, *args, **kwargs):
@@ -848,9 +846,6 @@ class OauthRequestValidators(RequestValidator):
         )
 
     def _generate_authorization_code(self, code: dict, request: Request, claims: dict):
-        print('WE HAVE KERNEL', self._kernel.__dict__)
-        print('WE HAVE KERNEL', self._kernel.user.__dict__)
-        print('WE HAVE request', request.__dict__)
         user = request.user or self._registry(domain.User).find(lambda x: x.sub == self._kernel.user.id)
         return domain.AuthorizationCode(
             client=request.client,

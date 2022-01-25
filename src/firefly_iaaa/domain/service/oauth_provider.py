@@ -74,21 +74,16 @@ class OauthProvider(ff.DomainService):
     def validate_post_auth_request(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
         credentials_key = body.get('credentials_key')
-        print('111111111111111111cred_key', credentials_key)
         if not credentials_key:
-            print('dead1')
             raise ff.UnauthorizedError('Missing credentials key')
 
         credentials = self._cache.get(credentials_key)
-        print('111111111111111111creds', credentials)
         if not credentials:
-            print('dead2')
             raise ff.UnauthorizedError('Credentials expired or invalid')
 
         credentials = self._build_up_credentials(credentials)
 
         if not request.scopes:
-            print('dead3')
             raise ff.UnauthorizedError('Missing scopes')
         headers, body, status = self._server.create_authorization_response(uri, http_method, body, headers, scopes=request.scopes, credentials=credentials)
 
@@ -97,16 +92,9 @@ class OauthProvider(ff.DomainService):
         return headers, body, status
 
     def create_token_response(self, request: ff.Message):
-        print('y1111', request.__dict__)
-        print('yyy')
-        print(request.scopes)
-        print(type(request.scopes[0]))
         uri, http_method, body, headers = self._get_request_params(request)
-        print('y2222', body)
 
         headers, body, status = self._server.create_token_response(uri, http_method, body, headers)
-        print('y3333', body)
-        print('y3333', headers)
         return headers, body, status
 
     def create_response(self, request: ff.Message):

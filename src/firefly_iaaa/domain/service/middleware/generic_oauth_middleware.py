@@ -18,16 +18,15 @@ import firefly as ff
 import firefly_iaaa.domain as domain
 
 
-class GenericOauthMiddleware(ff.Handler, ff.LoggerAware, ff.SystemBusAware):
+class GenericOauthDomainMiddleware(ff.DomainService, ff.LoggerAware, ): 
     _kernel: ff.Kernel = None
     _oauth_provider: domain.OauthProvider = None
-    _get_client_user_and_token: domain.GetClientUserAndToken = None
+    _decode_token: domain.DecodeToken = None
 
-    def handle(self, message: ff.Message):
+    def __call__(self, message: ff.Message, **kwargs):
         pass
 
     def _retrieve_token_from_http_request(self):
-        print('prprprprprprp', self._kernel)
         for k, v in self._kernel.http_request['headers'].items():
             if k.lower() == 'authorization':
                 if not v.lower().startswith('bearer'):
