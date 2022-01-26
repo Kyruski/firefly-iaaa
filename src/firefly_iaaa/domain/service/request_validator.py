@@ -835,6 +835,9 @@ class OauthRequestValidators(RequestValidator):
     def _generate_bearer_token(self, token: dict, request: Request):
         user = request.user or self._registry(domain.User).find(lambda x: (x.tenant_id == request.client.tenant_id) | (x.sub == request.client.client_id))
         client = request.client or self._registry(domain.Client).find(lambda x: (x.tenant_id == request.user.tenant_id) | (x.client_id == request.client.client_id))
+        print('GENNING BEARER TOKEN', request.scopes)
+        print('GENNING BEARER TOKEN', request.scope)
+        print('GENNING BEARER TOKEN', token)
         return domain.BearerToken(
             client=client,
             user=user,
