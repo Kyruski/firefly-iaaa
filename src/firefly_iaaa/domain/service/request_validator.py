@@ -854,7 +854,7 @@ class OauthRequestValidators(RequestValidator):
         return domain.AuthorizationCode(
             client=request.client,
             user=user,
-            scopes=request.scopes,
+            scopes=self._convert_list_to_scopes(request.scopes),
             code=code['code'],
             expires_at=datetime.utcnow() + timedelta(minutes=10),
             redirect_uri=request.redirect_uri,
@@ -883,3 +883,12 @@ class OauthRequestValidators(RequestValidator):
         } if bearer_token and is_active else None
 
         return resp
+
+    def _convert_list_to_scopes(self, scopes_list: list):
+        scopes = []
+        for s in scopes_list:
+            scope = self._registry(domain.Scope).find(s)
+            if scope is not None:
+                scopes.append(scope)
+
+        return scopes
