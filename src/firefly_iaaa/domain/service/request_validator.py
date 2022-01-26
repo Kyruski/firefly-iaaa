@@ -491,7 +491,13 @@ class OauthRequestValidators(RequestValidator):
             - Client Credentials grant
         """
         bearer_token = self._generate_bearer_token(token, request)
+        print('THIS IS THE BEARER TOKEN', bearer_token)
+        print('THIS IS THE BEARER TOKEN', bearer_token.__dict__)
         self._registry(domain.BearerToken).append(bearer_token)
+
+        x = self._registry(domain.BearerToken).find(lambda x: x.access_token == token['access_token'])
+        print('TOKEN', x)
+        print('TOKEN', x.__dict__)
         try:
             request.old_token.invalidate()
         except AttributeError:
@@ -891,4 +897,5 @@ class OauthRequestValidators(RequestValidator):
             if scope is not None:
                 scopes.append(scope)
 
+        print('SCOPES GOING INTO BEARER TOKEN', scopes)
         return scopes
