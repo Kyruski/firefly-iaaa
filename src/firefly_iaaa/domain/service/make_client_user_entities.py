@@ -47,6 +47,14 @@ class MakeClientUserEntities(ff.DomainService):
         kwargs['name'] = kwargs.get('name', tenant_name)
         kwargs = self._make_params(kwargs)
 
+        if len(kwargs['scopes']) == 0:
+            kwargs['scopes'] = ['iaaa.default.read']
+        scopes = []
+        for scope in kwargs['scopes']:
+            s = self._registry(domain.Scope).find(scope)
+            scopes.append(s)
+        kwargs['scopes'] = scopes
+
         client = domain.Client.create(**kwargs)
 
         # Append at end to avoid appending before an error during entity creation
