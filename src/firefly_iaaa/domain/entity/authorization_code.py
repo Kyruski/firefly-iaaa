@@ -39,7 +39,7 @@ class AuthorizationCode(ff.AggregateRoot):
     id_: str = ff.id_()
     client: Client = ff.required(index=True)
     user: User = ff.required()
-    scopes: List[Scope] = ff.required()
+    scopes: List[Scope] = ff.list_()
     redirect_uri: str = ff.optional()
     claims: dict = ff.optional()
     code: str = ff.required(str, length=36, index=True)

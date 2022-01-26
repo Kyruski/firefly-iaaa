@@ -40,7 +40,7 @@ class BearerToken(ff.AggregateRoot):
     id_: str = ff.id_()
     client: Client = ff.required(index=True)
     user: User = ff.required(index=True)
-    scopes: List[Scope] = ff.required()
+    scopes: List[Scope] = ff.list_()
     access_token: str = ff.required(str, length=36, index=True)
     refresh_token: str = ff.required(str, length=36, index=True)
     expires_at: datetime = ff.required()
