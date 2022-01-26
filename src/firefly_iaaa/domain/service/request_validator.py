@@ -239,7 +239,7 @@ class OauthRequestValidators(RequestValidator):
             - Resource Owner Password Credentials Grant
             - Client Credentials grant
         """
-
+        print('Getting scopes')
         return request.client.get_scopes()
 
     def get_original_scopes(self, refresh_token: str, request: Request, *args, **kwargs):
@@ -658,6 +658,7 @@ class OauthRequestValidators(RequestValidator):
             - Refresh Token Grant
         """
 
+        print('DEBUGGING VALIDATE GRANT TYPE', request.__dict__)
         return client.validate_grant_type(grant_type)
 
     def validate_redirect_uri(self, client_id: str, redirect_uri: str, request: Request, *args, **kwargs):
