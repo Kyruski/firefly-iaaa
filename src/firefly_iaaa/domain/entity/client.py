@@ -91,7 +91,8 @@ class Client(ff.AggregateRoot):
 
     def validate_scopes(self, scopes: List[str]):
         client_scopes = self.get_scopes()
-
+        if isinstance(scopes, str):
+            scopes = scopes.split(' ')
         #  Include ANY scopes
         # if not scopes:
         #     return False
