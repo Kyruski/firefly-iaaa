@@ -30,29 +30,29 @@ class MakeBaseClients(GenericOauthIamEndpoint):
             'tenant_name': 'testing_tenant_1',
             'name': 'Testing Tenant 1',
             'grant_type': 'authorization_code',
-            'scopes': [],
+            'scopes': ['iaaa.default.read'],
             'default_redirect_uri': 'https://www.fake1.com',
             'redirect_uris': ['https://www.fake1.com', 'https://www.fake.com'],
             'roles': ['Connected Data Client'],
         }
         pkce = {
             'username': 'fakeemail2@fake.com',
-            'password': 'Abcd1234!',
+            'password': 'Abcd1234@',
             'tenant_name': 'testing_tenant_2',
             'name': 'Testing Tenant 2',
             'grant_type': 'authorization_code_w_pkce',
-            'scopes': [],
+            'scopes': ['iaaa.default.read'],
             'default_redirect_uri': 'https://www.fake2.com',
             'redirect_uris': ['https://www.fake2.com', 'https://www.fake.com'],
             'roles': ['Connected Data Client'],
         }
         client_cred = {
             'username': 'fakeemail3@fake.com',
-            'password': 'Abcd1234!',
+            'password': 'Abcd1234#',
             'tenant_name': 'testing_tenant_3',
             'name': 'Testing Tenant 3',
             'grant_type': 'client_credentials',
-            'scopes': [],
+            'scopes': ['iaaa.default.read'],
             'roles': ['Connected Data Client'],
         }
         self._make_user(**auth_no_pkce)
