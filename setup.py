@@ -29,7 +29,7 @@ setuptools.setup(
     package_dir={'': 'src'},
     install_requires=[
         'bcrypt>=3.1.7',
-        'firefly-framework @ git+https://github.com/Kyruski/firefly-framework.git@adding-cookies',
+        'firefly-framework @ git+https://github.com/Kyruski/firefly-framework.git@fixing-entity-as-none',
         'firefly-aws @ git+https://github.com/Kyruski/firefly-aws.git@adding-cookies',
         # 'botocore @ git+https://github.com/Kyruski/botocore.git@debugging',
         'PyJWT[crypto]>=2.1.0',

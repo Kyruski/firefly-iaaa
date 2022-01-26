@@ -40,8 +40,8 @@ class GenericEndpoint(ff.ApplicationService):
             message = message.set_raw_request(headers)
         if forwarding_address:
             message = message.add_forwarding_address(forwarding_address)
-        if cookies:
-            message = message.set_cookies(cookies)
+        # if cookies:
+        #     message = message.set_cookies(cookies)
         return message
 
     @staticmethod

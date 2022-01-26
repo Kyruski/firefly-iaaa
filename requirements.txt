@@ -1,6 +1,6 @@
 bcrypt==3.1.7
 # firefly-framework==1.2.5
-firefly-framework @ git+https://github.com/Kyruski/firefly-framework.git@adding-cookies
+firefly-framework @ git+https://github.com/Kyruski/firefly-framework.git@fixing-entity-as-none
 firefly-aws @ git+https://github.com/Kyruski/firefly-aws.git@adding-cookies
 # botocore @ git+https://github.com/Kyruski/botocore.git@debugging
 # firefly-aws==1.2.5
