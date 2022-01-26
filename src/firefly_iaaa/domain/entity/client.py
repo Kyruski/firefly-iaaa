@@ -101,9 +101,12 @@ class Client(ff.AggregateRoot):
         # return False
 
         #  Include ALL scopes
+        print('SCOPESOSOSOS', client_scopes)
         if not scopes:
+            print('none')
             return False
         for scope in scopes:
+            print('scope', scope)
             if scope not in client_scopes:
                 return False
         return True
