@@ -214,7 +214,12 @@ class OauthProvider(ff.DomainService):
         converted = []
         for scope in scopes:
             if isinstance(scope, str):
-                converted.append(scope.split(' ')[-1][1:-2])
+                #  Checking if the scope might be 
+                scope = scope.split(' ')[-1]
+                if scope.endswith(']'):
+                    converted.append(scope[1:-2])
+                else:
+                    converted.append(scope)
             elif isinstance(scope, dict):
                 converted.append(scope['id'])
             else:
