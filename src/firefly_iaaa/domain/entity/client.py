@@ -151,7 +151,15 @@ class Client(ff.AggregateRoot):
 
     def get_scopes(self):
         print('GETTING SCOPES', self.roles, self.scopes, self)
-        return [scope.id for scope in self._get_entity_scopes()]
+        x = [scope.id for scope in self._get_entity_scopes()]
+        y = []
+        for scope in self._get_entity_scopes():
+            print('hhhh', scope)
+            print('jjjj', scope.id)
+            y.append(scope.id)
+        print('GET SCOPES RETURNING', x)
+        print('GET SCOPES RETURNING', y)
+        return x
 
     def _get_scopes_from_roles(self):
         roles = []
