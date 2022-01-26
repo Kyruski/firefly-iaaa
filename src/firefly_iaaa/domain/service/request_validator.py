@@ -498,7 +498,6 @@ class OauthRequestValidators(RequestValidator):
         x = self._registry(domain.BearerToken).find(lambda x: x.access_token == token['access_token'])
         print('TOKEN', x)
         print('TOKEN', x.__dict__)
-        self._registry(domain.BearerToken).commit()
         try:
             request.old_token.invalidate()
         except AttributeError:
