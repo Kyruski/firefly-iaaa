@@ -37,7 +37,7 @@ class MakeBaseClients(GenericOauthIamEndpoint):
         }
         pkce = {
             'username': 'fakeemail2@fake.com',
-            'password': 'Abcd1234@',
+            'password': 'Abcd1234!',
             'tenant_name': 'testing_tenant_2',
             'name': 'Testing Tenant 2',
             'grant_type': 'authorization_code_w_pkce',
@@ -48,7 +48,7 @@ class MakeBaseClients(GenericOauthIamEndpoint):
         }
         client_cred = {
             'username': 'fakeemail3@fake.com',
-            'password': 'Abcd1234#',
+            'password': 'Abcd1234!',
             'tenant_name': 'testing_tenant_3',
             'name': 'Testing Tenant 3',
             'grant_type': 'client_credentials',

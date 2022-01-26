@@ -22,11 +22,20 @@ class MakeClientUserEntities(ff.DomainService):
     _registry: ff.Registry = None
 
     def __call__(self, username: str, password: str, tenant_name: str, **kwargs):
+        roles = []
+        if 'roles' in kwargs:
+            for role in kwargs['roles']:
+                r = self._registry(domain.Role).find(lambda x: x.name == role)
+                roles.append(r)
+        else:
+            r = self._registry(domain.Role).find(lambda x: x.name == 'Distributed Event Registrant')
+            roles.append(r)
+        kwargs['roles'] = roles
+
         kwargs['email'] = kwargs.get('email', username)
         tenant = domain.Tenant(
             name=tenant_name
         )
-
         kwargs['tenant'] = tenant
         user = domain.User.create(
             username=username,
@@ -39,17 +48,6 @@ class MakeClientUserEntities(ff.DomainService):
         kwargs = self._make_params(kwargs)
 
         client = domain.Client.create(**kwargs)
-
-        if 'roles' in kwargs:
-            for role in kwargs['roles']:
-                r = self._registry(domain.Role).find(lambda x: x.name == role)
-                user.add_role(r)
-                client.add_role(r)
-        else:
-            r = self._registry(domain.Role).find(lambda x: x.name == 'Distributed Event Registrant')
-            user.add_role(r)
-            client.add_role(r)
-
 
         # Append at end to avoid appending before an error during entity creation
         self._registry(domain.Tenant).append(tenant)
