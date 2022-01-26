@@ -212,6 +212,7 @@ class OauthProvider(ff.DomainService):
     @staticmethod
     def _convert_from_scopes_to_string(scopes):
         converted = []
+        print('SCOPES COMING IN TO CONVERT', scopes)
         for scope in scopes:
             if isinstance(scope, str):
                 #  Checking if the scope might be 
