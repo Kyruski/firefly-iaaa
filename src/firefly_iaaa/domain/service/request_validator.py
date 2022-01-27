@@ -847,7 +847,7 @@ class OauthRequestValidators(RequestValidator):
         return domain.BearerToken(
             client=client,
             user=user,
-            scopes=request.scopes,
+            scopes=self._convert_list_to_scopes(request.scopes),
             access_token=token['access_token'],
             expires_at=datetime.utcnow() + timedelta(seconds=token['expires_in']),
             refresh_token=token.get('refresh_token'),
