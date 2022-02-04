@@ -25,6 +25,7 @@ class MakeClient(GenericOauthIamEndpoint):
     _registry: ff.Registry = None
 
     def __call__(self, **kwargs):
+        print('WE GOT KWARGS', kwargs)
         roles = []
         for role in kwargs['roles']:
             r = self._registry(domain.Role).find(lambda x: x.name == role)
