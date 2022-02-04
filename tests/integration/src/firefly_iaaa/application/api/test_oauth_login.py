@@ -30,11 +30,10 @@ async def test_oauth_login_endpoint(client, registry, bearer_messages: List[ff.M
     data['password'] = bearer_messages[2]['active'].password
     fourth_response = await client.post('/firefly-iaaa/iaaa/login', data=json.dumps(data), headers={'Referer': 'abc'})
     assert fourth_response.status == 200
-    # assert fourth_response.cookies['accessToken'] is not None
-    # assert fourth_response.cookies['refreshToken'] is not None
-    # assert fourth_response.cookies['accessToken']['max-age'] in ('3600', 3600)
     resp = json.loads(await fourth_response.text())
     assert resp['message'] == 'success'
+    assert resp['data']['access_token'] is not None
+    assert resp['data']['refresh_token'] is not None
 
 
     data['password'] = 'wrong password'

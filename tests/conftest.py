@@ -90,7 +90,8 @@ def scopes(registry):
 def roles(scopes, registry):
     roles_dict = {
         'client_role': [Role(name='client_role', scopes=scopes['fake_scopes'])],
-        'user_role': [Role(name='user_role', scopes=scopes['fake_scopes'])]
+        'user_role': [Role(name='user_role', scopes=scopes['fake_scopes'])],
+        'consumer_role': [Role(name='consumer_role', scopes=scopes['fake_scopes'])],
     }
     for r in roles_dict.values():
         registry(Role).append(r)

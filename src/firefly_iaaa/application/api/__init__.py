@@ -18,7 +18,7 @@ from .create_token import OauthTokenCreationService
 from .generic_oauth_endpoint import GenericOauthEndpoint
 from .generic_oauth_iam_endpoint import GenericOauthIamEndpoint
 from .generic_endpoint import GenericEndpoint
-from .make_base_clients import MakeBaseClients
+from .make_client import MakeClient
 from .introspect_token import OauthTokenIntrospectionService
 from .oauth_login import OAuthLogin
 from .oauth_register import OAuthRegister

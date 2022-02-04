@@ -40,16 +40,10 @@ class OAuthAuthorizeRequest(GenericOauthDomainMiddleware):
             return False
         if message.access_token.lower().startswith('bearer'):
             message.access_token = message.access_token.split(' ')[-1]
-
         try:
             decoded = self._decode_token(token, self._kernel.user.id)
         except:
             raise ff.UnauthorizedError()
-        try:
-            if not message.scopes:
-                message.scopes = decoded.get('scope').split(' ') if decoded else self._kernel.user.scopes
-        except AttributeError:
-            message.scopes = decoded.get('scope').split(' ') if decoded else self._kernel.user.scopes
 
         message.token = message.access_token
         validated, resp = self._oauth_provider.verify_request(message, message.scopes)

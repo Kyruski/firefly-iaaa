@@ -23,6 +23,24 @@ async def test_authorize_request(bearer_messages_list: List[ff.Message], message
     validated = sut.handle(message)
     assert not validated
 
+    data['scopes'] = 'abc 123'
+    message = message_factory.query(
+        name='a1b2c3',
+        data=data,
+    )
+
+    validated = sut.handle(message)
+    assert not validated
+
+    data['scopes'] = bearer_messages_list[0]['active'].scopes
+    message = message_factory.query(
+        name='a1b2c3',
+        data=data,
+    )
+
+    validated = sut.handle(message)
+    assert not validated
+
     data['access_token'] = bearer_messages_list[0]['active'].access_token
     message = message_factory.query(
         name='a1b2c3',

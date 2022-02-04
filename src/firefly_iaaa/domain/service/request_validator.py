@@ -821,9 +821,9 @@ class OauthRequestValidators(RequestValidator):
             )
             if user:
                 if user.correct_password(request.body['password']):
-                    client = self._registry(domain.Client).find(
-                        lambda x: ((x.tenant_id == user.tenant_id) | (x.client_id == user.sub))
-                    )
+                    client = self._registry(domain.Client).find(lambda x: x.tenant_id == user.tenant_id)
+                    if not client:
+                        client = self._registry(domain.Client).find(lambda x: x.client_id == user.sub)
 
                     if client:
                         request.client = client
@@ -893,9 +893,12 @@ class OauthRequestValidators(RequestValidator):
     def _convert_list_to_scopes(self, scopes_list: list):
         scopes = []
         for s in scopes_list:
-            scope = self._registry(domain.Scope).find(s)
-            if scope is not None:
-                scopes.append(scope)
+            if isinstance(s, domain.Scope):
+                scopes.append(s)
+            else:
+                scope = self._registry(domain.Scope).find(s)
+                if scope is not None:
+                    scopes.append(scope)
 
         print('SCOPES GOING INTO BEARER TOKEN', scopes)
         return scopes
