@@ -53,6 +53,8 @@ class OauthProvider(ff.DomainService):
             'iss': self._issuer,
             'scope': ' '.join(self._convert_from_scopes_to_string(scopes))
         }
+        if request.user:
+            token['sub'] = request.user.sub
         if token_type == 'access_token':
             token['exp'] = datetime.utcnow() + timedelta(seconds=request.expires_in)
         token = jwt.encode(token, self._secret_key, algorithm='HS256')
