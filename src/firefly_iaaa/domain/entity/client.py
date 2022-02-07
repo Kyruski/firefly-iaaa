@@ -84,6 +84,11 @@ class Client(ff.AggregateRoot):
         return response_type in self.allowed_response_types
 
     def validate_grant_type(self, grant_type: str):
+        print('1', self.grant_type, grant_type, self.grant_type == grant_type)
+        print('2', (self.grant_type in (resource_owner_password_credentials, client_credentials) or (self.grant_type == authorization_code and not self.requires_pkce())) and grant_type == 'refresh_token')
+        print('3', self.grant_type in (resource_owner_password_credentials, client_credentials))
+        print('4', (self.grant_type == authorization_code and not self.requires_pkce()))
+
         return self.grant_type == grant_type or ((self.grant_type in (resource_owner_password_credentials, client_credentials) or (self.grant_type == authorization_code and not self.requires_pkce())) and grant_type == 'refresh_token')
 
     # def valid_refresh_types(self, grant_type: str):
@@ -116,6 +121,7 @@ class Client(ff.AggregateRoot):
         return self.is_active
 
     def requires_pkce(self):
+        print('xxxx', self.uses_pkce)
         return self.uses_pkce
 
     def is_confidential(self): #might not be best
