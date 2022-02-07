@@ -86,10 +86,12 @@ class OauthRequestValidators(RequestValidator):
         Method is used by:
             - Authorization Code Grant
         """
-        if request.grant_type == 'refreh_token':
-            return False
+        print('reqqqq', request.__dict__)
+        if request.grant_type == 'refresh_token':
+            return True
         if self.validate_client_id(client_id, request):
             return not request.client.is_confidential()
+        print('false')
         return False
 
     def client_authentication_required(self, request: Request, *args, **kwargs):
