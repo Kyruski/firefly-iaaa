@@ -892,6 +892,10 @@ class OauthRequestValidators(RequestValidator):
 
     def _convert_list_to_scopes(self, scopes_list: list):
         scopes = []
+        if isinstance(scopes_list, str) and scopes_list.startswith('['):
+            for char in ('[', ']', ',', "'"):
+                scopes_list = scopes_list.replace(char, '')
+            scopes_list = scopes_list.split(' ')
         for s in scopes_list:
             if isinstance(s, domain.Scope):
                 scopes.append(s)
