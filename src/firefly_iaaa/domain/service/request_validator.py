@@ -87,7 +87,7 @@ class OauthRequestValidators(RequestValidator):
             - Authorization Code Grant
         """
         if request.grant_type == 'refreh_token':
-            return True
+            return False
         if self.validate_client_id(client_id, request):
             return not request.client.is_confidential()
         return False

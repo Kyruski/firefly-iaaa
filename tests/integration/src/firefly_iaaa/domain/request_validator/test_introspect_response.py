@@ -100,10 +100,10 @@ def test_introspect_missing_data(auth_service: OauthProvider, bearer_messages_se
         if i == 11:
             message.code_verifier = None
         if i == 12:
+            message.scopes = None
+        if i == 13:
             message.password = None
             message.client_secret = None
-        if i == 13:
-            message.scopes = None
         if i == 14:
             message.token_type_hint = None
         if i == 15:
