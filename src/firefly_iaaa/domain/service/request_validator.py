@@ -122,12 +122,13 @@ class OauthRequestValidators(RequestValidator):
         .. _`Section 6`: https://tools.ietf.org/html/rfc6749#section-6
         """
         #Always authenticate when headers are present
+        print('reqqqq', request.__dict__)
         if (request.body.get('username') and request.body.get('password')) or request.body.get('client_secret'):
             return True
         client: domain.Client = self._get_client(request.client_id)
         if not client:
             return False
-        return client.is_confidential()
+        return client.is_confidential() and request.grant_type != 'refresh_token'
 
     def confirm_redirect_uri(self, client_id: str, code: str, redirect_uri: str, client: domain.Client, request: Request, *args, **kwargs):
         """Ensure that the authorization process represented by this authorization
