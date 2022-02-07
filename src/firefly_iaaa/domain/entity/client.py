@@ -84,12 +84,7 @@ class Client(ff.AggregateRoot):
         return response_type in self.allowed_response_types
 
     def validate_grant_type(self, grant_type: str):
-        print('1', self.grant_type, grant_type, self.grant_type == grant_type)
-        print('2', (self.grant_type in (resource_owner_password_credentials, client_credentials) or (self.grant_type == authorization_code and not self.requires_pkce())) and grant_type == 'refresh_token')
-        print('3', self.grant_type in (resource_owner_password_credentials, client_credentials))
-        print('4', (self.grant_type == authorization_code and not self.requires_pkce()))
-
-        return self.grant_type == grant_type or ((self.grant_type in (resource_owner_password_credentials, client_credentials) or (self.grant_type == authorization_code and not self.requires_pkce())) and grant_type == 'refresh_token')
+        return grant_type in (self.grant_type, refresh)
 
     # def valid_refresh_types(self, grant_type: str):
     #     return self.grant_type in (authorization_code, resource_owner_password_credentials) and (self.grant_type == grant_type or grant_type == refresh)
@@ -121,12 +116,11 @@ class Client(ff.AggregateRoot):
         return self.is_active
 
     def requires_pkce(self):
-        print('xxxx', self.uses_pkce)
         return self.uses_pkce
 
     def is_confidential(self): #might not be best
         return self.grant_type in (client_credentials, resource_owner_password_credentials) or \
-            (self.grant_type == authorization_code and not self.requires_pkce())
+            (self.grant_type == authorization_code and self.requires_pkce())
 
     def validate_client_secret(self, secret):
         return self.client_secret == secret
@@ -156,7 +150,6 @@ class Client(ff.AggregateRoot):
     def _get_entity_scopes(self):
         roles = [scope for role in self.roles for scope in role.scopes]
         roles += self.scopes
-        print('WE GOT ROLES', roles)
         return roles
 
     def get_scopes(self):

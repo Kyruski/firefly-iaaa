@@ -95,9 +95,6 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         self._set_user_from_token(access_token, message.client_id)
 
         headers, body, status = self._oauth_provider.validate_post_auth_request(message)
-        print('headers', headers)
-        print('body', body)
-        print('status', status)
         if not headers and not body and not status:
             raise ff.UnauthorizedError()
         if status == 302 and 'Location' in headers:
@@ -137,7 +134,6 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
 
     def _grab_token_from_headers(self):
         for k, v in self._kernel.http_request['headers'].items():
-            print('keys:', k, v)
             if k.lower() == 'authorization':
                 if not v.lower().startswith('bearer'):
                     raise ff.UnauthorizedError()
