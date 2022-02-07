@@ -87,10 +87,9 @@ class OauthRequestValidators(RequestValidator):
             - Authorization Code Grant
         """
         print('reqqqq', request.__dict__)
-        if request.grant_type == 'refresh_token':
-            return True
         if self.validate_client_id(client_id, request):
-            return not request.client.is_confidential()
+            if not request.client.is_confidential() or request.grant_type == 'refresh_token':
+                return True
         print('false')
         return False
 
