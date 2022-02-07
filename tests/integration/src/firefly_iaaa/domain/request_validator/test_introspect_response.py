@@ -115,7 +115,7 @@ def test_introspect_missing_data(auth_service: OauthProvider, bearer_messages_se
         body = json.loads(body)
         # Check error is missing from the body response when a token was supplied (i % 3 != 2)
         # Make sure error in body when missing authentication parameters (password and client secret)
-        assert (body.get('error') is None) == ((i % 3 != 2) and (i != 12))
+        assert (body.get('error') is None) == (i % 3 != 2)
 
 
 @pytest.fixture()

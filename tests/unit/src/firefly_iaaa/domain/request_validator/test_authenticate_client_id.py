@@ -11,12 +11,17 @@ def test_authenticate_client_id(validator: OauthRequestValidators, oauth_request
     for i in range(5):
         # Check returns True when client_id supplied on request with no client_id parameter (i == 0 or 1 is False because they are confidential clients and need authentication)
         oauth_request_list[i].client_id = oauth_request_list[i].client.client_id
-        assert validator.authenticate_client_id('', oauth_request_list[i]) == (i >= 2) #Seems like arbitrary decission, but clients at index 0 and 1 are False, rest are True
+        assert validator.authenticate_client_id('', oauth_request_list[i]) == (i < 2) #Seems like arbitrary decission, but clients at index 0 and 1 are False, rest are True
     
     # Check returns False when no client_id in parameter or request
     assert validator.authenticate_client_id('', oauth_request_list[-1]) == False 
+    assert validator.authenticate_client_id(None, oauth_request_list[-1]) == False 
+    # Check returns True when grant_type is refresh_token
+    assert validator.authenticate_client_id(oauth_request_list[1].client.client_id, oauth_request_list[-1]) == True 
+    # Check returns False when client_id belongs to non-confidential client
+    assert validator.authenticate_client_id(oauth_request_list[4].client.client_id, oauth_request_list[-1]) == True 
     # Check returns False when client_id belongs to confidential client
-    assert validator.authenticate_client_id(oauth_request_list[1].client.client_id, oauth_request_list[-1]) == False 
+    assert validator.authenticate_client_id(oauth_request_list[0].client.client_id, oauth_request_list[-1]) == False 
 
     # Check returns True when no client object on request but non-confidential client_id provided
     oauth_request_list[-1].client = None
