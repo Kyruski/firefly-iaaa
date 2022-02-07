@@ -14,19 +14,15 @@
 
 from __future__ import annotations
 
-import os
 from datetime import datetime, date
 from typing import List
 
+import bcrypt
 import firefly as ff
+
 from firefly_iaaa.domain.entity.role import Role
 from firefly_iaaa.domain.entity.tenant import Tenant
 from firefly_iaaa.domain.value_object.address import Address
-
-# __pragma__('skip')
-import bcrypt
-import uuid
-# __pragma__('noskip')
 
 
 class User(ff.AggregateRoot):
@@ -53,15 +49,14 @@ class User(ff.AggregateRoot):
     updated_at: datetime = ff.now()
 
     # Custom fields
-    created_at: datetime = ff.now()
-    deleted_at: datetime = ff.optional()
-    password_hash: str = ff.optional(length=32)
-    salt: str = ff.optional()
-    roles: List[Role] = ff.list_()
-    tenant: Tenant = ff.optional(index=True)
-    tenant_id: str = ff.optional(index=True)
+    created_at: datetime = ff.now(hidden=True)
+    deleted_at: datetime = ff.optional(hidden=True)
+    password_hash: str = ff.optional(length=32, hidden=True)
+    salt: str = ff.optional(hidden=True)
+    roles: List[Role] = ff.list_(hidden=True)
+    tenant: Tenant = ff.optional(index=True, hidden=True)
+    tenant_id: str = ff.optional(index=True, hidden=True)
 
-    # __pragma__('skip')    @classmethod
     @classmethod
     def create(cls, **kwargs):
         if 'email' in kwargs:
@@ -99,7 +94,6 @@ class User(ff.AggregateRoot):
         if not password:
             return False
         return self.password_hash == User._hash_password(password, self.salt)
-    # __pragma__('noskip')
 
     def generate_scrubbed_user(self):
         resp = {

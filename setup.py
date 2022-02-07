@@ -19,7 +19,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='firefly-iaaa',
-    version='0.1.11',
+    version='0.1.12',
     author="JD Williams",
     author_email="me@jdwilliams.xyz",
     description="Bounded context for users of your application.",
