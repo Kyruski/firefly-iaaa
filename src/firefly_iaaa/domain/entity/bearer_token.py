@@ -68,7 +68,7 @@ class BearerToken(ff.AggregateRoot):
         print(self.is_valid)
         print(self._check_active())
         print(self.client, client, self.client == client)
-        return self.refresh_token == refresh_token and self.is_valid and self._check_active() and self.client == client
+        return self.refresh_token == refresh_token and self.is_valid and self._check_refresh_active() and self.client == client
 
     def validate(self, scopes: List[str]):
         return self.token_type.lower() == 'bearer' and self.is_valid and self.validate_scopes(scopes) and self.is_access_valid and self._check_active()
@@ -80,6 +80,8 @@ class BearerToken(ff.AggregateRoot):
         self.invalidate_access_token()
         self.is_valid = False
 
+    def _has_refresh_expired(self):
+        return self.refresh_expires_at < datetime.utcnow() if self.refresh_expires_at is not None else False
 
     def _has_expired(self):
         return self.expires_at < datetime.utcnow() if self.expires_at is not None else False
@@ -89,6 +91,9 @@ class BearerToken(ff.AggregateRoot):
 
     def _check_active(self):
         return self._has_activated() and not self._has_expired()
+
+    def _check_refresh_active(self):
+        return self._has_activated() and not self._has_refresh_expired()
 
     def get_scopes(self):
         return [scope.id for scope in self.scopes]
