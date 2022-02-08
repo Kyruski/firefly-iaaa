@@ -84,6 +84,10 @@ class Client(ff.AggregateRoot):
         return response_type in self.allowed_response_types
 
     def validate_grant_type(self, grant_type: str):
+        print('we have grant type', grant_type)
+        print(self.grant_type)
+        print(refresh)
+        print(grant_type in (self.grant_type, refresh))
         return grant_type in (self.grant_type, refresh)
 
     # def valid_refresh_types(self, grant_type: str):
