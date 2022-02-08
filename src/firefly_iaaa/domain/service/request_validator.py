@@ -710,11 +710,14 @@ class OauthRequestValidators(RequestValidator):
         bearer_token: domain.BearerToken
         bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
         if not bearer_token:
+            print('errrrrrror')
             return False
         if bearer_token.validate_refresh_token(refresh_token, client):
             request.user = bearer_token.user
             request.old_token = bearer_token
+            print('we good')
             return True
+        print('bad')
         return False
 
     def validate_response_type(self, client_id: str, response_type: str, client: domain.Client, request: Request, *args, **kwargs):

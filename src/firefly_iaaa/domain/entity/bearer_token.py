@@ -64,6 +64,10 @@ class BearerToken(ff.AggregateRoot):
         return self.access_token == access_token and self.is_access_valid and self._check_active() and self.client.client_id == client.client_id
 
     def validate_refresh_token(self, refresh_token: str, client: Client):
+        print('attttttttttttttttt', self.refresh_token, refresh_token, self.refresh_token == refresh_token)
+        print(self.is_valid)
+        print(self._check_active())
+        print(self.client, client, self.client == client)
         return self.refresh_token == refresh_token and self.is_valid and self._check_active() and self.client == client
 
     def validate(self, scopes: List[str]):
