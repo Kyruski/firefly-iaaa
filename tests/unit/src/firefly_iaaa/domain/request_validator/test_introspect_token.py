@@ -19,7 +19,7 @@ def test_introspect_token(validator: OauthRequestValidators, oauth_request_list:
                 resp = validator.introspect_token(bearer_token.refresh_token, token_type, oauth_request_list[i])
 
                 # Check for refresh token
-                if x == 0:
+                if x != 2:
                     # Check that all claims exist
                     # Check the token on the request has been set
                     assert oauth_request_list[i].token['active'] == bearer_token.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client)

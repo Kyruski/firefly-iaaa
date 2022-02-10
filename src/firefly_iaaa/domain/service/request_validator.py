@@ -86,11 +86,9 @@ class OauthRequestValidators(RequestValidator):
         Method is used by:
             - Authorization Code Grant
         """
-        print('reqqqq', request.__dict__)
         if self.validate_client_id(client_id, request):
             if not request.client.is_confidential() or request.grant_type == 'refresh_token':
                 return True
-        print('false')
         return False
 
     def client_authentication_required(self, request: Request, *args, **kwargs):
@@ -121,7 +119,6 @@ class OauthRequestValidators(RequestValidator):
         .. _`Section 6`: https://tools.ietf.org/html/rfc6749#section-6
         """
         #Always authenticate when headers are present
-        print('reqqqq', request.__dict__)
         if (request.body.get('username') and request.body.get('password')) or request.body.get('client_secret'):
             return True
         client: domain.Client = self._get_client(request.client_id)
@@ -710,14 +707,11 @@ class OauthRequestValidators(RequestValidator):
         bearer_token: domain.BearerToken
         bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
         if not bearer_token:
-            print('errrrrrror')
             return False
         if bearer_token.validate_refresh_token(refresh_token, client):
             request.user = bearer_token.user
             request.old_token = bearer_token
-            print('we good')
             return True
-        print('bad')
         return False
 
     def validate_response_type(self, client_id: str, response_type: str, client: domain.Client, request: Request, *args, **kwargs):

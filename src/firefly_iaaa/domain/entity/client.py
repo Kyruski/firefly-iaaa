@@ -84,10 +84,6 @@ class Client(ff.AggregateRoot):
         return response_type in self.allowed_response_types
 
     def validate_grant_type(self, grant_type: str):
-        print('we have grant type', grant_type)
-        print(self.grant_type)
-        print(refresh)
-        print(grant_type in (self.grant_type, refresh))
         return grant_type in (self.grant_type, refresh)
 
     # def valid_refresh_types(self, grant_type: str):
@@ -106,12 +102,9 @@ class Client(ff.AggregateRoot):
         # return False
 
         #  Include ALL scopes
-        print('SCOPESOSOSOS', client_scopes)
         if not scopes:
-            print('none')
             return False
         for scope in scopes:
-            print('scope', scope)
             if scope not in client_scopes:
                 return False
         return True
@@ -157,15 +150,10 @@ class Client(ff.AggregateRoot):
         return roles
 
     def get_scopes(self):
-        print('GETTING SCOPES', self.roles, self.scopes, self)
         x = [scope.id for scope in self._get_entity_scopes()]
         y = []
         for scope in self._get_entity_scopes():
-            print('hhhh', scope)
-            print('jjjj', scope.id)
             y.append(scope.id)
-        print('GET SCOPES RETURNING', x)
-        print('GET SCOPES RETURNING', y)
         return x
 
     def _get_scopes_from_roles(self):

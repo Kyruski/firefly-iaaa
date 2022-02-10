@@ -39,7 +39,10 @@ def test_introspect_response(auth_service: OauthProvider, introspect_messages: L
 
             # Check that active is True or false (x == 0 means only 'active' tokens, and not 'expired' or 'invalid')
             if is_true:
-                assert body.get('active') == (x == 0)
+                if body.get('token_type') == 'refresh_token':
+                    assert body.get('active')
+                else:
+                    assert body.get('active') == (x == 0)
                 if x == 0:
                     # Check for the correct token type
                     if i % 3 == 0:
