@@ -38,13 +38,4 @@ class OAuthRegister(ff.DomainService):
         if found_user:
             return {'message': 'error','error': 'User already exists'}
 
-        passed_in_kwargs.update({
-            'tenant_name': f'user_tenant_{username}',
-            'grant_type': 'password',
-            'scopes': []
-        })
-
-        user_client = self._make_user(**passed_in_kwargs)
-        passed_in_kwargs['scope'] = ' '.join(user_client.get_scopes())
-
-        return self._oauth_login(passed_in_kwargs)
+        return True
