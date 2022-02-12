@@ -37,4 +37,4 @@ class OAuthRegister(GenericOauthIamEndpoint):
         except TypeError:
             pass
 
-        return self._make_local_response(*resp)
+        return resp
