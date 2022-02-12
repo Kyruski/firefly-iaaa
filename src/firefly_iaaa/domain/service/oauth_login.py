@@ -46,6 +46,10 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
             self.info('No user exists, trying Cognito')
             resp = self._try_cognito(username, password)
         print('RETURNING FROM LOGIN')
+
+        if resp is None:
+            raise ff.NotFound()
+
         return resp
 
 
