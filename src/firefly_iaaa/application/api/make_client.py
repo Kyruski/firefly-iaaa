@@ -14,48 +14,32 @@
 
 from __future__ import annotations
 import os
+import uuid
 
 import firefly as ff
-import uuid
+from firefly_iaaa.application.api.generic_oauth_iam_endpoint import GenericOauthIamEndpoint
 import firefly_iaaa.domain as domain
 
-class MakeClientUserEntities(ff.DomainService):
+
+@ff.rest('/iaaa/make-client', method='POST', tags=['public'], secured=False)
+class MakeClient(GenericOauthIamEndpoint):
     _registry: ff.Registry = None
 
-    def __call__(self, username: str, password: str, tenant_name: str, **kwargs):
+    def __call__(self, **kwargs):
+        print('WE GOT KWARGS', kwargs)
         roles = []
-        if 'roles' in kwargs:
-            for role in kwargs['roles']:
-                r = self._registry(domain.Role).find(lambda x: x.name == role)
-                roles.append(r)
-        else:
-            r = self._registry(domain.Role).find(lambda x: x.name == 'Distributed Event Registrant')
+        for role in kwargs['roles']:
+            r = self._registry(domain.Role).find(lambda x: x.name == role)
             roles.append(r)
         kwargs['roles'] = roles
 
-        kwargs['email'] = kwargs.get('email', username)
-
-        if kwargs['grant_type'] == 'password':
-            kwargs['client_id'], kwargs['tenant'] = self._get_consumer_client()
-            user = domain.User.create(
-                username=username,
-                password=password,
-                **kwargs
-            )
-            self._registry(domain.User).append(user)
-            return user
         tenant = domain.Tenant(
             name=kwargs['tenant_name']
         )
         kwargs['tenant'] = tenant
-        user = domain.User.create(
-            username=username,
-            password=password,
-            **kwargs
-        )
 
-        kwargs['client_id'] = user.sub
-        kwargs['name'] = kwargs.get('name', tenant_name)
+        kwargs['client_id'] = str(uuid.uuid4())
+        kwargs['name'] = kwargs.get('name', kwargs['tenant_name'])
         kwargs = self._make_params(kwargs)
 
         if kwargs.get('scopes') is None or len(kwargs['scopes']) == 0:
@@ -70,9 +54,8 @@ class MakeClientUserEntities(ff.DomainService):
 
         # Append at end to avoid appending before an error during entity creation
         self._registry(domain.Tenant).append(tenant)
-        self._registry(domain.User).append(user)
         self._registry(domain.Client).append(client)
-        return user
+        return True
 
     def _make_params(self, kwargs: dict):
 
@@ -92,7 +75,7 @@ class MakeClientUserEntities(ff.DomainService):
             name = kwargs['name']
             if name.startswith('user_tenant'):
                 name = name[11:]
-            kwargs['name'] = f'user_client_{name}'
+            kwargs['name'] = f'{name}'
 
         else:
             raise Exception('Invalid grant type')
@@ -100,8 +83,7 @@ class MakeClientUserEntities(ff.DomainService):
         return kwargs
 
     def _validate_base_params(self, kwargs: dict):
-        fields = ['scopes', 'grant_type']
-        self._check_kwargs_for_fields(fields, kwargs)
+        self._check_kwargs_for_fields(['scopes', 'grant_type'], kwargs)
 
     def _add_auth_code_params(self, kwargs: dict, uses_pkce: bool = True):
         fields = ['default_redirect_uri', 'redirect_uris']

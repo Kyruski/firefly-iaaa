@@ -18,7 +18,7 @@ def test_validate_code(validator: OauthRequestValidators, oauth_request_list: Li
             #Should be valid if x is 0 (using valid code)
             assert validator.validate_code('', auth_code.code, oauth_request_list[i].client, oauth_request_list[i]) == (x == 0)
             assert (oauth_request_list[i].user == auth_code.user) == (x == 0)
-            assert (oauth_request_list[i].scopes == auth_code.scopes) == (x == 0)
+            assert (oauth_request_list[i].scopes == auth_code.get_scopes()) == (x == 0)
             assert oauth_request_list[i].claims is None
 
             reset_and_assert_empty(oauth_request_list[i])
@@ -36,7 +36,7 @@ def test_validate_code(validator: OauthRequestValidators, oauth_request_list: Li
             # Check claims is set on the request if exists on the auth code
             assert validator.validate_code('', auth_code.code, oauth_request_list[i].client, oauth_request_list[i]) == (x == 0)
             assert (oauth_request_list[i].user == auth_code.user) == (x == 0)
-            assert (oauth_request_list[i].scopes == auth_code.scopes) == (x == 0)
+            assert (oauth_request_list[i].scopes == auth_code.get_scopes()) == (x == 0)
             assert (oauth_request_list[i].claims == auth_code.claims) == (x == 0)
 
             reset_and_assert_empty(oauth_request_list[i])

@@ -39,7 +39,10 @@ def test_introspect_response(auth_service: OauthProvider, introspect_messages: L
 
             # Check that active is True or false (x == 0 means only 'active' tokens, and not 'expired' or 'invalid')
             if is_true:
-                assert body.get('active') == (x == 0)
+                if body.get('token_type') == 'refresh_token':
+                    assert body.get('active')
+                else:
+                    assert body.get('active') == (x == 0)
                 if x == 0:
                     # Check for the correct token type
                     if i % 3 == 0:
@@ -100,10 +103,10 @@ def test_introspect_missing_data(auth_service: OauthProvider, bearer_messages_se
         if i == 11:
             message.code_verifier = None
         if i == 12:
+            message.scopes = None
+        if i == 13:
             message.password = None
             message.client_secret = None
-        if i == 13:
-            message.scopes = None
         if i == 14:
             message.token_type_hint = None
         if i == 15:
@@ -115,7 +118,7 @@ def test_introspect_missing_data(auth_service: OauthProvider, bearer_messages_se
         body = json.loads(body)
         # Check error is missing from the body response when a token was supplied (i % 3 != 2)
         # Make sure error in body when missing authentication parameters (password and client secret)
-        assert (body.get('error') is None) == ((i % 3 != 2) and (i != 12))
+        assert (body.get('error') is None) == (i % 3 != 2)
 
 
 @pytest.fixture()

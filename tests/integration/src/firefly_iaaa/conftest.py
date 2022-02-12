@@ -39,7 +39,7 @@ def generate_token(request, token_type, issuer, secret):
         'jti': str(uuid.uuid4()),
         'aud': request['client_id'],
         'iss': issuer,
-        'scope': ' '.join(request['scopes'])
+        'scope': ' '.join([s.id for s in request['scopes']])
     }
     if token_type == 'access_token':
         token_info['exp'] = datetime.utcnow() + timedelta(seconds=request['expires_in'])
@@ -77,7 +77,7 @@ def bearer_messages_second_list(message_factory, bearer_tokens_second_list: List
                 'request_token': None,
                 'response_type': bearer_token.client.allowed_response_types[0],
                 'scope': None,
-                'scopes': bearer_token.scopes,
+                'scopes': bearer_token.get_scopes(),
                 'state': 'abc',
                 'token': bearer_token.refresh_token if (i % 3) == 0 else bearer_token.access_token if (i % 3) == 1 else None,
                 'user': None,
@@ -112,7 +112,7 @@ def auth_codes_second_list(registry, client_list, user_list):
         auth_code = AuthorizationCode(
             client=client_list[i % 6],
             user=user_list[6],
-            scopes=client_list[i % 6].scopes,
+            scopes=client_list[i % 6]._get_entity_scopes(),
             redirect_uri=client_list[i % 6].default_redirect_uri,
             code=f'{gen_random_string(34)}{i % 6}{1}',
             expires_at=datetime.utcnow() + timedelta(minutes=1),
@@ -132,12 +132,12 @@ def bearer_tokens_second_list(registry, client_list, user_list, issuer, secret):
         token_info = {
             'client_id': client_list[i % 6].client_id,
             'expires_in': 3600,
-            'scopes': client_list[i % 6].scopes,
+            'scopes': client_list[i % 6]._get_entity_scopes(),
         }
         bearer_token = BearerToken(
             client=client_list[i % 6],
             user=user_list[-2],
-            scopes=client_list[i % 6].scopes,
+            scopes=client_list[i % 6]._get_entity_scopes(),
             access_token=generate_token(token_info, 'access_token', issuer, secret),
             refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
             expires_at=datetime.utcnow() + timedelta(minutes=60),

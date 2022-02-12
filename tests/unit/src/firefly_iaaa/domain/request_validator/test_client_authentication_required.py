@@ -31,7 +31,7 @@ def test_client_authentication_required(validator: OauthRequestValidators, oauth
         # Checking if authentication required for client
         # Based off grant type/is confidential client
         oauth_request_list[i].client_id = oauth_request_list[i].client.client_id
-        assert validator.client_authentication_required(oauth_request_list[i]) == (i in (2, 3, 4, 6))
+        assert validator.client_authentication_required(oauth_request_list[i]) == (i in (0, 2, 3))
 
     # Check missing client_id returns False
     oauth_request_list[3].client_id = None

@@ -20,18 +20,18 @@ def test_validate_bearer_token(validator: OauthRequestValidators, oauth_request_
             token = bearer_token.refresh_token if t == 0 else bearer_token.access_token
 
             # Check if a bearer token is valid only if it's an 'active' token, and not 'expired' or 'invalid'
-            assert validator.validate_bearer_token(token, bearer_token.scopes, oauth_request_list[-1]) == (x == 0 and t == 1)
+            assert validator.validate_bearer_token(token, bearer_token.get_scopes(), oauth_request_list[-1]) == (x == 0 and t == 1)
             assert (oauth_request_list[-1].user == user_list[-2]) == (x == 0 and t == 1)
             assert (oauth_request_list[-1].client == client_list[-1]) == (x == 0 and t == 1)
-            assert (oauth_request_list[-1].scopes == bearer_token.scopes) == (x == 0 and t == 1)
+            assert (oauth_request_list[-1].scopes == bearer_token.get_scopes()) == (x == 0 and t == 1)
             reset_and_assert_empty(oauth_request_list[-1])
 
             # Check if a non-existent token fails
-            assert validator.validate_bearer_token('token', bearer_token.scopes, oauth_request_list[-1]) == False
+            assert validator.validate_bearer_token('token', bearer_token.get_scopes(), oauth_request_list[-1]) == False
             assert_request_empty(oauth_request_list[-1])
 
             # Check if extra scopes fails
-            assert validator.validate_bearer_token(token, [*bearer_token.scopes, 'abc'], oauth_request_list[-1]) == False
+            assert validator.validate_bearer_token(token, [*bearer_token.get_scopes(), 'abc'], oauth_request_list[-1]) == False
             assert_request_empty(oauth_request_list[-1])
 
             # Check if wrong scopes fails

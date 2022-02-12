@@ -12,6 +12,6 @@ def test_get_original_scopes(validator: OauthRequestValidators, oauth_request_li
         bearer_token = bearer_tokens_list[i]['active']
 
         # Check the correct scopes are returned
-        assert validator.get_original_scopes(bearer_token.refresh_token, oauth_request_list[i]) == bearer_token.scopes
+        assert validator.get_original_scopes(bearer_token.refresh_token, oauth_request_list[i]) == bearer_token.get_scopes()
         # Check wrong token returns None
         assert validator.get_original_scopes('bearer_token.refresh_token', oauth_request_list[i]) is None

@@ -29,6 +29,7 @@ class OauthRequestValidators(RequestValidator):
     _valid_token_type_hints: List[str] = ['refresh_token', 'access_token']
     _secret_key: str = None
     _kernel: ff.Kernel = None
+    _decode_token: domain.DecodeToken = None
 
     def authenticate_client(self, request: Request, *args, **kwargs):
         """Authenticate client through means outside the OAuth 2 spec.
@@ -85,9 +86,9 @@ class OauthRequestValidators(RequestValidator):
         Method is used by:
             - Authorization Code Grant
         """
-
         if self.validate_client_id(client_id, request):
-            return request.client.is_confidential()
+            if not request.client.is_confidential() or request.grant_type == 'refresh_token':
+                return True
         return False
 
     def client_authentication_required(self, request: Request, *args, **kwargs):
@@ -123,7 +124,7 @@ class OauthRequestValidators(RequestValidator):
         client: domain.Client = self._get_client(request.client_id)
         if not client:
             return False
-        return client.is_confidential()
+        return client.is_confidential() and request.grant_type != 'refresh_token'
 
     def confirm_redirect_uri(self, client_id: str, code: str, redirect_uri: str, client: domain.Client, request: Request, *args, **kwargs):
         """Ensure that the authorization process represented by this authorization
@@ -238,8 +239,8 @@ class OauthRequestValidators(RequestValidator):
             - Resource Owner Password Credentials Grant
             - Client Credentials grant
         """
-
-        return request.client.scopes
+        print('Getting scopes')
+        return request.client.get_scopes()
 
     def get_original_scopes(self, refresh_token: str, request: Request, *args, **kwargs):
         """Get the list of scopes associated with the refresh token.
@@ -256,7 +257,7 @@ class OauthRequestValidators(RequestValidator):
         bearer_token, _ = self._get_bearer_token(refresh_token, 'refresh_token')
         if not bearer_token:
             return None
-        return bearer_token.scopes
+        return bearer_token.get_scopes()
 
     def introspect_token(self, token: str, token_type_hint: str, request: Request, *args, **kwargs):
         """Introspect an access or refresh token.
@@ -490,7 +491,13 @@ class OauthRequestValidators(RequestValidator):
             - Client Credentials grant
         """
         bearer_token = self._generate_bearer_token(token, request)
+        print('THIS IS THE BEARER TOKEN', bearer_token)
+        print('THIS IS THE BEARER TOKEN', bearer_token.__dict__)
         self._registry(domain.BearerToken).append(bearer_token)
+
+        x = self._registry(domain.BearerToken).find(lambda x: x.access_token == token['access_token'])
+        print('TOKEN', x)
+        print('TOKEN', x.__dict__)
         try:
             request.old_token.invalidate()
         except AttributeError:
@@ -562,7 +569,7 @@ class OauthRequestValidators(RequestValidator):
         if bearer_token.validate(scopes):
             request.user = bearer_token.user
             request.client = bearer_token.client
-            request.scopes = bearer_token.scopes
+            request.scopes = bearer_token.get_scopes()
             return True
         return False
 
@@ -629,7 +636,7 @@ class OauthRequestValidators(RequestValidator):
             return False
         if auth_code.validate(client.client_id):
             request.user = auth_code.user
-            request.scopes = auth_code.scopes
+            request.scopes = auth_code.get_scopes()
             if auth_code.claims:
                 request.claims = auth_code.claims 
             if client.requires_pkce():
@@ -657,6 +664,7 @@ class OauthRequestValidators(RequestValidator):
             - Refresh Token Grant
         """
 
+        print('DEBUGGING VALIDATE GRANT TYPE', request.__dict__)
         return client.validate_grant_type(grant_type)
 
     def validate_redirect_uri(self, client_id: str, redirect_uri: str, request: Request, *args, **kwargs):
@@ -813,9 +821,9 @@ class OauthRequestValidators(RequestValidator):
             )
             if user:
                 if user.correct_password(request.body['password']):
-                    client = self._registry(domain.Client).find(
-                        lambda x: ((x.tenant_id == user.tenant.id) | (x.client_id == user.sub)) 
-                    )
+                    client = self._registry(domain.Client).find(lambda x: x.tenant_id == user.tenant_id)
+                    if not client:
+                        client = self._registry(domain.Client).find(lambda x: x.client_id == user.sub)
 
                     if client:
                         request.client = client
@@ -830,17 +838,16 @@ class OauthRequestValidators(RequestValidator):
             return True
         return False
 
-    def _decode_token(self, token, audience):
-        decoded = jwt.decode(token, self._secret_key, 'HS256', audience=audience)
-        return decoded
-
     def _generate_bearer_token(self, token: dict, request: Request):
         user = request.user or self._registry(domain.User).find(lambda x: (x.tenant_id == request.client.tenant_id) | (x.sub == request.client.client_id))
         client = request.client or self._registry(domain.Client).find(lambda x: (x.tenant_id == request.user.tenant_id) | (x.client_id == request.client.client_id))
+        print('GENNING BEARER TOKEN', request.scopes)
+        print('GENNING BEARER TOKEN', request.scope)
+        print('GENNING BEARER TOKEN', token)
         return domain.BearerToken(
             client=client,
             user=user,
-            scopes=request.scopes,
+            scopes=self._convert_list_to_scopes(request.scopes),
             access_token=token['access_token'],
             expires_at=datetime.utcnow() + timedelta(seconds=token['expires_in']),
             refresh_token=token.get('refresh_token'),
@@ -849,14 +856,11 @@ class OauthRequestValidators(RequestValidator):
         )
 
     def _generate_authorization_code(self, code: dict, request: Request, claims: dict):
-        print('WE HAVE KERNEL', self._kernel.__dict__)
-        print('WE HAVE KERNEL', self._kernel.user.__dict__)
-        print('WE HAVE request', request.__dict__)
         user = request.user or self._registry(domain.User).find(lambda x: x.sub == self._kernel.user.id)
         return domain.AuthorizationCode(
             client=request.client,
             user=user,
-            scopes=request.scopes,
+            scopes=self._convert_list_to_scopes(request.scopes),
             code=code['code'],
             expires_at=datetime.utcnow() + timedelta(minutes=10),
             redirect_uri=request.redirect_uri,
@@ -871,7 +875,7 @@ class OauthRequestValidators(RequestValidator):
         decoded_token = self._decode_token(token, bearer_token.client.client_id)
         resp = {
             'active': is_active,
-            'scope': bearer_token.scopes,
+            'scope': bearer_token.get_scopes(),
             'client_id': bearer_token.client.client_id,
             'username': bearer_token.user.email or bearer_token.user.preferred_username, #use whichever one isn't None
             'token_type': token_type,
@@ -885,3 +889,20 @@ class OauthRequestValidators(RequestValidator):
         } if bearer_token and is_active else None
 
         return resp
+
+    def _convert_list_to_scopes(self, scopes_list: list):
+        scopes = []
+        if isinstance(scopes_list, str) and scopes_list.startswith('['):
+            for char in ('[', ']', ',', "'"):
+                scopes_list = scopes_list.replace(char, '')
+            scopes_list = scopes_list.split(' ')
+        for s in scopes_list:
+            if isinstance(s, domain.Scope):
+                scopes.append(s)
+            else:
+                scope = self._registry(domain.Scope).find(s)
+                if scope is not None:
+                    scopes.append(scope)
+
+        print('SCOPES GOING INTO BEARER TOKEN', scopes)
+        return scopes

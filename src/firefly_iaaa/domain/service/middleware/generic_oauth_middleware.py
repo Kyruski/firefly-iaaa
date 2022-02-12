@@ -17,24 +17,27 @@ from __future__ import annotations
 import firefly as ff
 import firefly_iaaa.domain as domain
 
-class GetClientUserAndToken(ff.DomainService):
-    _registry: ff.Registry = None
+
+class GenericOauthDomainMiddleware(ff.DomainService, ff.LoggerAware, ): 
+    _kernel: ff.Kernel = None
     _oauth_provider: domain.OauthProvider = None
+    _decode_token: domain.DecodeToken = None
 
-    def __call__(self, token, user_id):
-        user = self._registry(domain.User).find(lambda x: x.sub == user_id)
-        
-        if user:
-            client = self._registry(domain.Client).find(lambda x: (x.tenant_id == user.tenant_id) | (x.client_id == user.sub))
-        else:
-            client = self._registry(domain.Client).find(lambda x: (x.client_id == user_id))
-        if client:
-            client_id = client.client_id
-            decoded = self._oauth_provider.decode_token(token, client_id)
+    def __call__(self, message: ff.Message, **kwargs):
+        pass
 
-            return {
-                'decoded': decoded,
-                'user': user,
-                'client_id': client_id,
-            }
+    def _retrieve_token_from_http_request(self):
+        for k, v in self._kernel.http_request['headers'].items():
+            if k.lower() == 'authorization':
+                if not v.lower().startswith('bearer'):
+                    raise ff.UnauthorizedError()
+                return v
         return None
+
+    def _fix_email(self, message):
+        if hasattr(message, 'email'):
+            message.email = message.email.lower()
+        if hasattr(message, 'username'):
+            message.username = message.username.lower()
+            message.email = message.email if hasattr(message, 'email') else message.username
+        return message

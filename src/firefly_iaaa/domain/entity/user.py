@@ -69,7 +69,8 @@ class User(ff.AggregateRoot):
         try:
             kwargs['tenant_id'] = kwargs['tenant'].id
         except KeyError:
-            raise ff.MissingArgument('tenant is a required field for User::create()')
+            raise ff.MissingArgument('Tenant is a required field for Client::create()')
+
         return cls(**ff.build_argument_list(kwargs, cls))
 
     @classmethod
@@ -121,3 +122,6 @@ class User(ff.AggregateRoot):
         if self.tenant is not None:
             resp['tenant_id'] = self.tenant.id,
         return resp
+
+    def get_scopes(self):
+        return [scope.id for role in self.roles for scope in role.scopes]

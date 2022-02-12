@@ -14,8 +14,8 @@ def test_validate_refresh_token(validator: OauthRequestValidators, oauth_request
             assert oauth_request_list[i].user is None
 
             # Checking if refresh token is valid (only x == 0 is valid)
-            assert validator.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client, oauth_request_list[i]) == (x == 0)
-            assert (oauth_request_list[i].user == bearer_token.user) == (x == 0)
+            assert validator.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client, oauth_request_list[i]) == (x != 2)
+            assert (oauth_request_list[i].user == bearer_token.user) == (x != 2)
 
             # Resetting user on Request
             oauth_request_list[i].user = None

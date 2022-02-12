@@ -95,9 +95,6 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         self._set_user_from_token(access_token, message.client_id)
 
         headers, body, status = self._oauth_provider.validate_post_auth_request(message)
-        print('headers', headers)
-        print('body', body)
-        print('status', status)
         if not headers and not body and not status:
             raise ff.UnauthorizedError()
         if status == 302 and 'Location' in headers:
@@ -136,33 +133,22 @@ class OauthCreateAuthorizationService(GenericOauthEndpoint):
         return redirect_uri.decode('utf-8')
 
     def _grab_token_from_headers(self):
-        print(self._kernel.http_request)
         for k, v in self._kernel.http_request['headers'].items():
-            print('keys:', k, v)
             if k.lower() == 'authorization':
-                print('AUTH KEYS:', k, v)
-
                 if not v.lower().startswith('bearer'):
                     raise ff.UnauthorizedError()
                 return v.split(' ')[-1]
         raise ff.UnauthorizedError()
 
     def _set_user_from_token(self, access_token: str, client_id: str):
-        print('WE HAVE TOKEN', access_token)
-        print('WE HAVE client_id', client_id)
         bearer_token = self._registry(domain.BearerToken).find(lambda x: x.access_token == access_token)
-        print('WE HAVE bearer', bearer_token)
         client = self._registry(domain.Client).find(lambda x: x.client_id == client_id)
-        print('WE HAVE bearer', bearer_token)
-        print('WE HAVE client', client)
         if not client or not bearer_token:
             ff.UnauthorizedError()
-        print('WE HAVE bearer', bearer_token)
-        print('WE HAVE client', client)
         if not bearer_token.validate_access_token(access_token, client):
             ff.UnauthorizedError('Invalid access token')
         user = bearer_token.user
-        decoded_token = self._oauth_provider.decode_token(access_token, client_id)
+        decoded_token = self._decode_token(access_token)
         if not decoded_token:
             ff.UnauthorizedError('Invalid access_token/client combination')
-        self._kernel.user = ff.User(id=user.sub, scopes=bearer_token.scopes, tenant=user.tenant_id, token=decoded_token)
+        self._kernel.user = ff.User(id=user.sub, scopes=decoded_token['scope'].split(' '), tenant=user.tenant_id, token=decoded_token)

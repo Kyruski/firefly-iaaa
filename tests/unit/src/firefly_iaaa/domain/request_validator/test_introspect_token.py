@@ -19,11 +19,11 @@ def test_introspect_token(validator: OauthRequestValidators, oauth_request_list:
                 resp = validator.introspect_token(bearer_token.refresh_token, token_type, oauth_request_list[i])
 
                 # Check for refresh token
-                if x == 0:
+                if x != 2:
                     # Check that all claims exist
                     # Check the token on the request has been set
                     assert oauth_request_list[i].token['active'] == bearer_token.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client)
-                    assert oauth_request_list[i].token['scope'] == bearer_token.scopes
+                    assert oauth_request_list[i].token['scope'] == bearer_token.get_scopes()
                     assert oauth_request_list[i].token['client_id'] == bearer_token.client.client_id
                     assert oauth_request_list[i].token['username'] == bearer_token.user.email or bearer_token.user.preferred_username
                     assert oauth_request_list[i].token['token_type'] == 'refresh_token'
@@ -37,7 +37,7 @@ def test_introspect_token(validator: OauthRequestValidators, oauth_request_list:
 
                     # Check the response is correct
                     assert resp['active'] == bearer_token.validate_refresh_token(bearer_token.refresh_token, oauth_request_list[i].client)
-                    assert resp['scope'] == bearer_token.scopes
+                    assert resp['scope'] == bearer_token.get_scopes()
                     assert resp['client_id'] == bearer_token.client.client_id
                     assert resp['username'] == bearer_token.user.email or bearer_token.user.preferred_username
                     assert resp['token_type'] == 'refresh_token'
@@ -59,7 +59,7 @@ def test_introspect_token(validator: OauthRequestValidators, oauth_request_list:
                     # Check that all claims exist
                     # Check the token on the request has been set
                     assert oauth_request_list[i].token['active'] == bearer_token.validate_access_token(bearer_token.access_token, oauth_request_list[i].client)
-                    assert oauth_request_list[i].token['scope'] == bearer_token.scopes
+                    assert oauth_request_list[i].token['scope'] == bearer_token.get_scopes()
                     assert oauth_request_list[i].token['client_id'] == bearer_token.client.client_id
                     assert oauth_request_list[i].token['username'] == bearer_token.user.email or bearer_token.user.preferred_username
                     assert oauth_request_list[i].token['token_type'] == 'access_token'
@@ -73,7 +73,7 @@ def test_introspect_token(validator: OauthRequestValidators, oauth_request_list:
 
                     # Check the response is correct
                     assert resp['active'] == bearer_token.validate_access_token(bearer_token.access_token, oauth_request_list[i].client)
-                    assert resp['scope'] == bearer_token.scopes
+                    assert resp['scope'] == bearer_token.get_scopes()
                     assert resp['client_id'] == bearer_token.client.client_id
                     assert resp['username'] == bearer_token.user.email or bearer_token.user.preferred_username
                     assert resp['token_type'] == 'access_token'

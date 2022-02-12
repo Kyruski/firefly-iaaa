@@ -45,12 +45,16 @@ class OauthProvider(ff.DomainService):
         )
 
     def generate_token(self, request, token_type):
+        scopes = request['scopes'] if isinstance(request, dict) else request.scopes
+
         token = {
             'jti': str(uuid.uuid4()),
             'aud': request.client_id,
             'iss': self._issuer,
-            'scope': ' '.join(request.scopes)
+            'scope': ' '.join(self._convert_from_scopes_to_string(scopes))
         }
+        if request.user:
+            token['sub'] = request.user.sub
         if token_type == 'access_token':
             token['exp'] = datetime.utcnow() + timedelta(seconds=request.expires_in)
         token = jwt.encode(token, self._secret_key, algorithm='HS256')
@@ -66,26 +70,22 @@ class OauthProvider(ff.DomainService):
         print('BEFORE SET CACHE', credentials)
         print('BEFORE SET CACHE', credentials_key)
         self._cache.set(credentials_key, value=credentials, ttl=180)
-        return scopes, credentials, credentials_key
+
+        return self._convert_from_scopes_to_string(scopes), credentials, credentials_key
 
     def validate_post_auth_request(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
         credentials_key = body.get('credentials_key')
-        print('111111111111111111cred_key', credentials_key)
         if not credentials_key:
-            print('dead1')
             raise ff.UnauthorizedError('Missing credentials key')
 
         credentials = self._cache.get(credentials_key)
-        print('111111111111111111creds', credentials)
         if not credentials:
-            print('dead2')
             raise ff.UnauthorizedError('Credentials expired or invalid')
 
         credentials = self._build_up_credentials(credentials)
 
         if not request.scopes:
-            print('dead3')
             raise ff.UnauthorizedError('Missing scopes')
         headers, body, status = self._server.create_authorization_response(uri, http_method, body, headers, scopes=request.scopes, credentials=credentials)
 
@@ -94,7 +94,6 @@ class OauthProvider(ff.DomainService):
         return headers, body, status
 
     def create_token_response(self, request: ff.Message):
-
         uri, http_method, body, headers = self._get_request_params(request)
 
         headers, body, status = self._server.create_token_response(uri, http_method, body, headers)
@@ -131,16 +130,9 @@ class OauthProvider(ff.DomainService):
         oauth_request = Request(uri, http_method, body, headers)
         return self._server.request_validator.authenticate_client(oauth_request) #!! Check
 
-    def decode_token(self, token, audience):
-        if token.lower().startswith('bearer'):
-            token = token.split(' ')[-1]
-        return jwt.decode(token, self._secret_key, 'HS256', audience=audience)
-
     @staticmethod
     def _get_request_params(request: ff.Message):
-        uri = request.headers.get('Origin') or request.headers.get('origin') or request.headers.get('Referer') or request.headers.get('uri')
-        if not uri:
-            raise Exception('No Origin detected on request')
+        uri = request.headers.get('Origin') or request.headers.get('origin') or request.headers.get('Referer') or request.headers.get('uri') or ''
         http_method = request.headers.get('method') or request.headers.get('http_method')
         body = request.to_dict()
         headers = request.headers
@@ -154,13 +146,9 @@ class OauthProvider(ff.DomainService):
         print('WE GOT CREDENTIALS', credentials)
         values = ('uri', 'http_method', 'body', 'headers')
         uri, http_method, body, headers = itemgetter('uri', 'http_method', 'body', 'headers')(credentials['request'])
-        print('uri', type(uri), uri)
-        print('http_method', type(http_method), http_method)
-        print('body', type(body), body)
-        print('headers', type(headers), headers)
+
         request = Request(uri, http_method, body, headers)
-        print(type(credentials['request']))
-        print(credentials['request'])
+
         for k, v in credentials['request'].items():
             if k not in values:
                 setattr(request, k, v)
@@ -222,3 +210,22 @@ class OauthProvider(ff.DomainService):
             except (KeyError, TypeError):
                 pass
         return request
+
+    @staticmethod
+    def _convert_from_scopes_to_string(scopes):
+        converted = []
+        print('SCOPES COMING IN TO CONVERT', scopes)
+        for scope in scopes:
+            if isinstance(scope, str):
+                #  Checking if the scope might be 
+                scope = scope.split(' ')[-1]
+                if scope.endswith(']'):
+                    converted.append(scope[1:-2])
+                else:
+                    converted.append(scope)
+            elif isinstance(scope, dict):
+                converted.append(scope['id'])
+            else:
+                converted.append(scope.id)
+            
+        return converted

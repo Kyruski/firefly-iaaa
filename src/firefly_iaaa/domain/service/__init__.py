@@ -25,11 +25,13 @@
 #  <http://www.gnu.org/licenses/>.
 
 from firefly_iaaa.domain.service.add_method_to_headers import AddMethodToHeaders
+from firefly_iaaa.domain.service.authorize_request import AuthorizeRequest
 from firefly_iaaa.domain.service.create_token import CreateToken
 from firefly_iaaa.domain.service.cognito_login import CognitoLogin
+from firefly_iaaa.domain.service.decode_token import DecodeToken
 from firefly_iaaa.domain.service.get_client_id import GetClientId
-from firefly_iaaa.domain.service.get_client_user_and_token import GetClientUserAndToken
 from firefly_iaaa.domain.service.make_client_user_entities import MakeClientUserEntities
+from firefly_iaaa.domain.service.middleware import *
 from firefly_iaaa.domain.service.oauth_login import OAuthLogin
 from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.service.oauth_register import OAuthRegister

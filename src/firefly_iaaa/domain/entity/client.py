@@ -31,6 +31,8 @@ import uuid
 
 import firefly as ff
 from .tenant import Tenant
+from .role import Role
+from .scope import Scope
 
 authorization_code = 'authorization_code'
 implicit = 'implicit'
@@ -51,7 +53,8 @@ class Client(ff.AggregateRoot):
     # response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)]) #??
     default_redirect_uri: str = ff.optional()
     redirect_uris: List[str] = ff.list_()
-    scopes: List[str] = ff.required()
+    scopes: List[Scope] = ff.list_()
+    roles: List[Role] = ff.list_()
     allowed_response_types: List[str] = ff.list_(validators=[ff.IsOneOf(('code', 'token'))])
     uses_pkce: bool = ff.optional(default=True)
     client_secret: str = ff.optional(str, length=36)
@@ -81,16 +84,28 @@ class Client(ff.AggregateRoot):
         return response_type in self.allowed_response_types
 
     def validate_grant_type(self, grant_type: str):
-        return self.grant_type == grant_type or ((self.grant_type in (resource_owner_password_credentials, client_credentials) or (self.grant_type == authorization_code and not self.requires_pkce())) and grant_type == 'refresh_token')
+        return grant_type in (self.grant_type, refresh)
 
     # def valid_refresh_types(self, grant_type: str):
     #     return self.grant_type in (authorization_code, resource_owner_password_credentials) and (self.grant_type == grant_type or grant_type == refresh)
 
     def validate_scopes(self, scopes: List[str]):
+        client_scopes = self.get_scopes()
+        if isinstance(scopes, str):
+            scopes = scopes[1:-1].replace("'", '').replace(',', '').split(' ')
+        #  Include ANY scopes
+        # if not scopes:
+        #     return False
+        # for scope in scopes:
+        #     if scope in client_scopes:
+        #         return True
+        # return False
+
+        #  Include ALL scopes
         if not scopes:
             return False
         for scope in scopes:
-            if scope not in self.scopes:
+            if scope not in client_scopes:
                 return False
         return True
 
@@ -102,13 +117,17 @@ class Client(ff.AggregateRoot):
 
     def is_confidential(self): #might not be best
         return self.grant_type in (client_credentials, resource_owner_password_credentials) or \
-            (self.grant_type == authorization_code and not self.requires_pkce())
+            (self.grant_type == authorization_code and self.requires_pkce())
 
     def validate_client_secret(self, secret):
         return self.client_secret == secret
 
     def inactivate(self):
         self.is_active = False
+
+    def add_role(self, role: Role):
+        if isinstance(role, Role):
+            self.roles.append(role)
 
     def generate_scrubbed_client(self):
         return {
@@ -118,9 +137,30 @@ class Client(ff.AggregateRoot):
             'grant_type': self.grant_type,
             'default_redirect_uri': self.default_redirect_uri,
             'redirect_uris': self.redirect_uris,
-            'scopes': self.scopes,
+            'scopes': self.get_scopes(),
             'allowed_response_types': self.allowed_response_types,
             'is_active': self.is_active,
             'tenant_id': self.tenant_id,
             'tenant_name': self.tenant.name,
         }
+
+    def _get_entity_scopes(self):
+        roles = [scope for role in self.roles for scope in role.scopes]
+        roles += self.scopes
+        return roles
+
+    def get_scopes(self):
+        x = [scope.id for scope in self._get_entity_scopes()]
+        y = []
+        for scope in self._get_entity_scopes():
+            y.append(scope.id)
+        return x
+
+    def _get_scopes_from_roles(self):
+        roles = []
+        for role in self.roles:
+            if isinstance(role, Role):
+                roles.append(*role.scopes)
+            else:
+                roles.append(*role['scopes'])
+        return roles

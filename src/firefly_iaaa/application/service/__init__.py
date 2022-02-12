@@ -13,6 +13,8 @@
 #  <http://www.gnu.org/licenses/>.
 
 from .add_role_to_user import AddRoleToUser
+from .authorize_request import AuthorizeRequest
+from .decode_token import DecodedToken
 from .get_token_access_rights import *
 from .make_new_client_or_user import MakeNewClientOrUser
 from .remove_role_from_user import RemoveRoleFromUser

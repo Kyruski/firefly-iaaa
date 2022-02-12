@@ -33,6 +33,8 @@ from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.entity.authorization_code import AuthorizationCode
 from firefly_iaaa.domain.entity.bearer_token import BearerToken
 from firefly_iaaa.domain.entity.client import Client
+from firefly_iaaa.domain.entity.role import Role
+from firefly_iaaa.domain.entity.scope import Scope
 from firefly_iaaa.domain.entity.tenant import Tenant
 from firefly_iaaa.domain.entity.user import User
 from oauthlib.common import Request
@@ -72,6 +74,29 @@ def set_kernel_user(container):
         tenant='tenant-id'
     )
 
+
+@pytest.fixture()
+def scopes(registry):
+    scopes_dict = {
+        'fake_scopes': [Scope(id='fake-scopes')]
+    }
+    for i in range(10):
+        scopes_dict[f'faker_scope{i}'] = [Scope(id=f'faker-scope{i}')]
+    for s in scopes_dict.values():
+        registry(Scope).append(s)
+    return scopes_dict
+
+@pytest.fixture()
+def roles(scopes, registry):
+    roles_dict = {
+        'client_role': [Role(name='client_role', scopes=scopes['fake_scopes'])],
+        'user_role': [Role(name='user_role', scopes=scopes['fake_scopes'])],
+        'consumer_role': [Role(name='consumer_role', scopes=scopes['fake_scopes'])],
+    }
+    for r in roles_dict.values():
+        registry(Role).append(r)
+    return roles_dict
+
 @pytest.fixture()
 def bearer_messages(bearer_messages_list, registry):
     registry(BearerToken).commit()
@@ -101,7 +126,7 @@ def generate_token(request, token_type, issuer, secret):
         'jti': str(uuid.uuid4()),
         'aud': request['client_id'],
         'iss': issuer,
-        'scope': ' '.join(request['scopes'])
+        'scope': ' '.join([s.id for s in request['scopes']])
     }
     if token_type == 'access_token':
         token_info['exp'] = datetime.utcnow() + timedelta(seconds=request['expires_in'])
@@ -125,14 +150,17 @@ def generate_code_challenge():
 
 
 @pytest.fixture()
-def client_list(registry, user_list, tenants_list):
-    clients = make_client_list(tenants_list)
+def client_list(registry, user_list, tenants_list, roles, scopes):
+    clients = make_client_list(tenants_list, roles, scopes)
     for i, client in enumerate(clients):
         registry(User).append(user_list[i])
         registry(Client).append(client)
     registry(User).append(user_list[-1])
+    registry(Role).commit()
+    registry(Scope).commit()
     registry(User).commit()
     registry(Client).commit()
+    registry(Tenant).commit()
     return clients
 
 @pytest.fixture()
@@ -142,7 +170,6 @@ def tenants_list(registry):
         tenant = Tenant(name=f'tenant{i}')
         tenants.append(tenant)
         registry(Tenant).append(tenant)
-    registry(Tenant).commit()
     return tenants
 
 @pytest.fixture()
@@ -173,7 +200,7 @@ def user_list(tenants_list):
 def hash_password(password: str, salt: str):
     return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
-def make_client_list(tenants):
+def make_client_list(tenants, roles, scopes):
     clients = []
     allowed_response_types = [['code'], ['token'], ['code', 'token'], ['token', 'code']]
     grant_types = ['authorization_code', 'refresh_token', 'password', 'client_credentials']
@@ -186,7 +213,8 @@ def make_client_list(tenants):
             redirect_uris=[f'https://www.uri{i}.com', 'https://www.fake.com'],
             grant_type=grant_types[i % 4],
             uses_pkce=(i % 2 == 0 and i < 4),
-            scopes=['fake-scopes', f'faker-scope{i}'],
+            scopes=scopes[f'faker_scope{i}'],
+            roles=roles['client_role'],
             client_secret=gen_random_string(36),
         )
         clients.append(client)
@@ -198,7 +226,8 @@ def make_client_list(tenants):
         redirect_uris=['https://www.uri0.com', 'https://www.fake.com'],
         grant_type=grant_types[0],
         uses_pkce=False,
-        scopes=['fake-scopes', f'faker-scope0'],
+        scopes=scopes[f'faker_scope0'],
+        roles=roles['client_role'],
         client_secret=gen_random_string(36),
     )
     clients.append(client)
@@ -215,10 +244,10 @@ def auth_codes_list(registry, client_list, user_list):
             auth_code = AuthorizationCode(
                 client=client_list[i % 6],
                 user=user_list[6],
-                scopes=client_list[i % 6].scopes,
+                scopes=client_list[i % 6]._get_entity_scopes(),
                 redirect_uri=client_list[i % 6].default_redirect_uri,
                 code=f'{gen_random_string(34)}{i % 6}{x}',
-                expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=1),
+                expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=5),
                 state='abc',
                 challenge=code_challenge['code_challenge'],
                 challenge_method=code_challenge['code_challenge_method'],
@@ -241,7 +270,7 @@ def auth_codes_list(registry, client_list, user_list):
         auth_code = AuthorizationCode(
             client=client_list[-1],
             user=user_list[6],
-            scopes=client_list[-1].scopes,
+            scopes=client_list[-1]._get_entity_scopes(),
             redirect_uri=client_list[-1].default_redirect_uri,
             code=f'{gen_random_string(34)}{0}{x}',
             expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=1),
@@ -271,12 +300,12 @@ def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
             token_info = {
                 'client_id': client_list[i].client_id,
                 'expires_in': 3600,
-                'scopes': client_list[i].scopes,
+                'scopes': client_list[i]._get_entity_scopes(),
             }
             bearer_token = BearerToken(
                 client=client_list[i],
                 user=user_list[-2],
-                scopes=client_list[i].scopes,
+                scopes=client_list[i]._get_entity_scopes(),
                 access_token=generate_token(token_info, 'access_token', issuer, secret),
                 refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
                 expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=60),
@@ -297,12 +326,12 @@ def bearer_tokens_list(registry, client_list, user_list, issuer, secret):
         token_info = {
             'client_id': client_list[-1].client_id,
             'expires_in': 3600,
-            'scopes': client_list[-1].scopes,
+            'scopes': client_list[-1]._get_entity_scopes(),
         }
         bearer_token = BearerToken(
             client=client_list[-1],
             user=user_list[-2],
-            scopes=client_list[-1].scopes,
+            scopes=client_list[-1]._get_entity_scopes(),
             access_token=generate_token(token_info, 'access_token', issuer, secret),
             refresh_token=generate_token(token_info, 'refresh_token', issuer, secret),
             expires_at=datetime.utcnow() if x == 1 else datetime.utcnow() + timedelta(minutes=60),
@@ -353,7 +382,7 @@ def bearer_messages_list(message_factory, bearer_tokens_list: List[dict], user_l
                     'request_token': None,
                     'response_type': bearer_token.client.allowed_response_types[0],
                     'scope': None,
-                    'scopes': bearer_token.scopes,
+                    'scopes': bearer_token.get_scopes(),
                     'state': 'abc',
                     'token': bearer_token.refresh_token if (i % 3) == 0 else bearer_token.access_token if (i % 3) == 1 else None,
                     'email': bearer_token.user.email,

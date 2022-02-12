@@ -59,3 +59,8 @@ def sut(container, system_bus):
     cont = container.build(application.OAuthAuthenticator)
     cont.request = system_bus.request
     return cont
+
+def set_kernel_user(registry, kernel, message):
+    found_client = registry(domain.Client).find(lambda x: x.client_id == message.client_id)
+    found_user = registry(domain.User).find(lambda x: x.tenant_id == found_client.tenant_id)
+    kernel.user.id = found_user.sub

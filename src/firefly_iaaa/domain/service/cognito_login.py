@@ -18,12 +18,12 @@ import os
 
 import firefly as ff
 from firefly import domain as ffd
+from firefly_iaaa.domain.service.decode_token import DecodeToken
 import boto3
-
-import jwt
 
 
 class CognitoLogin(ff.DomainService, ff.LoggerAware):
+    _decode_token: DecodeToken = None
     _kernel: ffd.Kernel = None
 
 
@@ -38,8 +38,7 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
         #             'data': None
         #         }
         resp, msg = self._initiate_auth(client, username, password)
-        print('aaaa', resp)
-        print('aaaa', msg)
+
         if msg != None:
             return {'message': msg, 
                     'error': 'No user exists', 'success': False, 'data': None}
@@ -67,10 +66,7 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
 
 
     def _initiate_auth(self, client, username, password):
-        print('a')
         try:
-            print('b')
-            print('RIGHT BEFORE INITIATE AUTH', os.environ)
             resp = client.initiate_auth(
                         ClientId=os.environ['CLIENT_ID'],
                         AuthFlow='USER_PASSWORD_AUTH',
@@ -82,22 +78,12 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
                         'username': username,
                         'password': password,
                     })
-            print('c')
         except client.exceptions.NotAuthorizedException:
-            print('d')
             return None, 'The username or password is incorrect'
         except client.exceptions.UserNotConfirmedException:
-            print('e')
             return None, 'User is not confirmed'
         except KeyError as e:
             return None, f'Key Error: {e.__str__()}'
         except Exception as e:
-            print('f', e.__str__())
-            print('f', e.__dict__)
             return None, e.__str__()
-        print('g')
         return resp, None
-
-    def _decode_token(self, token: str):
-        # data = token.split('.')[1]
-        return jwt.decode(token, options={"verify_signature": False})
