@@ -40,4 +40,4 @@ class Container(di.Container):
     request_validator: domain.OauthProvider = domain.OauthProvider
     message_factory: ff.MessageFactory = ff.MessageFactory
     secret_key: str = lambda x: secret_key_setter()
-    subdomain: str = lambda x: 'staging-connected-sports' #!! CHANGE AT FINISH
+    subdomain: str = lambda x: os.environ.get('SUBDOMAIN')
