@@ -14,6 +14,8 @@
 
 from __future__ import annotations
 
+import importlib
+
 import firefly as ff
 from firefly_iaaa.application.api.generic_oauth_iam_endpoint import GenericOauthIamEndpoint
 import firefly_iaaa.domain as domain
@@ -22,6 +24,8 @@ import firefly_iaaa.domain as domain
 @ff.rest('/iaaa/register', method='POST', tags=['public'], secured=False)
 class OAuthRegister(GenericOauthIamEndpoint):
     _oauth_register: domain.OAuthRegister = None
+    _context_map: ff.ContextMap = None
+    _context: str = None
 
     def __call__(self, **kwargs):
         self.info('Registering User')
