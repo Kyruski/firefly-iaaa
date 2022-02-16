@@ -20,6 +20,7 @@ import firefly as ff
 class SendResetEmail(ff.DomainService):
     _subdomain: str = None
     _reset_url: str = None
+    _from_address: str = None
 
     def __call__(self, username: str, cache_id: str, **kwargs):
         reset_url = f'{self._reset_url}?request_id={cache_id}'
@@ -30,7 +31,7 @@ class SendResetEmail(ff.DomainService):
             'subject': 'PWR Lab Password Reset',
             'text_body': text_body,
             'html_body': html_body,
-            'from_address': 'jamey.boyett@pwrlab.com',
+            'from_address': self._from_address,
             'to_address': [username],
             'cc_addresses': [],
             'bcc_addresses': []
