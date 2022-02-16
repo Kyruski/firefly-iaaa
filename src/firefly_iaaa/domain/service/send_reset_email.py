@@ -19,9 +19,10 @@ import firefly as ff
 
 class SendResetEmail(ff.DomainService):
     _subdomain: str = None
+    _reset_url: str = None
 
-    def __call__(self, username:str, cache_id: str, **kwargs):
-        reset_url = f'https://{self._subdomain}.pwrlab.com/change-password?request_id={cache_id}'
+    def __call__(self, username: str, cache_id: str, **kwargs):
+        reset_url = f'{self._reset_url}?request_id={cache_id}'
         html_body = self._gen_html_body(reset_url)
         text_body = self._gen_text_body(reset_url)
 
