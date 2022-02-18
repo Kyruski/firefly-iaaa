@@ -13,42 +13,58 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+
+import importlib
 import os
 
 import firefly as ff
 import uuid
 import firefly_iaaa.domain as domain
 
+
 class MakeClientUserEntities(ff.DomainService):
     _registry: ff.Registry = None
+    _context_map: ff.ContextMap = None
+    _context: str = None
 
     def __call__(self, username: str, password: str, tenant_name: str, **kwargs):
+        module_name = self._context_map.\
+            get_context(self._context).\
+            config.\
+            get('domain_module', '{}.domain')
+        module = importlib.import_module(module_name.format(self._context))
+        user_entity = module.__dict__.get('User')
+        role_entity = module.__dict__.get('Role')
+        tenant_entity = module.__dict__.get('Tenant')
+        scope_entity = module.__dict__.get('Scope')
+        client_entity = module.__dict__.get('Client', domain.Client)
+        
         roles = []
         if 'roles' in kwargs:
             for role in kwargs['roles']:
-                r = self._registry(domain.Role).find(lambda x: x.name == role)
+                r = self._registry(role_entity).find(lambda x: x.name == role)
                 roles.append(r)
         else:
-            r = self._registry(domain.Role).find(lambda x: x.name == 'Distributed Event Registrant')
+            r = self._registry(role_entity).find(lambda x: x.name == 'Distributed Event Registrant')
             roles.append(r)
         kwargs['roles'] = roles
 
         kwargs['email'] = kwargs.get('email', username)
 
         if kwargs['grant_type'] == 'password':
-            kwargs['client_id'], kwargs['tenant'] = self._get_consumer_client()
-            user = domain.User.create(
+            kwargs['client_id'], kwargs['tenant'] = self._get_consumer_client(client_entity)
+            user = user_entity.create(
                 username=username,
                 password=password,
                 **kwargs
             )
-            self._registry(domain.User).append(user)
+            self._registry(user_entity).append(user)
             return user
-        tenant = domain.Tenant(
+        tenant = tenant_entity(
             name=kwargs['tenant_name']
         )
         kwargs['tenant'] = tenant
-        user = domain.User.create(
+        user = user_entity.create(
             username=username,
             password=password,
             **kwargs
@@ -62,16 +78,16 @@ class MakeClientUserEntities(ff.DomainService):
             kwargs['scopes'] = ['iaaa.default.read']
         scopes = []
         for scope in kwargs['scopes']:
-            s = self._registry(domain.Scope).find(scope)
+            s = self._registry(scope_entity).find(scope)
             scopes.append(s)
         kwargs['scopes'] = scopes
 
-        client = domain.Client.create(**kwargs)
+        client = client_entity.create(**kwargs)
 
         # Append at end to avoid appending before an error during entity creation
-        self._registry(domain.Tenant).append(tenant)
-        self._registry(domain.User).append(user)
-        self._registry(domain.Client).append(client)
+        self._registry(tenant_entity).append(tenant)
+        self._registry(user_entity).append(user)
+        self._registry(client_entity).append(client)
         return user
 
     def _make_params(self, kwargs: dict):
@@ -112,8 +128,8 @@ class MakeClientUserEntities(ff.DomainService):
         })
         return kwargs
 
-    def _get_consumer_client(self):
-        client: domain.Client = self._registry(domain.Client).find(lambda x: x.client_id == os.environ['CONSUMER_CLIENT_ID'])
+    def _get_consumer_client(self, client_entity):
+        client: client_entity = self._registry(client_entity).find(lambda x: x.client_id == os.environ['CONSUMER_CLIENT_ID'])
         tenant = client.tenant
         return client.client_id, tenant
 

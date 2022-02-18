@@ -45,7 +45,10 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
         else:
             self.info('No user exists, trying Cognito')
             resp = self._try_cognito(username, password)
-        print('RETURNING FROM LOGIN')
+
+        if resp is None:
+            raise ff.NotFound()
+
         return resp
 
 
@@ -77,7 +80,7 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
         resp = self._oauth_register(data)
         if resp[1]['tokens']:
             return resp
-        raise Exception('Somethign went wrong')
+        raise Exception('Something went wrong')
 
     def _get_tokens(self, kwargs: dict):
         # kwargs = self._set_referer(kwargs)

@@ -21,12 +21,11 @@ from firefly_iaaa.application.api.generic_oauth_iam_endpoint import GenericOauth
 import firefly_iaaa.domain as domain
 
 
-@ff.rest('/iaaa/make-client', method='POST', tags=['public'], secured=False)
+@ff.rest('/iaaa/make-client', method='POST', secured=True)
 class MakeClient(GenericOauthIamEndpoint):
     _registry: ff.Registry = None
 
     def __call__(self, **kwargs):
-        print('WE GOT KWARGS', kwargs)
         roles = []
         for role in kwargs['roles']:
             r = self._registry(domain.Role).find(lambda x: x.name == role)

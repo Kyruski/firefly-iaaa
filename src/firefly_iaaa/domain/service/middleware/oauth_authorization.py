@@ -41,7 +41,7 @@ class OAuthAuthorizeRequest(GenericOauthDomainMiddleware):
         if message.access_token.lower().startswith('bearer'):
             message.access_token = message.access_token.split(' ')[-1]
         try:
-            decoded = self._decode_token(token, self._kernel.user.id)
+            self._decode_token(token, self._kernel.user.id)
         except:
             raise ff.UnauthorizedError()
 

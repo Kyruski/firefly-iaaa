@@ -47,6 +47,7 @@ from dotenv import load_dotenv
 def config():
     load_dotenv()
     os.environ['CONTEXT'] = 'firefly_iaaa'
+    os.environ['SUBDOMAIN'] = 'staging-connected-sports'
     return {
         'contexts': {
             'firefly_iaaa': {
