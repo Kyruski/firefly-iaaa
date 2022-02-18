@@ -41,7 +41,10 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
                 tokens = self._get_tokens(passed_in_kwargs)
                 resp = [tokens[0], {'tokens': tokens[1], 'user': found_user.generate_scrubbed_user()}]
             else:
-                raise ff.UnauthenticatedError('Incorrect username/password combination')
+                resp = self._try_cognito(username, password)
+                self.info('User password incorrect, trying Cognito in case password null')
+                if resp is None:
+                    raise ff.UnauthenticatedError('Incorrect username/password combination')
         else:
             self.info('No user exists, trying Cognito')
             resp = self._try_cognito(username, password)
