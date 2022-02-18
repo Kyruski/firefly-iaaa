@@ -59,6 +59,7 @@ class MakeClientUserEntities(ff.DomainService):
                 **kwargs
             )
             self._registry(user_entity).append(user)
+            self.dispatch('iaaa.MemberCreated', data=user.to_dict())
             return user
         tenant = tenant_entity(
             name=kwargs['tenant_name']

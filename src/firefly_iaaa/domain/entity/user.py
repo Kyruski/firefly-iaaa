@@ -61,11 +61,9 @@ class User(ff.AggregateRoot):
     def create(cls, **kwargs):
         if 'email' in kwargs:
             kwargs['email'] = str(kwargs['email']).lower()
-        try:
+        if kwargs.get('password'):
             kwargs['salt'] = bcrypt.gensalt().decode()
             kwargs['password_hash'] = User._hash_password(kwargs['password'], kwargs['salt'])
-        except KeyError:
-            raise ff.MissingArgument('password is a required field for User::create()')
         try:
             kwargs['tenant_id'] = kwargs['tenant'].id
         except KeyError:
@@ -92,7 +90,7 @@ class User(ff.AggregateRoot):
             self.roles.remove(role)
 
     def correct_password(self, password: str):
-        if not password:
+        if not password or not self.password_hash:
             return False
         return self.password_hash == User._hash_password(password, self.salt)
 
