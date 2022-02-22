@@ -26,9 +26,7 @@ async def test_oauth_register_endpoint(client, registry, consumer_client):
     assert second_response.status == 200
 
     resp = json.loads(await second_response.text())
-    assert resp['message'] == 'success'
-    assert resp['data']['access_token'] is not None
-    assert resp['data']['refresh_token'] is not None
+    assert resp
 
     user = registry(domain.User).find(lambda x: x.email == data['username'])
     assert user

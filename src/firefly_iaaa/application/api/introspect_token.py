@@ -6,7 +6,7 @@ from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndp
 
 
 @ff.rest(
-    '/iaaa/introspect', method='POST', tags=['public']
+    '/iaaa/introspect', method='POST', tags=['public'], secured=True
 )
 class OauthTokenIntrospectionService(GenericOauthEndpoint):
 
@@ -15,9 +15,6 @@ class OauthTokenIntrospectionService(GenericOauthEndpoint):
         message = self._make_message(kwargs)
 
         headers, body, status =  self._oauth_provider.create_introspect_response(message)
-        # if status == 200:
-        #     body = json.loads(body)
-        # #? Add headers?
         
         return self._make_response(json.loads(body), headers)
 

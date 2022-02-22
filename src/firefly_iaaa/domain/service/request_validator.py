@@ -239,7 +239,6 @@ class OauthRequestValidators(RequestValidator):
             - Resource Owner Password Credentials Grant
             - Client Credentials grant
         """
-        print('Getting scopes')
         return request.client.get_scopes()
 
     def get_original_scopes(self, refresh_token: str, request: Request, *args, **kwargs):
@@ -491,13 +490,8 @@ class OauthRequestValidators(RequestValidator):
             - Client Credentials grant
         """
         bearer_token = self._generate_bearer_token(token, request)
-        print('THIS IS THE BEARER TOKEN', bearer_token)
-        print('THIS IS THE BEARER TOKEN', bearer_token.__dict__)
         self._registry(domain.BearerToken).append(bearer_token)
 
-        x = self._registry(domain.BearerToken).find(lambda x: x.access_token == token['access_token'])
-        print('TOKEN', x)
-        print('TOKEN', x.__dict__)
         try:
             request.old_token.invalidate()
         except AttributeError:
@@ -664,7 +658,6 @@ class OauthRequestValidators(RequestValidator):
             - Refresh Token Grant
         """
 
-        print('DEBUGGING VALIDATE GRANT TYPE', request.__dict__)
         return client.validate_grant_type(grant_type)
 
     def validate_redirect_uri(self, client_id: str, redirect_uri: str, request: Request, *args, **kwargs):
@@ -841,9 +834,6 @@ class OauthRequestValidators(RequestValidator):
     def _generate_bearer_token(self, token: dict, request: Request):
         user = request.user or self._registry(domain.User).find(lambda x: (x.tenant_id == request.client.tenant_id) | (x.sub == request.client.client_id))
         client = request.client or self._registry(domain.Client).find(lambda x: (x.tenant_id == request.user.tenant_id) | (x.client_id == request.client.client_id))
-        print('GENNING BEARER TOKEN', request.scopes)
-        print('GENNING BEARER TOKEN', request.scope)
-        print('GENNING BEARER TOKEN', token)
         return domain.BearerToken(
             client=client,
             user=user,
@@ -904,5 +894,4 @@ class OauthRequestValidators(RequestValidator):
                 if scope is not None:
                     scopes.append(scope)
 
-        print('SCOPES GOING INTO BEARER TOKEN', scopes)
         return scopes

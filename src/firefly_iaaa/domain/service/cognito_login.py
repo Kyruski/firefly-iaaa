@@ -29,14 +29,7 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
 
     def __call__(self, username: str, password: str):
         client = boto3.client('cognito-idp')
-        # for field in ['username', 'password']:
-        #     if event.get(field) is None:
-        #         return  {
-        #             'error': True, 
-        #             'success': False, 
-        #             'message': f'{field} is required', 
-        #             'data': None
-        #         }
+
         resp, msg = self._initiate_auth(client, username, password)
 
         if msg != None:

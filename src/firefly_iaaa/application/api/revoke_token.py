@@ -7,7 +7,7 @@ from firefly_iaaa.application.api.generic_oauth_endpoint import GenericOauthEndp
 
 
 @ff.rest(
-    '/iaaa/revoke', method='POST', tags=['public'], secured=False
+    '/iaaa/revoke', method='POST', tags=['public'], secured=True
 )
 class OauthTokenRevocationService(GenericOauthEndpoint):
     _oauth_provider: domain.OauthProvider = None
@@ -19,9 +19,6 @@ class OauthTokenRevocationService(GenericOauthEndpoint):
         message = self._make_message(kwargs)
 
         headers, body, status =  self._oauth_provider.create_revocation_response(message)
-        # if status == 200:
-        #     body = json.loads(body)
-        # #? Add headers?
 
         return self._make_response(headers=headers)
 

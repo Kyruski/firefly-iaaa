@@ -15,6 +15,7 @@
 from __future__ import annotations
 
 import importlib
+import os
 
 from botocore.exceptions import ClientError
 
@@ -28,6 +29,7 @@ class OAuthRegister(ff.DomainService):
     _make_user: domain.MakeClientUserEntities = None
     _context_map: ff.ContextMap = None
     _context: str = None
+    _user_created_event: os.environ.get('USER_CREATED_EVENT') or 'iaaa.UserCreated'
 
     def __call__(self, passed_in_kwargs: dict):
         self.info('Registering User')
@@ -56,6 +58,7 @@ class OAuthRegister(ff.DomainService):
             'scopes': []
         })
 
-        self._make_user(**passed_in_kwargs)
+        user = self._make_user(**passed_in_kwargs)
+        self.dispatch(self._user_created_event, data=user.to_dict())
 
         return True

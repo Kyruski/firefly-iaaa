@@ -43,14 +43,12 @@ refresh = 'refresh_token'
 
 class Client(ff.AggregateRoot):
     id: str = ff.id_() 
-    client_id: str = ff.optional(validators=[ff.HasLength(36)], index=True) # Needs to have 'client_id', should eb same as sub if user/cleint combo
+    client_id: str = ff.optional(validators=[ff.HasLength(36)], index=True) # Needs to have 'client_id', should be same as sub if user/cleint combo
     external_id: str = ff.optional(index=True)
-    # user: User = ff.required(index=True)
     name: str = ff.required()
     grant_type: str = ff.required(validators=[ff.IsOneOf((
         authorization_code, implicit, resource_owner_password_credentials, client_credentials, refresh
     ))])
-    # response_type: str = ff.optional(validators=[ff.IsOneOf(response_type_choices)]) #??
     default_redirect_uri: str = ff.optional()
     redirect_uris: List[str] = ff.list_()
     scopes: List[Scope] = ff.list_()
@@ -86,9 +84,6 @@ class Client(ff.AggregateRoot):
     def validate_grant_type(self, grant_type: str):
         return grant_type in (self.grant_type, refresh)
 
-    # def valid_refresh_types(self, grant_type: str):
-    #     return self.grant_type in (authorization_code, resource_owner_password_credentials) and (self.grant_type == grant_type or grant_type == refresh)
-
     def validate_scopes(self, scopes: List[str]):
         client_scopes = self.get_scopes()
         if isinstance(scopes, str):
@@ -115,7 +110,7 @@ class Client(ff.AggregateRoot):
     def requires_pkce(self):
         return self.uses_pkce
 
-    def is_confidential(self): #might not be best
+    def is_confidential(self):
         return self.grant_type in (client_credentials, resource_owner_password_credentials) or \
             (self.grant_type == authorization_code and self.requires_pkce())
 
@@ -150,11 +145,7 @@ class Client(ff.AggregateRoot):
         return roles
 
     def get_scopes(self):
-        x = [scope.id for scope in self._get_entity_scopes()]
-        y = []
-        for scope in self._get_entity_scopes():
-            y.append(scope.id)
-        return x
+        return [scope.id for scope in self._get_entity_scopes()]
 
     def _get_scopes_from_roles(self):
         roles = []

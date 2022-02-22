@@ -27,14 +27,10 @@ class OAuthLogin(GenericOauthIamEndpoint):
     def __call__(self, **kwargs):
         self.debug('Logging in with In-House')
         kwargs = self._fix_email(kwargs)
-        print('KWARGS coming into OauthLogin API', kwargs)
         if 'username' not in kwargs or 'password' not in kwargs:
             return self._make_error_response('Missing username/password')
 
         resp = self._oauth_login(kwargs)
-        print(resp)
-        # if not body.get('tokens'):
-        #     raise ff.UnauthenticatedError()
         
         if 'error' in resp:
             return self._make_error_response(resp)

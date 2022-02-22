@@ -32,13 +32,8 @@ class OauthProvider(ff.DomainService):
     _registry: ff.Registry = None
 
     def __init__(self, validator: OauthRequestValidators):
-        # with open(os.environ['PEM'], 'rb') as privatefile:
-        #     pem_key = privatefile.read()
-
-        # self.secret = pem_key
-        # self.issuer = os.environ['ISSUER']
         self._server = Server(
-            validator, #need to make sure this is instantiated
+            validator,
             token_generator=(lambda x: self.generate_token(x, 'access_token')),
             refresh_token_generator=(lambda x: self.generate_token(x, 'refresh_token')),
             token_expires_in=3600
@@ -66,9 +61,7 @@ class OauthProvider(ff.DomainService):
 
         credentials_key = str(uuid.uuid4())
         credentials = self._break_down_credentials(credentials)
-        
-        print('BEFORE SET CACHE', credentials)
-        print('BEFORE SET CACHE', credentials_key)
+
         self._cache.set(credentials_key, value=credentials, ttl=180)
 
         return self._convert_from_scopes_to_string(scopes), credentials, credentials_key
@@ -122,9 +115,6 @@ class OauthProvider(ff.DomainService):
         headers, body, status = self._server.create_revocation_response(uri, http_method, body, headers)
         return headers, body, status
 
-    # def create_metadata_response(self, request: ff.Message):
-
-
     def authenticate_client(self, request: ff.Message):
         uri, http_method, body, headers = self._get_request_params(request)
         oauth_request = Request(uri, http_method, body, headers)
@@ -143,7 +133,6 @@ class OauthProvider(ff.DomainService):
         return credentials
 
     def _build_up_credentials(self, credentials):
-        print('WE GOT CREDENTIALS', credentials)
         values = ('uri', 'http_method', 'body', 'headers')
         uri, http_method, body, headers = itemgetter('uri', 'http_method', 'body', 'headers')(credentials['request'])
 
@@ -214,7 +203,6 @@ class OauthProvider(ff.DomainService):
     @staticmethod
     def _convert_from_scopes_to_string(scopes):
         converted = []
-        print('SCOPES COMING IN TO CONVERT', scopes)
         for scope in scopes:
             if isinstance(scope, str):
                 #  Checking if the scope might be 
