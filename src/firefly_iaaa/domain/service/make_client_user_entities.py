@@ -45,7 +45,7 @@ class MakeClientUserEntities(ff.DomainService):
                 r = self._registry(role_entity).find(lambda x: x.name == role)
                 roles.append(r)
         else:
-            r = self._registry(role_entity).find(lambda x: x.name == 'Distributed Event Registrant')
+            r = self._registry(role_entity).find(lambda x: x.name == 'Consumer App User')
             roles.append(r)
         kwargs['roles'] = roles
 

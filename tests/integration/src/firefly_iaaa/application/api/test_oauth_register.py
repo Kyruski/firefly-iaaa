@@ -39,8 +39,8 @@ async def test_oauth_register_endpoint(client, registry, consumer_client):
 @pytest.fixture()
 def consumer_client(registry, roles, scopes):
     tenant = domain.Tenant(name='ABC')
-    role = domain.Role(name='Distributed Event Registrant', scopes=roles['consumer_role'][0].scopes)
-    # self._registry(domain.Role).find(lambda x: x.name == 'Distributed Event Registrant')
+    role = domain.Role(name='Consumer App User', scopes=roles['consumer_role'][0].scopes)
+    # self._registry(domain.Role).find(lambda x: x.name == 'Consumer App User')
     main_client = domain.Client.create(
             tenant=tenant,
             name='Consumer Client',
