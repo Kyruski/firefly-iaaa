@@ -49,13 +49,13 @@ class User(ff.AggregateRoot):
     updated_at: datetime = ff.now()
 
     # Custom fields
-    created_at: datetime = ff.now(hidden=True)
-    deleted_at: datetime = ff.optional(hidden=True)
-    password_hash: str = ff.optional(length=32, hidden=True)
-    salt: str = ff.optional(hidden=True)
-    roles: List[Role] = ff.list_(hidden=True)
-    tenant: Tenant = ff.optional(index=True, hidden=True)
-    tenant_id: str = ff.optional(index=True, hidden=True)
+    created_at: datetime = ff.now(internal=True)
+    deleted_at: datetime = ff.optional(internal=True)
+    password_hash: str = ff.optional(length=32, internal=True)
+    salt: str = ff.optional(internal=True)
+    roles: List[Role] = ff.list_(internal=True)
+    tenant: Tenant = ff.optional(index=True, internal=True)
+    tenant_id: str = ff.optional(index=True, internal=True)
 
     @classmethod
     def create(cls, **kwargs):
