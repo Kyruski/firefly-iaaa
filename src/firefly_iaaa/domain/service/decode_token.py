@@ -11,6 +11,9 @@ class DecodeToken(ff.DomainService):
         if token.lower().startswith('bearer'):
             token = token.split(' ')[-1]
         if not audience:
-            decoded = jwt.decode(token, options={"verify_signature": False})
-            audience = decoded['aud']
+            try:
+                decoded = jwt.decode(token, options={"verify_signature": False})
+                audience = decoded['aud']
+            except KeyError:
+                return False
         return jwt.decode(token, self._secret_key, 'HS256', audience=audience)
