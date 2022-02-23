@@ -13,8 +13,7 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
-from typing import Dict
-import os
+import bcrypt
 
 import firefly as ff
 import firefly_iaaa.domain as domain
@@ -37,17 +36,14 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
             passed_in_kwargs['grant_type'] = 'password'
             self.info('We found a user, trying to login with password')
             if found_user.correct_password(password):
-                passed_in_kwargs = self._set_client_id(found_user, passed_in_kwargs)
-                tokens = self._get_tokens(passed_in_kwargs)
-                resp = [tokens[0], {'tokens': tokens[1], 'user': found_user.generate_scrubbed_user()}]
+                resp = self._get_tokens(found_user, passed_in_kwargs)
             else:
-                resp = self._try_cognito(username, password)
-                self.info('User password incorrect, trying Cognito in case password null')
+                self.info('User password incorrect, trying Cognito')
+                resp = self._try_cognito(username, password, found_user, passed_in_kwargs)
                 if resp is None:
                     raise ff.UnauthenticatedError('Incorrect username/password combination')
         else:
-            self.info('No user exists, trying Cognito')
-            resp = self._try_cognito(username, password)
+            raise ff.NotFound()
 
         if resp is None:
             raise ff.NotFound()
@@ -55,40 +51,36 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
         return resp
 
 
-    def _try_cognito(self, username: str, password: str):
+    def _try_cognito(self, username: str, password: str, user: domain.User, passed_in_kwargs: dict):
         self.debug('Switching to Cognito Log in')
-        if self._registry(domain.User).find(lambda x: x.email == username) is None:
-            try:
-                resp = self._cognito_login(username, password) #data has tokens and idToken
-                message, error, success, data = resp.values()
-                if error:
-                    if message:
-                        ff.UnauthenticatedError(message)
-                    else:
-                        ff.UnauthenticatedError(error)
-                if success:
-                    resp = self._transfer_cognito_user_to_native_user(username, password, data['decoded_id_token'])
-                    return resp
-            except Exception as e:
-                raise ff.UnauthenticatedError()
-        else:
-            raise ff.UnauthenticatedError('Incorrect Password')
+        try:
+            resp = self._cognito_login(username, password) #data has tokens and idToken
+            message, error, success, _ = resp.values()
+            if error:
+                if message:
+                    ff.UnauthenticatedError(message)
+                else:
+                    ff.UnauthenticatedError(error)
+            if success:
+                resp = self._add_cognito_user(password, user, passed_in_kwargs)
+                return resp
+        except Exception as e:
+            raise ff.UnauthenticatedError()
         
 
-    def _transfer_cognito_user_to_native_user(self, username: str, password: str, data: Dict):
+    def _add_cognito_user(self, password: str, user: domain.User, passed_in_kwargs):
         self.debug('Transfering Cognito user to In-House user')
-        data['email'] = username
-        data['username'] = username
-        data['password'] = password
-        resp = self._oauth_register(data)
+        user.salt = bcrypt.gensalt().decode()
+        user.change_password(password, user.salt)
+        resp = self._get_tokens(user, passed_in_kwargs)
         if resp[1]['tokens']:
             return resp
         raise Exception('Something went wrong')
 
-    def _get_tokens(self, kwargs: dict):
-        # kwargs = self._set_referer(kwargs)
-        resp = self._create_token(kwargs)
-        return resp
+    def _get_tokens(self, user: domain.User, passed_in_kwargs: dict):
+        passed_in_kwargs = self._set_client_id(user, passed_in_kwargs)
+        resp = self._create_token(passed_in_kwargs)
+        return [resp[0], {'tokens': resp[1], 'user': user.generate_scrubbed_user()}]
 
     def _set_client_id(self, found_user, kwargs):
         if not kwargs.get('client_id'):
