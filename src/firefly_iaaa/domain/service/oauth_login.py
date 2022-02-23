@@ -13,6 +13,7 @@
 #  <http://www.gnu.org/licenses/>.
 
 from __future__ import annotations
+import bcrypt
 
 import firefly as ff
 import firefly_iaaa.domain as domain
@@ -69,7 +70,8 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
 
     def _add_cognito_user(self, password: str, user: domain.User, passed_in_kwargs):
         self.debug('Transfering Cognito user to In-House user')
-        user.change_password(password)
+        user.salt = bcrypt.gensalt().decode()
+        user.change_password(password, user.salt)
         resp = self._get_tokens(user, passed_in_kwargs)
         if resp[1]['tokens']:
             return resp
