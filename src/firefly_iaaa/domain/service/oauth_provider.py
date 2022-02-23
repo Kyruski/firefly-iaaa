@@ -46,7 +46,8 @@ class OauthProvider(ff.DomainService):
             'jti': str(uuid.uuid4()),
             'aud': request.client_id,
             'iss': self._issuer,
-            'scope': ' '.join(self._convert_from_scopes_to_string(scopes))
+            'scope': ' '.join(self._convert_from_scopes_to_string(scopes)),
+            'tenant': request.user.tenant_id
         }
         if request.user:
             token['sub'] = request.user.sub
