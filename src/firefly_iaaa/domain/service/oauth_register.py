@@ -29,7 +29,7 @@ class OAuthRegister(ff.DomainService):
     _make_user: domain.MakeClientUserEntities = None
     _context_map: ff.ContextMap = None
     _context: str = None
-    _user_created_event: os.environ.get('USER_CREATED_EVENT') or 'iaaa.UserCreated'
+    _user_created_event = os.environ.get('USER_CREATED_EVENT') or 'iaaa.UserCreated'
 
     def __call__(self, passed_in_kwargs: dict):
         self.info('Registering User')
