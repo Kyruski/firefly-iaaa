@@ -50,7 +50,6 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
 
         return resp
 
-
     def _try_cognito(self, username: str, password: str, user: domain.User, passed_in_kwargs: dict):
         self.debug('Switching to Cognito Log in')
         try:
@@ -65,13 +64,12 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
                 resp = self._add_cognito_user(password, user, passed_in_kwargs)
                 return resp
         except Exception as e:
-            raise ff.UnauthenticatedError()
-        
+            raise ff.UnauthenticatedError() from e
 
     def _add_cognito_user(self, password: str, user: domain.User, passed_in_kwargs):
         self.debug('Transfering Cognito user to In-House user')
         user.salt = bcrypt.gensalt().decode()
-        user.change_password(password, user.salt)
+        user.change_password(password)
         resp = self._get_tokens(user, passed_in_kwargs)
         if resp[1]['tokens']:
             return resp
@@ -84,8 +82,13 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
 
     def _set_client_id(self, found_user, kwargs):
         if not kwargs.get('client_id'):
-            user_client = self._registry(domain.Client).find(lambda x: x.tenant_id == found_user.tenant_id)
-            kwargs['client_id'] = user_client.client_id
+            if found_user.tenant_id is not None:
+                user_client = self._registry(domain.Client).find(lambda x: x.tenant_id == found_user.tenant_id)
+                kwargs['client_id'] = user_client.client_id
+            else:
+                kwargs['client_id'] = 'bac2ee04-a141-4c1c-9b7f-9f120bb63935'
+                found_user.tenant_id = 'f0803c4d-fa1a-4d1f-b6c6-7479d2212a54'
+                found_user.tenant = self._registry(domain.Tenant).find(found_user.tenant_id)
         return kwargs
 
     def _set_referer(self, kwargs: dict):
