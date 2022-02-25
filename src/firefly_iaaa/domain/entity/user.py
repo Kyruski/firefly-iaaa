@@ -76,6 +76,8 @@ class User(ff.AggregateRoot):
         return bcrypt.hashpw(password.encode('utf-8'), salt.encode()).decode('utf-8')
 
     def change_password(self, new_password: str):
+        if self.salt is None:
+            self.salt = bcrypt.gensalt().decode()
         self.password_hash = self._hash_password(new_password, self.salt)
 
     def change_email(self, new_email: str):
