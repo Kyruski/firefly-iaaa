@@ -777,7 +777,7 @@ class OauthRequestValidators(RequestValidator):
 
     def _get_user(self, username: str):
         return self._registry(domain.User).find(
-            lambda x: (x.email == username) | (x.preferred_username == username)
+            lambda x: (x.email.lower() == username) | (x.preferred_username == username)
         )
 
     def _get_bearer_token(self, token: str, token_type_hint: str = None):
@@ -810,7 +810,7 @@ class OauthRequestValidators(RequestValidator):
         password = request.body.get('password')
         if username and password:
             user = self._registry(domain.User).find(
-                lambda x: (x.email == username) | (x.preferred_username == username)
+                lambda x: (x.email.lower() == username) | (x.preferred_username == username)
             )
             if user:
                 if user.correct_password(request.body['password']):

@@ -43,7 +43,7 @@ class OAuthRegister(ff.DomainService):
         user_entity = module.__dict__.get('User')
 
         try:
-            found_user = self._registry(user_entity).find(lambda x: x.email == username)
+            found_user = self._registry(user_entity).find(lambda x: x.email.lower() == username)
         except ClientError as e:
             if e.response['Error']['Code'] == 'BadRequestException':
                 if 'syntax error at or near ")"' in str(e):

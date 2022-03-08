@@ -31,7 +31,7 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
         password = passed_in_kwargs['password']
         tokens = [None, None]
 
-        found_user: domain.User = self._registry(domain.User).find(lambda x: x.email == username)
+        found_user: domain.User = self._registry(domain.User).find(lambda x: x.email.lower() == username)
         if found_user:
             passed_in_kwargs['grant_type'] = 'password'
             self.info('We found a user, trying to login with password')

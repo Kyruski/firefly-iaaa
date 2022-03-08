@@ -16,7 +16,7 @@ async def test_oauth_register_endpoint(client, registry, consumer_client):
     first_response = await client.post('/firefly-iaaa/iaaa/register', data=json.dumps(data), headers={'Referer': 'abc'})
     assert first_response.status == 200
     assert first_response
-    user = registry(domain.User).find(lambda x: x.email == data['username'])
+    user = registry(domain.User).find(lambda x: x.email.lower() == data['username'])
     assert not user
     resp = json.loads(await first_response.text())
     assert 'error' in resp
@@ -28,7 +28,7 @@ async def test_oauth_register_endpoint(client, registry, consumer_client):
     resp = json.loads(await second_response.text())
     assert resp
 
-    user = registry(domain.User).find(lambda x: x.email == data['username'])
+    user = registry(domain.User).find(lambda x: x.email.lower() == data['username'])
     assert user
 
     third_response = await client.post('/firefly-iaaa/iaaa/register', data=json.dumps(data), headers={'Referer': 'abc'})
