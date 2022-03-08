@@ -43,14 +43,14 @@ async def test_change_password(client, registry, cache):
 
     registry(User).append(new_user)
     registry(User).commit()
-    user = registry(User).find(lambda x: x.email == username)
+    user = registry(User).find(lambda x: x.email.lower() == username)
     assert user.correct_password(old_password)
     assert not user.correct_password(new_password)
 
     #Check when user exists
     first_response = await client.post('/firefly-iaaa/iaaa/change-password', data=json.dumps({'request_id': request_id, 'new_password': old_password}))
     assert first_response.status == 200
-    user = registry(User).find(lambda x: x.email == username)
+    user = registry(User).find(lambda x: x.email.lower() == username)
     assert user.correct_password(old_password)
     assert not user.correct_password(new_password)
 
@@ -59,7 +59,7 @@ async def test_change_password(client, registry, cache):
     assert second_response.status == 200
     second_response = json.loads(await second_response.text())
     assert second_response['message'] == 'error'
-    user = registry(User).find(lambda x: x.email == username)
+    user = registry(User).find(lambda x: x.email.lower() == username)
     assert user.correct_password(old_password)
     assert not user.correct_password(new_password)
 
@@ -68,7 +68,7 @@ async def test_change_password(client, registry, cache):
 
     third_response = await client.post('/firefly-iaaa/iaaa/change-password', data=json.dumps({'request_id': request_id, 'new_password': new_password}))
     assert third_response.status == 200
-    user = registry(User).find(lambda x: x.email == username)
+    user = registry(User).find(lambda x: x.email.lower() == username)
     assert not user.correct_password(old_password)
     assert user.correct_password(new_password)
 
@@ -76,7 +76,7 @@ async def test_change_password(client, registry, cache):
     assert fourth_response.status == 200
     fourth_response = json.loads(await fourth_response.text())
     assert fourth_response['message'] == 'error'
-    user = registry(User).find(lambda x: x.email == username)
+    user = registry(User).find(lambda x: x.email.lower() == username)
     assert not user.correct_password(old_password)
     assert user.correct_password(new_password)
 
@@ -85,6 +85,6 @@ async def test_change_password(client, registry, cache):
 
     fifth_response = await client.post('/firefly-iaaa/iaaa/change-password', data=json.dumps({'request_id': request_id, 'new_password': old_password}))
     assert fifth_response.status == 200
-    user = registry(User).find(lambda x: x.email == username)
+    user = registry(User).find(lambda x: x.email.lower() == username)
     assert user.correct_password(old_password)
     assert not user.correct_password(new_password)
