@@ -13,9 +13,7 @@
 #  <http://www.gnu.org/licenses/>.
 from __future__ import annotations
 from datetime import datetime, timedelta
-import os
 from typing import List, Union
-import jwt
 
 import firefly as ff
 from oauthlib.oauth2 import RequestValidator
@@ -239,7 +237,7 @@ class OauthRequestValidators(RequestValidator):
             - Resource Owner Password Credentials Grant
             - Client Credentials grant
         """
-        return request.client.get_scopes()
+        return getattr(request, 'login_scopes', request.client.get_scopes())
 
     def get_original_scopes(self, refresh_token: str, request: Request, *args, **kwargs):
         """Get the list of scopes associated with the refresh token.
@@ -657,7 +655,6 @@ class OauthRequestValidators(RequestValidator):
             - Client Credentials Grant
             - Refresh Token Grant
         """
-
         return client.validate_grant_type(grant_type)
 
     def validate_redirect_uri(self, client_id: str, redirect_uri: str, request: Request, *args, **kwargs):
@@ -741,6 +738,8 @@ class OauthRequestValidators(RequestValidator):
             - Client Credentials Grant
         """
 
+        if hasattr(request, 'login_scopes'):
+            return True
         return client.validate_scopes(scopes)
 
     def validate_user(self, username: str, password: str, client: domain.Client, request: Request, *args, **kwargs):
@@ -766,6 +765,7 @@ class OauthRequestValidators(RequestValidator):
         if not user:
             return False
         if user.correct_password(password):
+            request.login_scopes = user.get_scopes()
             request.user = user
             return True
         return False
@@ -834,10 +834,11 @@ class OauthRequestValidators(RequestValidator):
     def _generate_bearer_token(self, token: dict, request: Request):
         user = request.user or self._registry(domain.User).find(lambda x: (x.tenant_id == request.client.tenant_id) | (x.sub == request.client.client_id))
         client = request.client or self._registry(domain.Client).find(lambda x: (x.tenant_id == request.user.tenant_id) | (x.client_id == request.client.client_id))
+        scopes = getattr(request, 'login_scopes', request.scopes)
         return domain.BearerToken(
             client=client,
             user=user,
-            scopes=self._convert_list_to_scopes(request.scopes),
+            scopes=self._convert_list_to_scopes(scopes),
             access_token=token['access_token'],
             expires_at=datetime.utcnow() + timedelta(seconds=token['expires_in']),
             refresh_token=token.get('refresh_token'),
@@ -847,10 +848,11 @@ class OauthRequestValidators(RequestValidator):
 
     def _generate_authorization_code(self, code: dict, request: Request, claims: dict):
         user = request.user or self._registry(domain.User).find(lambda x: x.sub == self._kernel.user.id)
+        scopes = getattr(request, 'login_scopes', request.scopes)
         return domain.AuthorizationCode(
             client=request.client,
             user=user,
-            scopes=self._convert_list_to_scopes(request.scopes),
+            scopes=self._convert_list_to_scopes(scopes),
             code=code['code'],
             expires_at=datetime.utcnow() + timedelta(minutes=10),
             redirect_uri=request.redirect_uri,

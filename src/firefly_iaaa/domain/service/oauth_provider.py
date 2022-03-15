@@ -40,7 +40,10 @@ class OauthProvider(ff.DomainService):
         )
 
     def generate_token(self, request, token_type):
-        scopes = request['scopes'] if isinstance(request, dict) else request.scopes
+        if isinstance(request, dict):
+            scopes = request.get('login_scopes', request['scopes'])
+        else:
+            scopes = getattr(request, 'login_scopes', request.scopes)
 
         token = {
             'jti': str(uuid.uuid4()),
