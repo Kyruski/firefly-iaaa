@@ -191,11 +191,11 @@ def gen_random_string(num: int = 6):
     return string
 
 @pytest.fixture()
-def user_list(tenants_list):
+def user_list(tenants_list, roles):
     string = gen_random_string()
-    array = [ User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}', tenant=tenants_list[i]) for i in range(6) ]
+    array = [ User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}', tenant=tenants_list[i], roles=roles['user_role']) for i in range(6) ]
     for i in range(6, 9):
-        array.append(User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}', tenant=tenants_list[i]))
+        array.append(User.create(email=f'user{i+1}{string}@fake.com', password=f'password{i + 1}', tenant=tenants_list[i], roles=roles['user_role']))
     return array
 
 def hash_password(password: str, salt: str):

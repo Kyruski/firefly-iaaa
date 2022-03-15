@@ -35,4 +35,7 @@ class OAuthLogin(GenericOauthIamEndpoint):
         if 'error' in resp:
             return self._make_error_response(resp)
 
-        return self._make_local_response(*resp)
+        try:
+            return self._make_local_response(*resp)
+        except KeyError as e:
+            return self._make_response(resp[1], headers=resp[0])

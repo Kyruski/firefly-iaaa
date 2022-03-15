@@ -67,7 +67,7 @@ class User(ff.AggregateRoot):
         try:
             kwargs['tenant_id'] = kwargs['tenant'].id
         except KeyError:
-            raise ff.MissingArgument('Tenant is a required field for Client::create()')
+            raise ff.MissingArgument('Tenant is a required field for User::create()')
 
         return cls(**ff.build_argument_list(kwargs, cls))
 

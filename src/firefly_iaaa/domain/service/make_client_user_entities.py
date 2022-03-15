@@ -38,7 +38,7 @@ class MakeClientUserEntities(ff.DomainService):
         tenant_entity = module.__dict__.get('Tenant')
         scope_entity = module.__dict__.get('Scope')
         client_entity = module.__dict__.get('Client', domain.Client)
-        
+
         roles = []
         if 'roles' in kwargs:
             for role in kwargs['roles']:
