@@ -51,14 +51,6 @@ class MakeClientUserEntities(ff.DomainService):
 
         kwargs['email'] = kwargs.get('email', username)
 
-        if kwargs.get('scopes') is None or len(kwargs['scopes']) == 0:
-            kwargs['scopes'] = ['iaaa.default.read']
-        scopes = []
-        for scope in kwargs['scopes']:
-            s = self._registry(scope_entity).find(scope)
-            scopes.append(s)
-        kwargs['scopes'] = scopes
-
         if kwargs['grant_type'] == 'password':
             kwargs['client_id'], kwargs['tenant'] = self._get_consumer_client(client_entity)
             user = user_entity.create(
@@ -82,6 +74,13 @@ class MakeClientUserEntities(ff.DomainService):
         kwargs['name'] = kwargs.get('name', tenant_name)
         kwargs = self._make_params(kwargs)
 
+        if kwargs.get('scopes') is None or len(kwargs['scopes']) == 0:
+            kwargs['scopes'] = ['iaaa.default.read']
+        scopes = []
+        for scope in kwargs['scopes']:
+            s = self._registry(scope_entity).find(scope)
+            scopes.append(s)
+        kwargs['scopes'] = scopes
 
         client = client_entity.create(**kwargs)
 
