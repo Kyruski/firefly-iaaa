@@ -20,7 +20,7 @@ class RemoveRoleFromUser(ff.ApplicationService):
         if not role:
             raise ff.NotFound('role not found')
 
-        user = self._registry(domain.User).find(sub)
+        user = self._registry(domain.User).find(lambda x: (x.sub == sub) & (x.deleted_at.is_null()))
         if not user:
             raise ff.NotFound('user not found')
 

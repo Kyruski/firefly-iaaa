@@ -36,7 +36,7 @@ class ChangePassword(GenericEndpoint):
         except KeyError as e:
             return self._make_error_response('Missing password')
 
-        found_user: domain.User = self._registry(domain.User).find(lambda x: x.email.lower() == username)
+        found_user: domain.User = self._registry(domain.User).find(lambda x: (x.email.lower() == username) & (x.deleted_at.is_null()))
 
         if found_user:
             found_user.change_password(new_password)

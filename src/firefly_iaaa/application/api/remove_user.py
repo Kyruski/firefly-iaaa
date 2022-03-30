@@ -20,24 +20,27 @@ from firefly_iaaa import domain
 from firefly_iaaa.application.api.generic_endpoint import GenericEndpoint
 
 
-@ff.rest('/iaaa/reset', method='POST', tags=['public'], secured=False)
-class ResetPassword(GenericEndpoint):
-    _cache: ff.Cache = None
-    _subdomain: str = None
-    _send_reset_email: domain.SendResetEmail = None
+@ff.rest('/iaaa/delete', method='POST', tags=['public'])
+class RemoveUser(GenericEndpoint):
+    _kernel: ff.Kernel = None
+    _remove_user: domain.RemoveUser = None
 
-    def __call__(self, **kwargs):
-        try:
-            username = kwargs['username'].lower()
-        except KeyError:
-            raise Exception('Missing username/password')
+    def __call__(self, user_id: str, **kwargs):
+        self._kernel.reject_missing_tenant()
+        if self._kernel.user.token['sub'] == user_id:
+            return self._remove_user(user_id)
+        return
+        # try:
+        #     username = kwargs['username'].lower()
+        # except KeyError:
+        #     raise Exception('Missing username/password')
 
-        found_user = self._registry(domain.User).find(lambda x: (x.email.lower() == username) & (x.deleted_at.is_null()))
-        if found_user:
-            cache_id = str(uuid.uuid4())
-            self._cache.set(cache_id, value={'message': 'reset', 'username': username}, ttl=1800)
-            try:
-                self._send_reset_email(username, cache_id)
-            except Exception as e:
-                return False
+        # found_user = self._registry(domain.User).find(lambda x: x.email.lower() == username)
+        # if found_user:
+        #     cache_id = str(uuid.uuid4())
+        #     self._cache.set(cache_id, value={'message': 'reset', 'username': username}, ttl=1800)
+        #     try:
+        #         self._send_reset_email(username, cache_id)
+        #     except Exception as e:
+        #         return False
         return {'message': 'success'}

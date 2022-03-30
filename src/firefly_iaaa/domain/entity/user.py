@@ -50,7 +50,7 @@ class User(ff.AggregateRoot):
 
     # Custom fields
     created_at: datetime = ff.now(internal=True)
-    deleted_at: datetime = ff.optional(internal=True)
+    deleted_at: datetime = ff.optional(index=True, internal=True)
     password_hash: str = ff.optional(length=32, internal=True)
     salt: str = ff.optional(internal=True)
     roles: List[Role] = ff.list_(internal=True)

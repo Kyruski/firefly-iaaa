@@ -777,7 +777,7 @@ class OauthRequestValidators(RequestValidator):
 
     def _get_user(self, username: str):
         return self._registry(domain.User).find(
-            lambda x: (x.email.lower() == username) | (x.preferred_username == username)
+            lambda x: ((x.email.lower() == username) | (x.preferred_username == username)) & (x.deleted_at.is_null())
         )
 
     def _get_bearer_token(self, token: str, token_type_hint: str = None):
@@ -810,7 +810,7 @@ class OauthRequestValidators(RequestValidator):
         password = request.body.get('password')
         if username and password:
             user = self._registry(domain.User).find(
-                lambda x: (x.email.lower() == username) | (x.preferred_username == username)
+                lambda x: ((x.email.lower() == username) | (x.preferred_username == username)) & (x.deleted_at.is_null())
             )
             if user:
                 if user.correct_password(request.body['password']):
@@ -832,7 +832,7 @@ class OauthRequestValidators(RequestValidator):
         return False
 
     def _generate_bearer_token(self, token: dict, request: Request):
-        user = request.user or self._registry(domain.User).find(lambda x: (x.tenant_id == request.client.tenant_id) | (x.sub == request.client.client_id))
+        user = request.user or self._registry(domain.User).find(lambda x: ((x.tenant_id == request.client.tenant_id) | (x.sub == request.client.client_id)) & (x.deleted_at.is_null()))
         client = request.client or self._registry(domain.Client).find(lambda x: (x.tenant_id == request.user.tenant_id) | (x.client_id == request.client.client_id))
         scopes = getattr(request, 'login_scopes', request.scopes)
         return domain.BearerToken(
@@ -847,7 +847,7 @@ class OauthRequestValidators(RequestValidator):
         )
 
     def _generate_authorization_code(self, code: dict, request: Request, claims: dict):
-        user = request.user or self._registry(domain.User).find(lambda x: x.sub == self._kernel.user.id)
+        user = request.user or self._registry(domain.User).find(lambda x: (x.sub == self._kernel.user.id) & (x.deleted_at.is_null()))
         scopes = getattr(request, 'login_scopes', request.scopes)
         return domain.AuthorizationCode(
             client=request.client,

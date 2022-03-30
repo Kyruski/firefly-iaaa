@@ -185,11 +185,11 @@ class OauthProvider(ff.DomainService):
             except (KeyError, TypeError):
                 pass
         try:
-            user = self._registry(domain.User).find(lambda x: x.sub == request.user['sub'])
+            user = self._registry(domain.User).find(lambda x: (x.sub == request.user['sub']) & (x.deleted_at.is_null()))
             request.user = user
         except (AttributeError, TypeError):
             try:
-                user = self._registry(domain.User).find(lambda x: x.sub == request['user']['sub'])
+                user = self._registry(domain.User).find(lambda x: (x.sub == request['user']['sub']) & (x.deleted_at.is_null()))
                 request['user'] = user
             except (KeyError, TypeError):
                 pass
