@@ -36,7 +36,7 @@ class RemoveUser(ff.DomainService, ff.LoggerAware):
             print('Deleting Creds')
             for credentials in (domain.BearerToken, domain.AuthorizationCode):
                 print('running cred', credentials)
-                found_creds = self._registry(credentials).filter(lambda c: c.user.sub == user_id)
+                found_creds = self._registry(credentials).filter(lambda c: c.user == user_id)
                 print(f'found {len(found_creds)} creds')
                 for cred in found_creds:
                     print('cred', cred)
