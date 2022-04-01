@@ -29,4 +29,4 @@ class RemoveUser(GenericEndpoint):
         self._kernel.reject_missing_tenant()
         if self._kernel.user.token['sub'] == user_id:
             return self._remove_user(user_id)
-        return {'status': 'error', 'message': 'mismatching user_id and token sub'}
+        return {'status': 'failure', 'message': 'mismatching user_id and token sub'}
