@@ -13,7 +13,7 @@ if 'firefly_aws' in sys.modules or importlib.util.find_spec('firefly_aws') is no
         _registry: ff.Registry = None
 
         def _get_token_access_rights(self, event: dict):
-            user: domain.User = self._registry(domain.User).find(lambda x: (x.sub == event['request']['userAttributes']['sub']) & (x.deleted_at.is_null()))
+            user: domain.User = self._registry(domain.User).find(lambda x: (x.sub == event['request']['userAttributes']['sub']) & (x.deleted_at.is_none()))
             if user is None:
                 self.info('No record for user "%s"', event['request']['userAttributes']['sub'])
                 return event

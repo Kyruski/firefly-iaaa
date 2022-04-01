@@ -25,7 +25,7 @@ class RemoveUser(ff.DomainService, ff.LoggerAware):
     _user_deleted_event = os.environ.get('USER_DELETED_EVENT') or 'iaaa.DeleteUser'
 
     def __call__(self, user_id: str, **kwargs):
-        user: domain.User = self._registry(domain.User).find(lambda x: (x.sub == user_id) & (x.deleted_at.is_null()))
+        user: domain.User = self._registry(domain.User).find(lambda x: (x.sub == user_id) & (x.deleted_at.is_none()))
         if user:
             self.info(f'Found user {user.sub}. Deleting...')
             user.salt = None

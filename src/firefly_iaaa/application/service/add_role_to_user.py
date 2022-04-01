@@ -20,7 +20,7 @@ class AddRoleToUser(ff.ApplicationService):
         if not role:
             raise ff.NotFound('role not found')
 
-        user = self._registry(domain.User).find(lambda x: (x.sub == sub) & (x.deleted_at.is_null()))
+        user = self._registry(domain.User).find(lambda x: (x.sub == sub) & (x.deleted_at.is_none()))
         if not user:
             # TODO If firefly-aws is installed, attempt to pull the user from cognito.
             user = domain.User(sub=sub)
