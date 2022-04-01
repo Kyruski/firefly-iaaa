@@ -48,4 +48,5 @@ class RemoveUser(ff.DomainService, ff.LoggerAware):
             # for ac in auth_codes:
             #     ac.invalidate()
             #     self._registry(domain.AuthorizationCode).remove(ac)
-        return
+            return {'status': 'success', 'message': 'User deleted'}
+        return {'status': 'error', 'message': 'No user found'}
