@@ -32,7 +32,8 @@ class RemoveUser(ff.DomainService, ff.LoggerAware):
             user.password_hash = None
             user.roles = []
             resp = self.request('iaaa.OptOutOfAllCohorts', data={'id_': user_id, 'is_internal': True})
-            print(resp)
+            if resp.get('status') != 'success':
+                return {'status': 'error', 'message': f'Error opting-out: {resp.get("message")}'}
             self.invoke(self._user_deleted_event, {'sub': user.sub})
 
             for credentials in (domain.BearerToken, domain.AuthorizationCode):
