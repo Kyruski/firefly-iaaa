@@ -34,7 +34,7 @@ class RemoveUser(ff.DomainService, ff.LoggerAware):
             self.invoke(self._user_deleted_event, {'sub': user.sub})
 
             for credentials in (domain.BearerToken, domain.AuthorizationCode):
-                found_creds = self._registry(credentials).filter(lambda c: c.user.sub == user.sub)
+                found_creds = self._registry(credentials).filter(lambda c: c.user.sub == user_id)
                 for cred in found_creds:
                     cred.invalidate()
                     self._registry(credentials).remove(cred)
