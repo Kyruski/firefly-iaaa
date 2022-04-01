@@ -33,11 +33,17 @@ class RemoveUser(ff.DomainService, ff.LoggerAware):
             user.roles = []
             self.invoke(self._user_deleted_event, {'sub': user.sub})
 
+            print('Deleting Creds')
             for credentials in (domain.BearerToken, domain.AuthorizationCode):
+                print('running cred', credentials)
                 found_creds = self._registry(credentials).filter(lambda c: c.user.sub == user_id)
+                print(f'found {len(found_creds)} creds')
                 for cred in found_creds:
+                    print('cred', cred)
                     cred.invalidate()
+                    print('cred', cred)
                     self._registry(credentials).remove(cred)
+                    print('cred', cred)
 
             # bearer_tokens: List[domain.BearerToken] = self._registry(domain.BearerToken).filter(lambda bt: bt.user.sub == user.sub)
             # for bt in bearer_tokens:
