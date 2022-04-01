@@ -22,5 +22,6 @@ from .make_client import MakeClient
 from .introspect_token import OauthTokenIntrospectionService
 from .oauth_login import OAuthLogin
 from .oauth_register import OAuthRegister
+from .remove_user import RemoveUser
 from .reset_password import ResetPassword
 from .revoke_token import OauthTokenRevocationService
