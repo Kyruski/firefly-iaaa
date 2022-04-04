@@ -35,5 +35,6 @@ from firefly_iaaa.domain.service.middleware import *
 from firefly_iaaa.domain.service.oauth_login import OAuthLogin
 from firefly_iaaa.domain.service.oauth_provider import OauthProvider
 from firefly_iaaa.domain.service.oauth_register import OAuthRegister
+from firefly_iaaa.domain.service.remove_user import RemoveUser
 from firefly_iaaa.domain.service.request_validator import OauthRequestValidators
 from firefly_iaaa.domain.service.send_reset_email import SendResetEmail

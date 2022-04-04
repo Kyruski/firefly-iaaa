@@ -12,16 +12,21 @@
 #  You should have received a copy of the GNU General Public License along with Firefly. If not, see
 #  <http://www.gnu.org/licenses/>.
 
-from .authorization_request import *
-from .change_password import ChangePassword
-from .create_token import OauthTokenCreationService
-from .generic_oauth_endpoint import GenericOauthEndpoint
-from .generic_oauth_iam_endpoint import GenericOauthIamEndpoint
-from .generic_endpoint import GenericEndpoint
-from .make_client import MakeClient
-from .introspect_token import OauthTokenIntrospectionService
-from .oauth_login import OAuthLogin
-from .oauth_register import OAuthRegister
-from .remove_user import RemoveUser
-from .reset_password import ResetPassword
-from .revoke_token import OauthTokenRevocationService
+from __future__ import annotations
+import uuid
+
+import firefly as ff
+from firefly_iaaa import domain
+from firefly_iaaa.application.api.generic_endpoint import GenericEndpoint
+
+
+@ff.rest('/iaaa/delete', method='POST', tags=['public'])
+class RemoveUser(GenericEndpoint):
+    _kernel: ff.Kernel = None
+    _remove_user: domain.RemoveUser = None
+
+    def __call__(self, user_id: str, **kwargs):
+        self._kernel.reject_missing_tenant()
+        if self._kernel.user.token['sub'] == user_id:
+            return self._remove_user(user_id)
+        return {'status': 'failure', 'message': 'mismatching user_id and token sub'}

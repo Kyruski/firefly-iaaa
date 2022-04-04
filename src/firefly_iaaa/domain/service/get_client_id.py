@@ -11,7 +11,7 @@ class GetClientId(ff.DomainService):
     def __call__(self, client_id: str, **kwargs):
         if client_id:
             return client_id
-        user = self._registry(domain.User).find(lambda x: x.sub == self._kernel.user.id)
+        user = self._registry(domain.User).find(lambda x: (x.sub == self._kernel.user.id) & (x.deleted_at.is_none()))
         if not user:
             return self._kernel.user.id
         client = self._registry(domain.Client).find(lambda x: x.tenant_id == user.tenant_id)

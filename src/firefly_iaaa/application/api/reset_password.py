@@ -32,7 +32,7 @@ class ResetPassword(GenericEndpoint):
         except KeyError:
             raise Exception('Missing username/password')
 
-        found_user = self._registry(domain.User).find(lambda x: x.email.lower() == username)
+        found_user = self._registry(domain.User).find(lambda x: (x.email.lower() == username) & (x.deleted_at.is_none()))
         if found_user:
             cache_id = str(uuid.uuid4())
             self._cache.set(cache_id, value={'message': 'reset', 'username': username}, ttl=1800)
