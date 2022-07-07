@@ -68,7 +68,7 @@ class OauthAuthorizationRequestService(GenericOauthEndpoint):
             resp['code_challenge_method'] = credentials['code_challenge_method']
         # if 'claims' in credentials:
         #     kwargs['claims'] = json.dumps(credentials['claims'])
-        redirect_url = f'https://{self._subdomain}.pwrlab.com/authorize?' #!!!!
+        redirect_url = f'https://{self._subdomain}.dashlx.com/authorize?' #!!!!
 
         for k, v in resp.items():
             if not v:

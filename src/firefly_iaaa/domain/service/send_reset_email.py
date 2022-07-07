@@ -22,13 +22,13 @@ class SendResetEmail(ff.DomainService):
     _reset_url: str = None
     _from_address: str = None
 
-    def __call__(self, username: str, cache_id: str, **kwargs):
+    def __call__(self, username: str, cache_id: str, name: str, **kwargs):
         reset_url = f'{self._reset_url}?request_id={cache_id}'
-        html_body = self._gen_html_body(reset_url)
-        text_body = self._gen_text_body(reset_url)
+        html_body = self._gen_html_body(reset_url, name)
+        text_body = self._gen_text_body(reset_url, name)
 
         data = {
-            'subject': 'PWR Lab Password Reset',
+            'subject': 'DashLX Password Reset',
             'text_body': text_body,
             'html_body': html_body,
             'from_address': self._from_address,
@@ -42,29 +42,34 @@ class SendResetEmail(ff.DomainService):
         except Exception as e:
             return False
 
-    def _gen_html_body(self, reset_url):
-        return f"""<h1 style="text-align: center;">Password Reset</h1>
+    def _gen_html_body(self, reset_url: str, name: str):
+        return f"""<h1>Hi {name}</h1>
 <br><br>
+<h4>
 Trouble signing in? We received a request to reset your password.
 <br><br>
-If you would like to continue with resetting the password for your account, <a href="{reset_url}" >Click Here</a>. Or copy and paste this URL into your browser: <br><a href="{reset_url}" >{reset_url}</a>
+To reset your password, <a href="{reset_url}" >click here</a>.
+Or paste this URL into your browser: <br><a href="{reset_url}" >{reset_url}</a>
 <br><br>
-If you did not request this password reset, please ignore this message.
+This link will expire in 30 minutes. If you did not request this password reset, you may safely ignore this message.
+</h4>
 <br><br>
+<h5>
 Cheers,
+</h5>
 <br>
--PwrLab Team
+<h3>DashLX Team</h3>
 """
 
-    def _gen_text_body(self, reset_url):
-        return f"""Password Reset
+    def _gen_text_body(self, reset_url: str, name: str):
+        return f"""Hi {name}
 
 Trouble signing in? We received a request to reset your password.
 
-If you would like to continue with resetting the password for your account, copy and paste this URL into your browser: {reset_url}
+To reset your password, paste this URL into your browser: {reset_url}
 
-If you did not request this password reset, please ignore this message.
+This link will expire in 30 minutes. If you did not request this password reset, you may safely ignore this message.
 
 Cheers,
--PwrLab Team
+-DashLX Team
 """

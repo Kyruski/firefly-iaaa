@@ -36,8 +36,9 @@ class ResetPassword(GenericEndpoint):
         if found_user:
             cache_id = str(uuid.uuid4())
             self._cache.set(cache_id, value={'message': 'reset', 'username': username}, ttl=1800)
+            name = found_user.given_name if found_user.given_name is not None else found_user.email
             try:
-                self._send_reset_email(username, cache_id)
+                self._send_reset_email(username, cache_id, name)
             except Exception as e:
                 return False
         return {'message': 'success'}

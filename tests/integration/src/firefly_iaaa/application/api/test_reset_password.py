@@ -33,7 +33,7 @@ async def test_reset_password(client, transport, cache, registry, context_map):
     # transport.register_handler('firefly_messaging.SendSESEmail', abc)
     transport.register_handler('firefly_messaging.SendSESEmail', lambda x: {'MessageId': 'abc', 'ResponseMetadata': {'RequestId': 'a2591961-61ed-4f24-b200-7efa77804de9', 'HTTPStatusCode': 200}})
 
-    username = 'jamey.boyett@pwrlab.com'
+    username = 'jamey.boyett@dashlx.com'
 
     first_response = await client.post('/firefly-iaaa/iaaa/reset', data=json.dumps({}))
     assert first_response.status == 500
