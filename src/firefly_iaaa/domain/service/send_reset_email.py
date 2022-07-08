@@ -22,10 +22,10 @@ class SendResetEmail(ff.DomainService):
     _reset_url: str = None
     _from_address: str = None
 
-    def __call__(self, username: str, cache_id: str, name: str, **kwargs):
+    def __call__(self, username: str, cache_id: str, **kwargs):
         reset_url = f'{self._reset_url}?request_id={cache_id}'
-        html_body = self._gen_html_body(reset_url, name)
-        text_body = self._gen_text_body(reset_url, name)
+        html_body = self._gen_html_body(reset_url)
+        text_body = self._gen_text_body(reset_url)
 
         data = {
             'subject': 'DashLX Password Reset',
@@ -42,9 +42,8 @@ class SendResetEmail(ff.DomainService):
         except Exception as e:
             return False
 
-    def _gen_html_body(self, reset_url: str, name: str):
-        return f"""<h1>Hi {name}</h1>
-<br><br>
+    def _gen_html_body(self, reset_url: str):
+        return f"""
 <h4>
 Trouble signing in? We received a request to reset your password.
 <br><br>
@@ -61,10 +60,8 @@ Cheers,
 <h3>DashLX Team</h3>
 """
 
-    def _gen_text_body(self, reset_url: str, name: str):
-        return f"""Hi {name}
-
-Trouble signing in? We received a request to reset your password.
+    def _gen_text_body(self, reset_url: str):
+        return f"""Trouble signing in? We received a request to reset your password.
 
 To reset your password, paste this URL into your browser: {reset_url}
 
