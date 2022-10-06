@@ -20,7 +20,7 @@ import firefly_iaaa.domain as domain
 
 
 class OAuthLogin(ff.DomainService, ff.LoggerAware):
-    _cognito_login: domain.CognitoLogin = None
+    _cognito_client: domain.CognitoClient = None
     _registry: ff.Registry = None
     _oauth_register: domain.OAuthRegister = None
     _create_token: domain.CreateToken = None
@@ -31,16 +31,30 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
         password = passed_in_kwargs['password']
         tokens = [None, None]
 
+        # cognito_resp = self._try_cognito(username, password, found_user, passed_in_kwargs)
+
+
+
         found_user: domain.User = self._registry(domain.User).find(lambda x: (x.email.lower() == username) & (x.deleted_at.is_none()))
         if found_user:
             passed_in_kwargs['grant_type'] = 'password'
-            self.info('We found a user, trying to login with password')
-            if found_user.correct_password(password):
-                resp = self._get_tokens(found_user, passed_in_kwargs)
+            self.info('We found a user, trying to login with cognito')
+            # self.info('We found a user, trying to login with password')
+            cognito_resp = self._try_cognito(username, password)
+
+            if cognito_resp:
+                resp = [None, cognito_resp]
             else:
-                self.info('User password incorrect, trying Cognito')
-                resp = self._try_cognito(username, password, found_user, passed_in_kwargs)
-                if resp is None:
+                self.info('No cognito user found, trying In House')
+                if found_user.correct_password(password):
+                    cognito_resp = self._add_cognito_user()
+                    if cognito_resp:
+                        cognito_resp = self._try_cognito(username, password)
+                        if cognito_resp:
+                            resp = [None, cognito_resp]
+                    else:
+                        Some error
+                else:
                     raise ff.UnauthenticatedError('Incorrect username/password combination')
         else:
             raise ff.NotFound()
@@ -50,27 +64,41 @@ class OAuthLogin(ff.DomainService, ff.LoggerAware):
 
         return resp
 
-    def _try_cognito(self, username: str, password: str, user: domain.User, passed_in_kwargs: dict):
+    # def _try_cognito(self, username: str, password: str, user: domain.User, passed_in_kwargs: dict):
+    def _try_cognito(self, username: str, password: str):
         self.debug('Switching to Cognito Log in')
         try:
-            resp = self._cognito_login(username, password) #data has tokens and idToken
-            message, error, success, _ = resp.values()
+            resp = self._cognito_client.login(username, password) #data has tokens and idToken
+            message, error, success, data = resp.values()
             if error:
                 if message:
-                    ff.UnauthenticatedError(message)
+                    self.error(f'Tried logging in with cognito. Receive error: {message}')
                 else:
-                    ff.UnauthenticatedError(error)
+                    self.error(f'Tried logging in with cognito. Receive error: {error}')
             if success:
-                resp = self._add_cognito_user(password, user, passed_in_kwargs)
-                return resp
+                # resp = self._add_cognito_user(password, user, passed_in_kwargs)
+                return data
         except Exception as e:
-            raise ff.UnauthenticatedError() from e
+            self.error(f'Tried logging in with cognito. Receive error: {e}, {str(e)}')
+        return None
 
-    def _add_cognito_user(self, password: str, user: domain.User, passed_in_kwargs):
+    def _add_cognito_user(self, username: str, password: str, user: domain.User, passed_in_kwargs):
+        self.debug('Adding user to Cognito Log in')
+        try:
+            resp = self._cognito_client.register(username, password) #data has tokens and idToken
+        except:
+            asdfd
+
+
+
+
+
         self.debug('Transfering Cognito user to In-House user')
         user.salt = bcrypt.gensalt().decode()
         user.change_password(password)
         resp = self._get_tokens(user, passed_in_kwargs)
+
+            # cognito_resp = self._try_cognito(username, password)
         if resp[1]['tokens']:
             return resp
         raise Exception('Something went wrong')

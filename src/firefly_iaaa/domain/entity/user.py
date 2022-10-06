@@ -26,7 +26,7 @@ from firefly_iaaa.domain.value_object.address import Address
 
 
 class User(ff.AggregateRoot):
-    # OpenID standard fields
+    # OpenID standard fieldsw
     sub: str = ff.id_(validators=[ff.HasLength(36)])
     name: str = ff.optional()
     given_name: str = ff.optional()

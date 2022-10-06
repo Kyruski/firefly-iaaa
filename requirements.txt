@@ -8,3 +8,4 @@ oauthlib==3.1.1
 PyJWT[crypto]==2.1.0
 pytest==6.2.5
 pytest-aiohttp==0.3.0
+warrant==0.6.1

@@ -18,19 +18,22 @@ import os
 
 import firefly as ff
 from firefly import domain as ffd
-from firefly_iaaa.domain.service.decode_token import DecodeToken
+from firefly_iaaa import domain
 import boto3
 
 
-class CognitoLogin(ff.DomainService, ff.LoggerAware):
-    _decode_token: DecodeToken = None
+
+class CognitoClient(ff.DomainService, ff.LoggerAware):
+    _decode_token: domain.DecodeToken = None
     _kernel: ffd.Kernel = None
+    _client = boto3.client('cognito-idp')
 
 
-    def __call__(self, username: str, password: str):
-        client = boto3.client('cognito-idp')
 
-        resp, msg = self._initiate_auth(client, username, password)
+
+    def login(self, username: str, password: str):
+        
+        resp, msg = self._initiate_auth(username, password)
 
         if msg != None:
             return {'message': msg, 
@@ -58,9 +61,38 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
             }
 
 
-    def _initiate_auth(self, client, username, password):
+    def register(self, username: str, password: str, **kwargs):
+        resp, msg = self._sign_up(username, password, kwargs)
+
+        if msg != None:
+            return {'message': msg, 
+                    'error': 'No user exists', 'success': False, 'data': None}
+        if resp.get('AuthenticationResult'):
+            return {
+                'message': 'success', 
+                'error': '',
+                'success': True, 
+                'data': {
+                    'id_token': resp['AuthenticationResult']['IdToken'],
+                    'refresh_token': resp['AuthenticationResult']['RefreshToken'],
+                    'access_token': resp['AuthenticationResult']['AccessToken'],
+                    'expires_in': resp['AuthenticationResult']['ExpiresIn'],
+                    'token_type': resp['AuthenticationResult']['TokenType'],
+                    # 'decoded_id_token': self._decode_token(resp['AuthenticationResult']['IdToken'])
+                }
+            }
+        else:
+            return {
+                'error': 'Something went wrong, no authentication results', 
+                'success': False, 
+                'data': None,
+                'message': 'error'
+            }
+
+
+    def _initiate_auth(self, username, password):
         try:
-            resp = client.initiate_auth(
+            resp = self._client.initiate_auth(
                         ClientId=os.environ['CLIENT_ID'],
                         AuthFlow='USER_PASSWORD_AUTH',
                         AuthParameters={
@@ -71,12 +103,44 @@ class CognitoLogin(ff.DomainService, ff.LoggerAware):
                         'username': username,
                         'password': password,
                     })
-        except client.exceptions.NotAuthorizedException:
+
+        except self._client.exceptions.NotAuthorizedException:
             return None, 'The username or password is incorrect'
-        except client.exceptions.UserNotConfirmedException:
+        except self._client.exceptions.UserNotConfirmedException:
             return None, 'User is not confirmed'
         except KeyError as e:
             return None, f'Key Error: {e.__str__()}'
         except Exception as e:
             return None, e.__str__()
         return resp, None
+
+
+    def _sign_up(self, username, password, kwargs):
+        #try cognito login, if not, try pwrlab login, if not, make pwrlab, make cognito, update pwrlab
+        user_attrs = [
+            {
+            'Name': k,
+            'Value': v
+            } for k, v in kwargs.items() if k in domain.User
+        ]
+        try:
+            resp = self._client.sign_up(
+                ClientId=os.environ['CLIENT_ID'],
+                Username=username,
+                Password=password,
+                UserAttributes=user_attrs
+            )
+            print(resp)
+            if 'UserSub' in resp:
+                #DO somethng
+                return resp['UserSub']
+        except self._client.exceptions.NotAuthorizedException:
+            return None, 'The username or password is incorrect'
+        except self._client.exceptions.UserNotConfirmedException:
+            return None, 'User is not confirmed'
+        except KeyError as e:
+            return None, f'Key Error: {e.__str__()}'
+        except Exception as e:
+            return None, e.__str__()
+        return resp, None
+
